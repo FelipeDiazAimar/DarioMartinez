@@ -9,8 +9,8 @@ export function Footer() {
           <Image
             src="/LOGO.png"
             alt="Darío Martínez Computación"
-            width={150}
-            height={25}
+            width={120}
+            height={20}
           />
         </Link>
         <p className="text-sm text-foreground/60" suppressHydrationWarning>

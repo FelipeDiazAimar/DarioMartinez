@@ -33,8 +33,8 @@ export function Header() {
           <Image
             src="/LOGO.png"
             alt="Darío Martínez Computación"
-            width={200}
-            height={33}
+            width={150}
+            height={25}
             priority
           />
         </Link>
@@ -75,8 +75,8 @@ export function Header() {
                      <Image
                         src="/LOGO.png"
                         alt="Darío Martínez Computación"
-                        width={200}
-                        height={33}
+                        width={150}
+                        height={25}
                       />
                   </Link>
                 </SheetTitle>
