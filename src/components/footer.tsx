@@ -7,10 +7,10 @@ export function Footer() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/LOGO11.png"
+            src="/LOGO1.png"
             alt="Soluciones Tecnológicas"
-            width={120}
-            height={20}
+            width={40}
+            height={40}
           />
         </Link>
         <p className="text-sm text-foreground/60" suppressHydrationWarning>

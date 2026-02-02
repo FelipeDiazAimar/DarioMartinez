@@ -76,7 +76,7 @@ export function Header() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="mr-6 flex items-center">
             <Image
-              src="/LOGO.png"
+              src="/LOGO1.png"
               alt="Soluciones Tecnológicas"
               width={60}
               height={60}
@@ -136,7 +136,7 @@ export function Header() {
                   <SheetTitle>
                     <Link href="/" onClick={closeSheet}>
                       <Image
-                          src="/LOGO.png"
+                          src="/LOGO1.png"
                           alt="Soluciones Tecnológicas"
                           width={60}
                           height={60}
