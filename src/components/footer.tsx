@@ -13,7 +13,7 @@ export function Footer() {
             height={25}
           />
         </Link>
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-foreground/60" suppressHydrationWarning>
           © {new Date().getFullYear()} Todos los derechos reservados.
         </p>
       </div>
