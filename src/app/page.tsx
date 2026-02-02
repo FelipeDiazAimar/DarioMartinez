@@ -64,11 +64,10 @@ export default function Home() {
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                  Darío Martínez Computación
+                  Soluciones integrales en computación y tecnología
                 </h1>
                 <p className="max-w-[600px] text-foreground/80 md:text-xl">
-                  Soluciones integrales en computación, redes y tecnología para
-                  vos y tu empresa.
+                  Servicio técnico profesional para PC y notebooks, instalación de software, optimización de hardware y configuración de redes.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">

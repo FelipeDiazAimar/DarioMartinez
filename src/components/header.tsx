@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, MonitorSmartphone } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,11 +29,14 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="mr-6 flex items-center gap-2">
-          <MonitorSmartphone className="h-6 w-6 text-primary" />
-          <span className="hidden font-bold sm:inline-block">
-            Darío Martínez Computación
-          </span>
+        <Link href="/" className="mr-6 flex items-center">
+          <Image
+            src="/logo.png"
+            alt="Darío Martínez Computación"
+            width={200}
+            height={33}
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation */}
@@ -66,9 +70,15 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <MonitorSmartphone className="h-6 w-6 text-primary" />
-                  <span>D.M. Computación</span>
+                <SheetTitle>
+                  <Link href="/" onClick={closeSheet}>
+                     <Image
+                        src="/logo.png"
+                        alt="Darío Martínez Computación"
+                        width={200}
+                        height={33}
+                      />
+                  </Link>
                 </SheetTitle>
               </SheetHeader>
               <nav className="grid gap-6 text-lg font-medium mt-8">
