@@ -76,7 +76,7 @@ export function Header() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="mr-6 flex items-center">
             <Image
-              src="/LOGO1.png"
+              src="/LOGO.png"
               alt="Soluciones Tecnológicas"
               width={60}
               height={60}
@@ -97,7 +97,7 @@ export function Header() {
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="p-0 text-sm font-medium transition-colors hover:text-primary focus-visible:ring-0"
+                className="p-0 text-sm font-medium transition-colors hover:text-primary focus-visible:ring-0 hover:bg-white"
               >
                 Productos
                 <ChevronDown
@@ -136,10 +136,10 @@ export function Header() {
                   <SheetTitle>
                     <Link href="/" onClick={closeSheet}>
                       <Image
-                          src="/LOGO1.png"
+                          src="/LOGO.png"
                           alt="Soluciones Tecnológicas"
-                          width={150}
-                          height={25}
+                          width={60}
+                          height={60}
                           className="h-auto"
                         />
                     </Link>
