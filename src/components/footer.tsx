@@ -8,7 +8,7 @@ export function Footer() {
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/LOGO.png"
-            alt="Darío Martínez Computación"
+            alt="Soluciones Tecnológicas"
             width={120}
             height={20}
           />

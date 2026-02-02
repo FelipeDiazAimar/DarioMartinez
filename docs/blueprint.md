@@ -10,7 +10,7 @@
 
 ## Style Guidelines:
 
-- Primary color: Deep blue (#00308F) to reflect trust and professionalism, based on the logo.
+- Primary color: Deep blue (#00308F) to reflect trust and professionalism, based on the LOGO1.
 - Background color: Light blue (#E0F2F7), a heavily desaturated version of the primary, for a clean, modern background.
 - Accent color: A slightly violet-blue (#3050AF) that provides enough saturation and brightness to stand out from the primary, drawing attention to calls to action.
 - Body and headline font: 'Inter', a sans-serif font, to maintain a modern and clear aesthetic, suitable for both headlines and body text.

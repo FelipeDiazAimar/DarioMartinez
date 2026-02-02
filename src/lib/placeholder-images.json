@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "Hero image showing computer repair tools.",
+      "imageUrl": "https://images.unsplash.com/photo-1613483187636-c2024013d54a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb21wdXRlciUyMHJlcGFpcnxlbnwwfHx8fDE3NzAwMzc0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "computer repair"
+    },
+    {
+      "id": "fiscal-printer",
+      "description": "Image of a fiscal printer.",
+      "imageUrl": "https://images.unsplash.com/photo-1630327722923-5ebd594ddda9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmaXNjYWwlMjBwcmludGVyfGVufDB8fHx8MTc3MDAzNzQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fiscal printer"
+    },
+    {
+      "id": "desktop-pc",
+      "description": "Image of a desktop computer.",
+      "imageUrl": "https://images.unsplash.com/photo-1586952518485-11b180e92764?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZXNrdG9wJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzcwMDM3NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "desktop computer"
+    },
+    {
+      "id": "notebook",
+      "description": "Image of a notebook laptop.",
+      "imageUrl": "https://images.unsplash.com/photo-1693206578603-8a6c02d71116?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxub3RlYm9vayUyMGxhcHRvcHxlbnwwfHx8fDE3NzAwMzc0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "notebook laptop"
+    },
+    {
+      "id": "ticket-printer",
+      "description": "Image of a ticket printer.",
+      "imageUrl": "https://images.unsplash.com/photo-1765410848040-485582575f36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVjZWlwdCUyMHByaW50ZXJ8ZW58MHx8fHwxNzcwMDM3NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "receipt printer"
+    },
+    {
+      "id": "calculator",
+      "description": "Image of a calculator.",
+      "imageUrl": "https://images.unsplash.com/photo-1746221331496-a87689fc8eb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYWxjdWxhdG9yJTIwb2ZmaWNlfGVufDB8fHx8MTc3MDAzNzQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "calculator office"
+    },
+    {
+      "id": "barcode-scanner",
+      "description": "Image of a barcode scanner.",
+      "imageUrl": "https://images.unsplash.com/photo-1595079676601-f1adf5be5dee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiYXJjb2RlJTIwc2Nhbm5lcnxlbnwwfHx8fDE3NzAwMzc0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "barcode scanner"
+    }
+  ]
 }

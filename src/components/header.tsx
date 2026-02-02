@@ -17,7 +17,7 @@ import { WhatsAppIcon } from "./icons/whatsapp-icon";
 
 const navLinks = [
   { href: "#servicios", label: "Servicios" },
-  { href: "#sobre-nosotros", label: "Sobre Nosotros" },
+  { href: "#productos", label: "Productos" },
   { href: "#contacto", label: "Contacto" },
 ];
 
@@ -32,9 +32,9 @@ export function Header() {
         <Link href="/" className="mr-6 flex items-center">
           <Image
             src="/LOGO.png"
-            alt="Darío Martínez Computación"
-            width={150}
-            height={25}
+            alt="Logo"
+            width={60}
+            height={60}
             priority
           />
         </Link>
@@ -74,7 +74,7 @@ export function Header() {
                   <Link href="/" onClick={closeSheet}>
                      <Image
                         src="/LOGO.png"
-                        alt="Darío Martínez Computación"
+                        alt="Logo"
                         width={150}
                         height={25}
                       />
