@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/logo.png"
+            src="/LOGO.png"
             alt="Darío Martínez Computación"
             width={150}
             height={25}

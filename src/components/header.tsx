@@ -31,7 +31,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="mr-6 flex items-center">
           <Image
-            src="/logo.png"
+            src="/LOGO.png"
             alt="Darío Martínez Computación"
             width={200}
             height={33}
@@ -73,7 +73,7 @@ export function Header() {
                 <SheetTitle>
                   <Link href="/" onClick={closeSheet}>
                      <Image
-                        src="/logo.png"
+                        src="/LOGO.png"
                         alt="Darío Martínez Computación"
                         width={200}
                         height={33}
