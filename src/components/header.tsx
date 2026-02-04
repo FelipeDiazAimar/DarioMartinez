@@ -131,7 +131,7 @@ export function Header() {
               </Link>
             </Button>
             <Button asChild className="hidden md:flex">
-              <Link href="https://www.instagram.com" target="_blank">
+              <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank">
                 <Instagram className="mr-2 h-5 w-5" />
                 Instagram
               </Link>
@@ -213,7 +213,7 @@ export function Header() {
                     </Link>
                   </Button>
                   <Button asChild size="lg" className="w-full" variant="outline">
-                    <Link href="https://www.instagram.com" target="_blank">
+                    <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank">
                       <Instagram className="mr-2 h-5 w-5" />
                       Seguinos en Instagram
                     </Link>

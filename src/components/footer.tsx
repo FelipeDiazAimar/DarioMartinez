@@ -52,10 +52,10 @@ export function Footer() {
             <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
               <WhatsAppIcon className="h-6 w-6" />
             </Link>
-            <Link href="https://www.instagram.com" target="_blank" aria-label="Instagram" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank" aria-label="Instagram" className="text-foreground/80 hover:text-primary transition-colors">
               <Instagram className="h-6 w-6" />
             </Link>
-            <Link href="https://www.facebook.com" target="_blank" aria-label="Facebook" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href="https://www.facebook.com/profile.php?id=61585160335205" target="_blank" aria-label="Facebook" className="text-foreground/80 hover:text-primary transition-colors">
               <FacebookIcon className="h-6 w-6" />
             </Link>
             <Link href="https://share.google/WFdtCtDtE7RPHKL5o" target="_blank" aria-label="Google Maps" className="text-foreground/80 hover:text-primary transition-colors">
