@@ -11,6 +11,7 @@ import {
   Wifi,
   Users,
   HardDrive,
+  ArrowRight,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -248,8 +249,8 @@ export default function Home() {
                     <CardFooter>
                        <Button asChild className="w-full">
                           <Link href="https://wa.me/5491123456789" target="_blank">
-                            <WhatsAppIcon className="mr-2 h-5 w-5" />
-                            Consultar Precio
+                            Ver más
+                            <ArrowRight className="ml-2 h-5 w-5" />
                           </Link>
                         </Button>
                     </CardFooter>
