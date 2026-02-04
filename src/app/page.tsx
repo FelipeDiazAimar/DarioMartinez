@@ -31,9 +31,7 @@ import {
 } from '@/components/ui/carousel';
 import { ContactForm } from '@/components/contact-form';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
-import placeholderData from '@/lib/placeholder-images.json';
-
-const PlaceHolderImages = placeholderData.placeholderImages;
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const services = [
   {
