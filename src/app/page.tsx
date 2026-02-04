@@ -212,6 +212,14 @@ export default function Home() {
               </Card>
             ))}
           </div>
+          <div className="mt-8 flex justify-center">
+            <Button asChild size="lg">
+              <Link href="#contacto">
+                Ir
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
