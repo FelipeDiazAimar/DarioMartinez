@@ -319,7 +319,7 @@ export default function Home() {
 
       <section
         id="contacto"
-        className="w-full bg-muted py-12 md:py-24 lg:py-32"
+        className="w-full bg-muted pt-6 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32"
       >
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
