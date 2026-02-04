@@ -24,7 +24,7 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
   phone: z.string().regex(/^\+\d{10,14}$/, {
-    message: "Por favor, ingresá un número de teléfono válido (ej: +543564504977).",
+    message: "Por favor, ingresá un número de teléfono válido (ej: +5493564504977).",
   }),
   message: z.string().min(10, {
     message: "El mensaje debe tener al menos 10 caracteres.",
@@ -43,31 +43,35 @@ const PhoneInput = React.forwardRef<
   const getInitialParts = React.useCallback((v: string) => {
     const digits = v.replace(/\D/g, '');
     const country = digits.slice(0, 2);
-    const area = digits.slice(2, 6);
-    const local = digits.slice(6, 12);
-    return { country, area, local };
+    const mobilePrefix = digits.slice(2, 3);
+    const area = digits.slice(3, 7);
+    const local = digits.slice(7, 13);
+    return { country, mobilePrefix, area, local };
   }, []);
 
   const [country, setCountry] = React.useState(() => getInitialParts(value).country);
+  const [mobilePrefix, setMobilePrefix] = React.useState(() => getInitialParts(value).mobilePrefix);
   const [area, setArea] = React.useState(() => getInitialParts(value).area);
   const [local, setLocal] = React.useState(() => getInitialParts(value).local);
 
+  const mobilePrefixRef = React.useRef<HTMLInputElement>(null);
   const areaRef = React.useRef<HTMLInputElement>(null);
   const localRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    const newCombined = `+${country}${area}${local}`;
+    const newCombined = `+${country}${mobilePrefix}${area}${local}`;
     if (value !== newCombined) {
-      const { country, area, local } = getInitialParts(value);
+      const { country, mobilePrefix, area, local } = getInitialParts(value);
       setCountry(country);
+      setMobilePrefix(mobilePrefix);
       setArea(area);
       setLocal(local);
     }
-  }, [value, country, area, local, getInitialParts]);
+  }, [value, country, mobilePrefix, area, local, getInitialParts]);
 
-  const triggerChange = (parts: { country: string; area: string; local: string }) => {
+  const triggerChange = (parts: { country: string; mobilePrefix: string; area: string; local: string }) => {
     if (onChange) {
-      const fullNumber = `+${parts.country}${parts.area}${parts.local}`;
+      const fullNumber = `+${parts.country}${parts.mobilePrefix}${parts.area}${parts.local}`;
       onChange(fullNumber);
     }
   };
@@ -75,8 +79,17 @@ const PhoneInput = React.forwardRef<
   const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     setCountry(val);
-    triggerChange({ country: val, area, local });
-    if (val.length === 2 && areaRef.current) {
+    triggerChange({ country: val, mobilePrefix, area, local });
+    if (val.length === 2 && mobilePrefixRef.current) {
+      mobilePrefixRef.current.focus();
+    }
+  };
+
+  const handleMobilePrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    setMobilePrefix(val);
+    triggerChange({ country, mobilePrefix: val, area, local });
+    if (val.length === 1 && areaRef.current) {
       areaRef.current.focus();
     }
   };
@@ -84,7 +97,7 @@ const PhoneInput = React.forwardRef<
   const handleAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     setArea(val);
-    triggerChange({ country, area: val, local });
+    triggerChange({ country, mobilePrefix, area: val, local });
     if (val.length === 4 && localRef.current) {
       localRef.current.focus();
     }
@@ -93,7 +106,7 @@ const PhoneInput = React.forwardRef<
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     setLocal(val);
-    triggerChange({ country, area, local: val });
+    triggerChange({ country, mobilePrefix, area, local: val });
   };
 
   return (
@@ -116,6 +129,17 @@ const PhoneInput = React.forwardRef<
           style={{ height: '30px' }}
         />
       </div>
+      <div className="h-4 w-[1px] bg-border" />
+      <Input
+        ref={mobilePrefixRef}
+        type="tel"
+        placeholder="9"
+        maxLength={1}
+        value={mobilePrefix}
+        onChange={handleMobilePrefixChange}
+        className="w-6 border-0 p-0 shadow-none focus-visible:ring-0"
+        style={{ height: '30px' }}
+      />
       <div className="h-4 w-[1px] bg-border" />
       <Input
         ref={areaRef}
