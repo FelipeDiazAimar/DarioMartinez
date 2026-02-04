@@ -21,8 +21,8 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  email: z.string().email({
-    message: "Por favor, ingresá un email válido.",
+  phone: z.string().min(8, {
+    message: "Por favor, ingresá un número de teléfono válido.",
   }),
   message: z.string().min(10, {
     message: "El mensaje debe tener al menos 10 caracteres.",
@@ -36,7 +36,7 @@ export function ContactForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
+      phone: "",
       message: "",
     },
   });
@@ -72,12 +72,12 @@ export function ContactForm() {
         />
         <FormField
           control={form.control}
-          name="email"
+          name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="sr-only">Email</FormLabel>
+              <FormLabel className="sr-only">Teléfono</FormLabel>
               <FormControl>
-                <Input placeholder="Tu email" {...field} />
+                <Input type="tel" placeholder="Tu teléfono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
