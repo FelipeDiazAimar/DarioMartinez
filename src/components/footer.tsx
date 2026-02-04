@@ -58,7 +58,7 @@ export function Footer() {
             <Link href="https://www.facebook.com" target="_blank" aria-label="Facebook" className="text-foreground/80 hover:text-primary transition-colors">
               <FacebookIcon className="h-6 w-6" />
             </Link>
-            <Link href="https://www.google.com/maps/place/Bv.+25+de+Mayo+1500,+X2400+San+Francisco,+C%C3%B3rdoba,+Argentina" target="_blank" aria-label="Google Maps" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href="https://www.google.com/maps/place/Av.+del+Libertador+(N)+163,+X2400+San+Francisco,+C%C3%B3rdoba,+Argentina" target="_blank" aria-label="Google Maps" className="text-foreground/80 hover:text-primary transition-colors">
               <MapsIcon className="h-6 w-6" />
             </Link>
           </div>
@@ -84,7 +84,7 @@ export function Footer() {
           <h3 className="mb-4 text-lg font-semibold">Encontranos</h3>
           <div className="overflow-hidden rounded-md border">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.503932857463!2d-62.08636732560205!3d-31.42777174780521!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ff57338c9%3A0x890c24c7f7f8a8b8!2sBv.%2025%20de%20Mayo%201500%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1ses-419!2sar!4v1714502829283!5m2!1ses-419!2sar"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.56037194451!2d-62.08375602498263!3d-31.42621009707241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee0d8d2d1%3A0x39a039777591667!2sAv.%20del%20Libertador%20(N)%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1ses-419!2sar!4v1719522055694!5m2!1ses-419!2sar"
               width="100%"
               height="200"
               style={{ border: 0 }}
