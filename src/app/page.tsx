@@ -213,7 +213,7 @@ export default function Home() {
             ))}
           </div>
           <div className="mt-8 flex justify-center">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="rounded-full">
               <Link href="#contacto">
                 Ir
                 <ArrowRight className="ml-2 h-5 w-5" />
