@@ -1,6 +1,24 @@
 {
   "placeholderImages": [
     {
+      "id": "carousel-1",
+      "description": "Técnico reparando una computadora.",
+      "imageUrl": "https://images.unsplash.com/photo-1591799264318-7e6e747338b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0ZWNobmljaWFuJTIwcmVwYWlyaW5nJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzcxNzgzNjM1fDA&ixlib=rb-4.1.0&q=80&w=1920",
+      "imageHint": "technician computer repair"
+    },
+    {
+      "id": "carousel-2",
+      "description": "Primer plano de una placa de circuito.",
+      "imageUrl": "https://images.unsplash.com/photo-1555618423-69b40a458495?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjbG9zZSUyMHVwJTIwY2lyY3VpdCUyMGJvYXJkfGVufDB8fHx8MTc3MTc4MzYzNXww&ixlib=rb-4.1.0&q=80&w=1920",
+      "imageHint": "circuit board"
+    },
+    {
+      "id": "carousel-3",
+      "description": "Componentes de computadora organizados.",
+      "imageUrl": "https://images.unsplash.com/photo-1614036954848-f2b9d9354050?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvcmdhbml6ZWQlMjBjb21wdXRlciUyMHBhcnRzfGVufDB8fHx8MTc3MTc4MzYzNXww&ixlib=rb-4.1.0&q=80&w=1920",
+      "imageHint": "computer components"
+    },
+    {
       "id": "hero-image",
       "description": "Hero image showing computer repair tools.",
       "imageUrl": "https://images.unsplash.com/photo-1613483187636-c2024013d54a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb21wdXRlciUyMHJlcGFpcnxlbnwwfHx8fDE3NzAwMzc0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",

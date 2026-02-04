@@ -1,5 +1,9 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import * as React from 'react';
+import Autoplay from 'embla-carousel-autoplay';
 import {
   Cpu,
   ShieldCheck,
@@ -18,6 +22,13 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import { ContactForm } from '@/components/contact-form';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -92,9 +103,44 @@ const products = [
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
+  const carouselImages = PlaceHolderImages.filter(img => img.id.startsWith('carousel-'));
+  const plugin = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
 
   return (
     <>
+      <section className="w-full">
+        <Carousel
+          plugins={[plugin.current]}
+          className="w-full"
+          onMouseEnter={plugin.current.stop}
+          onMouseLeave={plugin.current.reset}
+          opts={{
+            loop: true,
+          }}
+        >
+          <CarouselContent>
+            {carouselImages.map((image, index) => (
+              <CarouselItem key={image.id}>
+                <div className="relative h-[400px] w-full md:h-[500px] lg:h-[600px]">
+                  <Image
+                    src={image.imageUrl}
+                    alt={image.description}
+                    data-ai-hint={image.imageHint}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
+          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
+        </Carousel>
+      </section>
+
       <section id="inicio" className="w-full py-12 md:py-20 lg:py-28">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
