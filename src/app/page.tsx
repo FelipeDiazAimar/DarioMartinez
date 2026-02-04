@@ -323,6 +323,13 @@ export default function Home() {
       >
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
+            <Image
+                src="/LOGO1.png"
+                alt="Darío Martínez Computación"
+                width={100}
+                height={100}
+                className="mx-auto"
+            />
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">
               Contactanos sin compromiso
             </h2>
