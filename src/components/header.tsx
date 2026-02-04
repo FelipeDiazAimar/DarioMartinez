@@ -78,7 +78,7 @@ export function Header() {
           <Link href="/" className="mr-6 flex items-center">
             <Image
               src="/LOGO1.png"
-              alt="Soluciones Tecnológicas"
+              alt="Darío Martínez Computación"
               width={60}
               height={60}
               className="h-auto"
@@ -151,7 +151,7 @@ export function Header() {
                     <Link href="/" onClick={closeSheet}>
                       <Image
                           src="/LOGO1.png"
-                          alt="Soluciones Tecnológicas"
+                          alt="Darío Martínez Computación"
                           width={60}
                           height={60}
                           className="h-auto"

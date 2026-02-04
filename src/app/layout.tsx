@@ -6,7 +6,7 @@ import { Footer } from '@/components/footer';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Soluciones Tecnológicas',
+  title: 'Darío Martínez Computación',
   description:
     'Soluciones en computación, redes y tecnología. Venta de equipos, reparación de PC, notebooks, instalación de software y más.',
   keywords: 'reparación pc, servicio técnico, computación, redes, wifi, software, hardware, notebooks, impresoras, calculadoras',

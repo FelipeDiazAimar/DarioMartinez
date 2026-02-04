@@ -40,7 +40,7 @@ export function Footer() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/LOGO1.png"
-              alt="Soluciones Tecnológicas"
+              alt="Darío Martínez Computación"
               width={60}
               height={60}
             />
@@ -101,7 +101,7 @@ export function Footer() {
       <div className="border-t border-foreground/10">
         <div className="container mx-auto flex h-14 items-center justify-center px-4 md:px-6">
           <p className="text-sm text-foreground/60" suppressHydrationWarning>
-            © {new Date().getFullYear()} Soluciones Tecnológicas. Todos los derechos reservados.
+            © {new Date().getFullYear()} Darío Martínez Computación. Todos los derechos reservados.
           </p>
         </div>
       </div>
