@@ -84,7 +84,7 @@ export function Footer() {
           <h3 className="mb-4 text-lg font-semibold">Encontranos</h3>
           <div className="overflow-hidden rounded-md border">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.56037194451!2d-62.083756024367336!3d-31.42621009707241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee0d8d2d1%3A0x39a039777591667!2sDar%C3%ADo%20Mart%C3%ADnez%20Computaci%C3%B3n!5e0!3m2!1ses-419!2sar!4v1721225066803!5m2!1ses-419!2sar"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.56037194451!2d-62.083756024367336!3d-31.42621009707241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee0d8d2d1%3A0x39a039777591667!2sDar%C3%ADo%20Mart%C3%ADnez%20Computaci%C3%B3n!5e0!3m2!1ses!2sar!4v1721327178821!5m2!1ses!2sar"
               width="100%"
               height="200"
               style={{ border: 0 }}
