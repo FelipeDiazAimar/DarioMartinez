@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import * as React from 'react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,18 +17,129 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  phone: z.string().refine((val) => /^[0-9+\s()-]{8,20}$/.test(val), {
-    message: "Por favor, ingresá un número de teléfono válido de entre 8 y 20 caracteres.",
+  phone: z.string().regex(/^\+\d{10,14}$/, {
+    message: "Por favor, ingresá un número de teléfono válido (ej: +543564504977).",
   }),
   message: z.string().min(10, {
     message: "El mensaje debe tener al menos 10 caracteres.",
   }),
 });
+
+
+const PhoneInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    value?: string;
+    onChange?: (value: string) => void;
+    className?: string;
+  }
+>(({ value = '', onChange, className }, ref) => {
+  const getInitialParts = React.useCallback((v: string) => {
+    const digits = v.replace(/\D/g, '');
+    const country = digits.slice(0, 2);
+    const area = digits.slice(2, 6);
+    const local = digits.slice(6, 12);
+    return { country, area, local };
+  }, []);
+
+  const [country, setCountry] = React.useState(() => getInitialParts(value).country);
+  const [area, setArea] = React.useState(() => getInitialParts(value).area);
+  const [local, setLocal] = React.useState(() => getInitialParts(value).local);
+
+  const areaRef = React.useRef<HTMLInputElement>(null);
+  const localRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const newCombined = `+${country}${area}${local}`;
+    if (value !== newCombined) {
+      const { country, area, local } = getInitialParts(value);
+      setCountry(country);
+      setArea(area);
+      setLocal(local);
+    }
+  }, [value, country, area, local, getInitialParts]);
+
+  const triggerChange = (parts: { country: string; area: string; local: string }) => {
+    if (onChange) {
+      const fullNumber = `+${parts.country}${parts.area}${parts.local}`;
+      onChange(fullNumber);
+    }
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    setCountry(val);
+    triggerChange({ country: val, area, local });
+    if (val.length === 2 && areaRef.current) {
+      areaRef.current.focus();
+    }
+  };
+
+  const handleAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    setArea(val);
+    triggerChange({ country, area: val, local });
+    if (val.length === 4 && localRef.current) {
+      localRef.current.focus();
+    }
+  };
+
+  const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    setLocal(val);
+    triggerChange({ country, area, local: val });
+  };
+
+  return (
+    <div
+      className={cn(
+        'flex h-10 w-full items-center rounded-md border border-input bg-background text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+        className
+      )}
+    >
+      <div className="flex items-center pl-3">
+        <span className="text-muted-foreground">+</span>
+        <Input
+          ref={ref}
+          type="tel"
+          placeholder="54"
+          maxLength={2}
+          value={country}
+          onChange={handleCountryChange}
+          className="w-8 border-0 p-0 shadow-none focus-visible:ring-0"
+        />
+      </div>
+      <div className="h-4 w-[1px] bg-border" />
+      <Input
+        ref={areaRef}
+        type="tel"
+        placeholder="3564"
+        maxLength={4}
+        value={area}
+        onChange={handleAreaChange}
+        className="w-14 border-0 p-1 shadow-none focus-visible:ring-0"
+      />
+      <div className="h-4 w-[1px] bg-border" />
+      <Input
+        ref={localRef}
+        type="tel"
+        placeholder="504977"
+        maxLength={6}
+        value={local}
+        onChange={handleLocalChange}
+        className="flex-1 border-0 p-1 shadow-none focus-visible:ring-0"
+      />
+    </div>
+  );
+});
+PhoneInput.displayName = 'PhoneInput';
+
 
 export function ContactForm() {
   const { toast } = useToast();
@@ -36,7 +148,7 @@ export function ContactForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      phone: "",
+      phone: "+54",
       message: "",
     },
   });
@@ -77,16 +189,7 @@ export function ContactForm() {
             <FormItem>
               <FormLabel className="sr-only">Teléfono</FormLabel>
               <FormControl>
-                <Input
-                  type="tel"
-                  placeholder="Tu teléfono"
-                  maxLength={20}
-                  {...field}
-                  onChange={(e) => {
-                    const sanitizedValue = e.target.value.replace(/[^0-9+\s()-]/g, '');
-                    field.onChange(sanitizedValue);
-                  }}
-                />
+                <PhoneInput {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
