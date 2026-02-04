@@ -123,7 +123,7 @@ const PhoneInput = React.forwardRef<
         maxLength={4}
         value={area}
         onChange={handleAreaChange}
-        className="w-14 border-0 p-1 shadow-none focus-visible:ring-0"
+        className="w-14 border-0 p-0 shadow-none focus-visible:ring-0"
       />
       <div className="h-4 w-[1px] bg-border" />
       <Input
@@ -133,7 +133,7 @@ const PhoneInput = React.forwardRef<
         maxLength={6}
         value={local}
         onChange={handleLocalChange}
-        className="flex-1 border-0 p-1 shadow-none focus-visible:ring-0"
+        className="flex-1 border-0 p-0 shadow-none focus-visible:ring-0"
       />
     </div>
   );
