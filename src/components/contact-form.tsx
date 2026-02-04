@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import * as React from 'react';
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -186,7 +187,18 @@ export function ContactForm() {
     console.log(values);
     
     toast({
-      title: "¡Mensaje enviado!",
+      title: (
+        <div className="flex items-center gap-4">
+          <Image
+            src="/LOGO1.png"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="h-auto"
+          />
+          <span>¡Mensaje enviado!</span>
+        </div>
+      ),
       description: "Gracias por tu consulta. Nos pondremos en contacto a la brevedad.",
     });
 
