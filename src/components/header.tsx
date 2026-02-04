@@ -125,7 +125,7 @@ export function Header() {
 
           <div className="flex flex-1 items-center justify-end gap-2">
             <Button asChild className="hidden md:flex">
-              <Link href="https://wa.me/5491123456789" target="_blank">
+              <Link href="https://wa.me/5493564504977" target="_blank">
                 <WhatsAppIcon className="mr-2 h-5 w-5" />
                 WhatsApp
               </Link>
@@ -207,7 +207,7 @@ export function Header() {
                 </nav>
                 <div className="mt-8 grid grid-cols-1 gap-4">
                   <Button asChild size="lg" className="w-full">
-                    <Link href="https://wa.me/5491123456789" target="_blank">
+                    <Link href="https://wa.me/5493564504977" target="_blank">
                       <WhatsAppIcon className="mr-2 h-5 w-5" />
                       Contactar por WhatsApp
                     </Link>

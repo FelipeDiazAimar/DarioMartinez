@@ -156,7 +156,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg">
-                  <Link href="https://wa.me/5491123456789" target="_blank">
+                  <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
                     Contactar por WhatsApp
                   </Link>
@@ -248,7 +248,7 @@ export default function Home() {
                     </CardContent>
                     <CardFooter>
                        <Button asChild className="w-full">
-                          <Link href="https://wa.me/5491123456789" target="_blank">
+                          <Link href="https://wa.me/5493564504977" target="_blank">
                             Ver más
                             <ArrowRight className="ml-2 h-5 w-5" />
                           </Link>
