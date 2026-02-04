@@ -335,7 +335,7 @@ export default function Home() {
             </h2>
             <p className="mx-auto max-w-[600px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               ¿Tenés alguna duda o necesitás un presupuesto? Completá el
-              formulario o enviame un WhatsApp.
+              formulario o envianos un WhatsApp.
             </p>
           </div>
           <div className="mx-auto w-full max-w-sm space-y-2">
