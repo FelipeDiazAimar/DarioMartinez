@@ -21,7 +21,7 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  phone: z.string().min(8, {
+  phone: z.string().refine((val) => /^[0-9+\s()-]{8,}$/.test(val), {
     message: "Por favor, ingresá un número de teléfono válido.",
   }),
   message: z.string().min(10, {
