@@ -77,7 +77,15 @@ export function ContactForm() {
             <FormItem>
               <FormLabel className="sr-only">Teléfono</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder="Tu teléfono" {...field} />
+                <Input
+                  type="tel"
+                  placeholder="Tu teléfono"
+                  {...field}
+                  onChange={(e) => {
+                    const sanitizedValue = e.target.value.replace(/[^0-9+\s()-]/g, '');
+                    field.onChange(sanitizedValue);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
