@@ -113,6 +113,7 @@ const PhoneInput = React.forwardRef<
           value={country}
           onChange={handleCountryChange}
           className="w-8 border-0 p-0 shadow-none focus-visible:ring-0"
+          style={{ height: '30px' }}
         />
       </div>
       <div className="h-4 w-[1px] bg-border" />
@@ -124,6 +125,7 @@ const PhoneInput = React.forwardRef<
         value={area}
         onChange={handleAreaChange}
         className="w-14 border-0 p-0 shadow-none focus-visible:ring-0"
+        style={{ height: '30px' }}
       />
       <div className="h-4 w-[1px] bg-border" />
       <Input
@@ -134,6 +136,7 @@ const PhoneInput = React.forwardRef<
         value={local}
         onChange={handleLocalChange}
         className="flex-1 border-0 p-0 shadow-none focus-visible:ring-0"
+        style={{ height: '30px' }}
       />
     </div>
   );
