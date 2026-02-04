@@ -9,6 +9,7 @@ import {
   Printer,
   Headphones,
   Watch,
+  Instagram,
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -129,6 +130,12 @@ export function Header() {
                 WhatsApp
               </Link>
             </Button>
+            <Button asChild className="hidden md:flex">
+              <Link href="https://www.instagram.com" target="_blank">
+                <Instagram className="mr-2 h-5 w-5" />
+                Instagram
+              </Link>
+            </Button>
 
             {/* Mobile Navigation */}
             <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -198,11 +205,17 @@ export function Header() {
                       Contacto
                     </Link>
                 </nav>
-                <div className="mt-8">
+                <div className="mt-8 grid grid-cols-1 gap-4">
                   <Button asChild size="lg" className="w-full">
                     <Link href="https://wa.me/5491123456789" target="_blank">
                       <WhatsAppIcon className="mr-2 h-5 w-5" />
                       Contactar por WhatsApp
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" className="w-full" variant="outline">
+                    <Link href="https://www.instagram.com" target="_blank">
+                      <Instagram className="mr-2 h-5 w-5" />
+                      Seguinos en Instagram
                     </Link>
                   </Button>
                 </div>
