@@ -326,8 +326,8 @@ export default function Home() {
             <Image
                 src="/LOGO1.png"
                 alt="Darío Martínez Computación"
-                width={150}
-                height={150}
+                width={200}
+                height={200}
                 className="mx-auto"
             />
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">
