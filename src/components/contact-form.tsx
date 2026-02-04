@@ -21,8 +21,8 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  phone: z.string().refine((val) => /^[0-9+\s()-]{8,}$/.test(val), {
-    message: "Por favor, ingresá un número de teléfono válido.",
+  phone: z.string().refine((val) => /^[0-9+\s()-]{8,20}$/.test(val), {
+    message: "Por favor, ingresá un número de teléfono válido de entre 8 y 20 caracteres.",
   }),
   message: z.string().min(10, {
     message: "El mensaje debe tener al menos 10 caracteres.",
@@ -80,6 +80,7 @@ export function ContactForm() {
                 <Input
                   type="tel"
                   placeholder="Tu teléfono"
+                  maxLength={20}
                   {...field}
                   onChange={(e) => {
                     const sanitizedValue = e.target.value.replace(/[^0-9+\s()-]/g, '');
