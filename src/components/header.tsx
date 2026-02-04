@@ -91,7 +91,7 @@ export function Header() {
               href="#servicios"
               className="transition-colors hover:text-primary"
             >
-              Servicios
+              Servicio Técnico
             </Link>
             
             <CollapsibleTrigger asChild>
@@ -106,6 +106,13 @@ export function Header() {
                 />
               </Button>
             </CollapsibleTrigger>
+            
+            <Link
+              href="#sobre-nosotros"
+              className="transition-colors hover:text-primary"
+            >
+              Sobre Nosotros
+            </Link>
             
             <Link
               href="#contacto"
@@ -151,7 +158,7 @@ export function Header() {
                       className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                       onClick={closeSheet}
                     >
-                      Servicios
+                      Servicio Técnico
                     </Link>
                   <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="productos" className="border-b-0">
@@ -176,6 +183,13 @@ export function Header() {
                           </AccordionContent>
                       </AccordionItem>
                   </Accordion>
+                  <Link
+                      href="#sobre-nosotros"
+                      className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                      onClick={closeSheet}
+                    >
+                      Sobre Nosotros
+                    </Link>
                   <Link
                       href="#contacto"
                       className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
