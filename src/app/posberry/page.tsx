@@ -140,8 +140,8 @@ export default function PosberryPage() {
               <Image
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
-                width={320}
-                height={240}
+                width={256}
+                height={192}
                 className=""
               />
             </div>
@@ -246,12 +246,12 @@ export default function PosberryPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <Image src="/integrations/mercado-pago.svg" alt="Mercado Pago" width={150} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/integrations/fiserv.svg" alt="Fiserv" width={120} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/integrations/clover.svg" alt="Clover" width={140} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/integrations/payway.svg" alt="Payway" width={130} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/integrations/pvs.svg" alt="PVS SuperPOS" width={100} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/integrations/bind.svg" alt="QR Bind" width={90} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/mercado-pago.png" alt="Mercado Pago" width={150} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/fiserv.png" alt="Fiserv" width={120} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/clover.png" alt="Clover" width={140} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/payway.png" alt="Payway" width={130} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/pvs.png" alt="PVS SuperPOS" width={100} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/integrations/bind.png" alt="QR Bind" width={90} height={40} className="grayscale hover:grayscale-0 transition-all"/>
           </div>
         </div>
       </section>
