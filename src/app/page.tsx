@@ -155,14 +155,14 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button asChild size="lg">
+                <Button asChild size="lg" className="rounded-full">
                   <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
                     Contactar por WhatsApp
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link href="#servicios">Servicio Técnico</Link>
+                <Button asChild variant="outline" size="lg" className="rounded-full">
+                  <Link href="/servicios">Servicio Técnico</Link>
                 </Button>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function Home() {
           </div>
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" className="rounded-full">
-              <Link href="#contacto">
+              <Link href="/contacto">
                 Ir
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
