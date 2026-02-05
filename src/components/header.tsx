@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -56,9 +55,15 @@ export function Header() {
 
           <Link
             href="/posberry"
-            className="transition-colors hover:text-primary"
+            className="flex items-center gap-2 transition-colors hover:text-primary"
           >
             Posberry
+            <Image
+              src="/LOGOPOSBERRY.png"
+              alt="Posberry"
+              width={24}
+              height={24}
+            />
           </Link>
           
           <Link
@@ -129,10 +134,16 @@ export function Header() {
                 </Link>
                 <Link
                     href="/posberry"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                    className="flex items-center justify-between gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                     onClick={closeSheet}
                   >
                     Posberry
+                    <Image
+                      src="/LOGOPOSBERRY.png"
+                      alt="Posberry"
+                      width={24}
+                      height={24}
+                    />
                 </Link>
                 <Link
                     href="/sobre-nosotros"
