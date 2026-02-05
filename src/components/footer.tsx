@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram } from "lucide-react";
+import { Instagram, ArrowRight } from "lucide-react";
 
 import {
   Accordion,
@@ -84,6 +84,14 @@ export function Footer() {
               </AccordionItem>
             ))}
           </Accordion>
+          <div className="mt-6">
+            <Button asChild>
+              <Link href="#contacto">
+                Ver más
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Map */}
