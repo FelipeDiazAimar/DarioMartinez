@@ -80,7 +80,7 @@ export default function ServiciosPage() {
               className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
             >
               <CardHeader className="flex flex-row items-center gap-4">
-                <div className="grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground">
+                <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   {service.icon}
                 </div>
                 <CardTitle className="text-xl">{service.title}</CardTitle>
