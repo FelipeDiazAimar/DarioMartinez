@@ -140,8 +140,8 @@ export default function PosberryPage() {
               <Image
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
-                width={400}
-                height={300}
+                width={320}
+                height={240}
                 className=""
               />
             </div>
@@ -252,26 +252,6 @@ export default function PosberryPage() {
             <Image src="/integrations/payway.svg" alt="Payway" width={130} height={40} className="grayscale hover:grayscale-0 transition-all"/>
             <Image src="/integrations/pvs.svg" alt="PVS SuperPOS" width={100} height={40} className="grayscale hover:grayscale-0 transition-all"/>
             <Image src="/integrations/bind.svg" alt="QR Bind" width={90} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing and CTA Section */}
-      <section className="py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="mx-auto max-w-4xl rounded-xl border bg-white p-8 text-center text-foreground shadow-2xl md:p-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Empezá hoy mismo
-            </h2>
-            <p className="mt-4 text-lg">
-                Desde <span className="font-bold text-3xl">$42.000</span> /mes
-            </p>
-            <p className="mt-2 text-foreground/80">Usalo gratis hasta el 10 del próximo mes.</p>
-            <Button asChild size="lg" variant="primary" className="mt-8 rounded-full px-12">
-              <Link href="https://wa.me/5493564504977?text=Hola,%20quisiera%20más%20información%20sobre%20POSBerry" target="_blank">
-                Contactar para más info
-              </Link>
-            </Button>
           </div>
         </div>
       </section>
