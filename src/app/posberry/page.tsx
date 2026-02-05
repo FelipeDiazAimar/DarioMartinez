@@ -1,3 +1,4 @@
+'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,7 +52,6 @@ const coreFeatures = [
     icon: <ShoppingBag className="h-8 w-8" />,
     title: 'Control de Stock',
     description: 'Inventario en tiempo real. Alertas de stock bajo, múltiples depósitos y trazabilidad completa.',
-    link: 'Ver capacidades avanzadas',
   },
   {
     icon: <LineChart className="h-8 w-8" />,
