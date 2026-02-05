@@ -255,7 +255,7 @@ export default function Home() {
                       <CardDescription>{product.description}</CardDescription>
                     </CardContent>
                     <CardFooter>
-                       <Button asChild className="w-full">
+                       <Button asChild className="w-full rounded-full">
                           <Link href="https://wa.me/5493564504977" target="_blank">
                             Ver más
                             <ArrowRight className="ml-2 h-5 w-5" />
