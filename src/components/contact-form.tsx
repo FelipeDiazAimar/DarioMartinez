@@ -247,7 +247,7 @@ export function ContactForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" disabled={form.formState.isSubmitting} className="rounded-full">
           {form.formState.isSubmitting ? "Enviando..." : "Enviar Consulta"}
         </Button>
       </form>
