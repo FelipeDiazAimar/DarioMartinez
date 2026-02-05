@@ -54,6 +54,7 @@ export default function FaqPage() {
     <section className="w-full bg-white py-12 md:py-24 lg:py-32">
       <div className="container mx-auto max-w-4xl px-4 md:px-6">
         <div className="text-center space-y-4">
+          <div className="inline-block rounded-full bg-muted px-3 py-1 text-sm">Sácate las dudas!</div>
           <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
             Preguntas Frecuentes
           </h1>
