@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Cpu,
   ShieldCheck,
@@ -10,6 +11,7 @@ import {
   HardDrive,
   ArrowRight,
   ChevronRight,
+  Check,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -26,46 +28,89 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const services = [
-  {
-    icon: <Wrench className="h-10 w-10" />,
-    title: 'Reparación de PC y Notebooks',
-    description: 'Diagnóstico y solución de problemas de hardware y software.',
-    details: 'Realizamos un diagnóstico completo para identificar la falla, ya sea de hardware (componentes dañados) o software (virus, errores de sistema). Utilizamos repuestos de primera calidad y ofrecemos garantía en todas nuestras reparaciones.'
-  },
-  {
-    icon: <HardDrive className="h-10 w-10" />,
-    title: 'Instalación de Windows y Software',
-    description:
-      'Instalación y configuración de sistemas operativos y programas.',
-    details: 'Instalamos la última versión de Windows o la que prefieras, junto con los programas esenciales que necesites (Office, antivirus, navegadores, etc.). Dejamos tu equipo listo para usar, optimizado para el mejor rendimiento.'
-  },
-  {
-    icon: <Cpu className="h-10 w-10" />,
-    title: 'Actualización de Hardware',
-    description: 'Mejora el rendimiento con nuevos componentes (SSD, RAM).',
-    details: 'Si tu equipo está lento, una actualización de hardware puede ser la solución. Aumentamos la memoria RAM, cambiamos tu viejo disco rígido por un SSD ultra rápido o mejoramos otros componentes para darle una nueva vida a tu PC o notebook.'
-  },
-  {
-    icon: <ShieldCheck className="h-10 w-10" />,
-    title: 'Mantenimiento Preventivo',
-    description:
-      'Limpieza y optimización para alargar la vida útil de tus equipos.',
-    details: 'No esperes a que tu computadora falle. Con nuestro servicio de mantenimiento preventivo, realizamos una limpieza física y de software, optimizamos el sistema y prevenimos futuros problemas, asegurando un funcionamiento óptimo y prolongando su durabilidad.'
-  },
-  {
-    icon: <Wifi className="h-10 w-10" />,
-    title: 'Redes, WiFi y Routers',
-    description: 'Configuración y optimización de tu red doméstica o de oficina.',
-    details: '¿Problemas con tu conexión a internet? Configuramos y optimizamos tu red WiFi para una máxima cobertura y velocidad. Solucionamos problemas de conexión, instalamos routers y repetidores, y aseguramos tu red contra intrusos.'
-  },
-  {
-    icon: <Users className="h-10 w-10" />,
-    title: 'Asistencia Técnica',
-    description: 'Soporte remoto y presencial para hogares y empresas.',
-    details: 'Ofrecemos abonos de soporte técnico para empresas y asistencia personalizada para usuarios particulares. Resolvemos tus dudas y problemas de forma rápida y eficiente, ya sea de forma remota o visitándote en tu domicilio u oficina.'
-  },
+    {
+        icon: <Wrench className="h-10 w-10" />,
+        title: 'Reparación de PC y Notebooks',
+        description: 'Diagnóstico y solución de problemas de hardware y software.',
+        imageId: 'service-pc-repair',
+        details: [
+            'Diagnóstico preciso de fallas de hardware (placas madre, fuentes, discos) y software (virus, errores de sistema, drivers).',
+            'Reemplazo de componentes dañados: pantallas, teclados, baterías, memorias RAM, discos duros y SSD.',
+            'Solución experta a problemas de lentitud, sobrecalentamiento, reinicios inesperados y pantallas azules.',
+            'Reparación de equipos de todas las marcas y modelos, tanto de escritorio como portátiles.',
+            'Uso de repuestos originales o de primera calidad, con garantía en todas nuestras reparaciones.'
+        ]
+    },
+    {
+        icon: <HardDrive className="h-10 w-10" />,
+        title: 'Instalación de Windows y Software',
+        description:
+        'Instalación y configuración de sistemas operativos y programas.',
+        imageId: 'service-software-install',
+        details: [
+            'Instalación desde cero de Windows 11, 10 o la versión que necesites, con licencia original.',
+            'Configuración inicial del sistema, incluyendo drivers, actualizaciones y optimización para máximo rendimiento.',
+            'Instalación de paquete de software esencial: Office (Word, Excel, etc.), antivirus, compresores y lectores de PDF.',
+            'Instalación de programas específicos a pedido, para diseño, arquitectura, edición de video, etc.',
+            'Back-up y restauración de tus archivos personales para que no pierdas ninguna información importante.'
+        ]
+    },
+    {
+        icon: <Cpu className="h-10 w-10" />,
+        title: 'Actualización de Hardware',
+        description: 'Mejora el rendimiento con nuevos componentes (SSD, RAM).',
+        imageId: 'service-hardware-upgrade',
+        details: [
+            'Reemplazo de discos rígidos mecánicos (HDD) por unidades de estado sólido (SSD) para una velocidad hasta 10 veces mayor.',
+            'Ampliación de la memoria RAM para mejorar la multitarea y el rendimiento general del sistema.',
+            'Cambio de procesador (CPU) o placa de video (GPU) para potenciar tu equipo para gaming o trabajo profesional.',
+            'Asesoramiento personalizado para elegir los componentes más adecuados según tus necesidades y presupuesto.',
+            'Instalación y configuración de los nuevos componentes, asegurando la compatibilidad y estabilidad del sistema.'
+        ]
+    },
+    {
+        icon: <ShieldCheck className="h-10 w-10" />,
+        title: 'Mantenimiento Preventivo',
+        description:
+        'Limpieza y optimización para alargar la vida útil de tus equipos.',
+        imageId: 'service-maintenance',
+        details: [
+            'Limpieza física interna completa para eliminar polvo y pelusa que causan sobrecalentamiento.',
+            'Cambio de pasta térmica del procesador y placa de video para mantener temperaturas óptimas de funcionamiento.',
+            'Limpieza de software: eliminación de archivos basura, temporales y desinstalación de programas innecesarios.',
+            'Optimización del arranque del sistema y de los servicios para un inicio más rápido.',
+            'Análisis y eliminación de virus, malware y spyware para proteger tu información y privacidad.'
+        ]
+    },
+    {
+        icon: <Wifi className="h-10 w-10" />,
+        title: 'Redes, WiFi y Routers',
+        description: 'Configuración y optimización de tu red doméstica o de oficina.',
+        imageId: 'service-networking',
+        details: [
+            'Instalación y configuración de routers y repetidores para ampliar la cobertura WiFi en toda tu casa u oficina.',
+            'Solución a problemas de conexión a internet, cortes intermitentes y baja velocidad.',
+            'Configuración de redes cableadas (Ethernet) para una conexión más estable y rápida.',
+            'Aseguramos tu red WiFi con contraseñas robustas y protocolos de seguridad modernos para evitar intrusos.',
+            'Asesoramiento para elegir el proveedor de internet y el equipamiento de red más conveniente para vos.'
+        ]
+    },
+    {
+        icon: <Users className="h-10 w-10" />,
+        title: 'Asistencia Técnica',
+        description: 'Soporte remoto y presencial para hogares y empresas.',
+        imageId: 'service-tech-support',
+        details: [
+            'Soporte técnico remoto a través de herramientas seguras para solucionar problemas de software de forma inmediata.',
+            'Visitas a domicilio u oficina para resolver problemas de hardware o redes que requieran asistencia presencial.',
+            'Planes de abono mensual para empresas, con soporte prioritario y mantenimiento preventivo periódico.',
+            'Capacitación a usuarios para el manejo de nuevo software o hardware.',
+            'Atención personalizada y seguimiento de cada caso hasta su completa resolución.'
+        ]
+    },
 ];
 
 export default function ServiciosPage() {
@@ -87,31 +132,55 @@ export default function ServiciosPage() {
           </div>
         </div>
         <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 py-12">
-          {services.map((service, index) => (
-            <AccordionItem value={`item-${index}`} key={service.title} className="border-b-0">
-                <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl">
-                    <AccordionTrigger className="group w-full p-6 text-left hover:no-underline [&>svg]:hidden">
-                        <div className="flex w-full items-center justify-between">
-                            <div className="flex items-start gap-4">
-                                <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
-                                    {service.icon}
+          {services.map((service, index) => {
+            const serviceImage = PlaceHolderImages.find(img => img.id === service.imageId);
+            return(
+                <AccordionItem value={`item-${index}`} key={service.title} className="border-b-0">
+                    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+                        <AccordionTrigger className="group w-full p-6 text-left hover:no-underline [&>svg]:hidden">
+                            <div className="flex w-full items-center justify-between">
+                                <div className="flex items-start gap-4">
+                                    <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                                        {service.icon}
+                                    </div>
+                                    <div className="flex-1 space-y-1.5">
+                                        <CardTitle className="text-xl">{service.title}</CardTitle>
+                                        <CardDescription>{service.description}</CardDescription>
+                                    </div>
                                 </div>
-                                <div className="flex-1 space-y-1.5">
-                                    <CardTitle className="text-xl">{service.title}</CardTitle>
-                                    <CardDescription>{service.description}</CardDescription>
-                                </div>
+                                <ChevronRight className="ml-4 h-8 w-8 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:scale-110 group-hover:text-primary group-data-[state=open]:rotate-90" />
                             </div>
-                            <ChevronRight className="ml-4 h-8 w-8 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:scale-110 group-hover:text-primary group-data-[state=open]:rotate-90" />
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <CardContent className="pt-0">
-                            <p className="text-foreground/80">{service.details}</p>
-                        </CardContent>
-                    </AccordionContent>
-                </Card>
-            </AccordionItem>
-          ))}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <CardContent className="pt-4">
+                                <div className="grid gap-6 md:grid-cols-3">
+                                    <div className="md:col-span-1">
+                                        <Image
+                                        src={serviceImage?.imageUrl || `https://picsum.photos/seed/${service.imageId}/600/400`}
+                                        alt={service.title}
+                                        width={600}
+                                        height={400}
+                                        className="rounded-lg object-cover aspect-video"
+                                        data-ai-hint={serviceImage?.imageHint || service.imageId.replace('-', ' ')}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <ul className="space-y-2 text-foreground/80">
+                                        {service.details.map((point, i) => (
+                                            <li key={i} className="flex items-start">
+                                            <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+                                            <span>{point}</span>
+                                            </li>
+                                        ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </AccordionContent>
+                    </Card>
+                </AccordionItem>
+            )
+          })}
         </Accordion>
         <div className="mt-8 flex justify-center">
           <Button asChild size="lg" className="rounded-full">

@@ -59,6 +59,42 @@
       "description": "Image of a barcode scanner.",
       "imageUrl": "https://images.unsplash.com/photo-1758543102397-e14b5dfdd8bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiYXJjb2RlJTIwc2Nhbm5lcnxlbnwwfHx8fDE3NzAyMTQxNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "barcode scanner"
+    },
+    {
+      "id": "service-pc-repair",
+      "description": "Technician repairing a laptop.",
+      "imageUrl": "https://images.unsplash.com/photo-1593417748471-552685a334e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxMYXB0b3AlMjByZXBhaXJ8ZW58MHx8fHwxNzIxODQ0MDIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop repair"
+    },
+    {
+      "id": "service-software-install",
+      "description": "Windows logo on a screen.",
+      "imageUrl": "https://images.unsplash.com/photo-1611679758334-33635a8f338e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxXaW5kb3dzJTIwbG9nb3xlbnwwfHx8fDE3MjE4NDQwNTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "windows logo"
+    },
+    {
+      "id": "service-hardware-upgrade",
+      "description": "Close-up of a RAM module being installed.",
+      "imageUrl": "https://images.unsplash.com/photo-1591799264318-7e6e74e3dce9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxSQU0lMjB1cGdyYWRlfGVufDB8fHx8MTcyMTg0NDEwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "RAM upgrade"
+    },
+    {
+      "id": "service-maintenance",
+      "description": "Technician cleaning a dusty computer fan.",
+      "imageUrl": "https://images.unsplash.com/photo-1627838596043-39886034a8e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNsZWFuaW5nfGVufDB8fHx8MTcyMTg0NDEzN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "computer cleaning"
+    },
+    {
+      "id": "service-networking",
+      "description": "A modern Wi-Fi router on a desk.",
+      "imageUrl": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aWZpJTIwcm91dGVyfGVufDB8fHx8MTcyMTg0NDIwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wifi router"
+    },
+    {
+      "id": "service-tech-support",
+      "description": "Person providing remote technical support on a laptop.",
+      "imageUrl": "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWNobmljYWwlMjBzdXBwb3J0fGVufDB8fHx8MTcyMTg0NDIyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "technical support"
     }
   ]
 }
