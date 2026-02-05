@@ -216,8 +216,8 @@ export default function Home() {
           </div>
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" className="rounded-full">
-              <Link href="/contacto">
-                Ir
+              <Link href="/servicios">
+                Ver más
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
