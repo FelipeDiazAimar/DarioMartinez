@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -69,13 +70,13 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2">
-          <Button asChild className="hidden md:flex">
+          <Button asChild className="hidden rounded-full md:flex">
             <Link href="https://wa.me/5493564504977" target="_blank">
               <WhatsAppIcon className="mr-2 h-5 w-5" />
               WhatsApp
             </Link>
           </Button>
-          <Button asChild className="hidden md:flex">
+          <Button asChild className="hidden rounded-full md:flex">
             <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank">
               <Instagram className="mr-2 h-5 w-5" />
               Instagram
