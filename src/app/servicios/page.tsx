@@ -160,7 +160,7 @@ export default function ServiciosPage() {
                                         alt={service.title}
                                         width={600}
                                         height={400}
-                                        className="rounded-lg object-cover aspect-video"
+                                        className="w-full rounded-lg object-cover aspect-video"
                                         data-ai-hint={serviceImage?.imageHint || service.imageId.replace('-', ' ')}
                                         />
                                     </div>

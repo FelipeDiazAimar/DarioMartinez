@@ -122,7 +122,7 @@ export default function SobreNosotrosPage() {
                             alt="Taller de Darío Martínez Computación"
                             width="600"
                             height="700"
-                            className="mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center"
+                            className="w-full mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center"
                         />
                         <div>
                              <h3 className="text-2xl font-bold mb-4">Nuestros Pilares</h3>
