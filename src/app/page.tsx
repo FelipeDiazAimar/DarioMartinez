@@ -12,6 +12,7 @@ import {
   Users,
   HardDrive,
   ArrowRight,
+  Instagram,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ import {
 import { ContactForm } from '@/components/contact-form';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { FacebookIcon } from '@/components/icons/facebook-icon';
 
 const services = [
   {
@@ -351,6 +353,23 @@ export default function Home() {
             <p className="text-xs text-foreground/70">
               Tu consulta es bienvenida. ¡Respondemos a la brevedad!
             </p>
+            <div className="pt-4 flex justify-center gap-4">
+              <Button asChild size="icon" className="rounded-full bg-[#25D366] text-white hover:bg-[#25D366]/90">
+                <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp">
+                  <WhatsAppIcon className="h-6 w-6" />
+                </Link>
+              </Button>
+              <Button asChild size="icon" className="rounded-full bg-[#E4405F] text-white hover:bg-[#E4405F]/90">
+                <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank" aria-label="Instagram">
+                  <Instagram className="h-6 w-6" />
+                </Link>
+              </Button>
+              <Button asChild size="icon" className="rounded-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
+                <Link href="https://www.facebook.com/profile.php?id=61585160335205" target="_blank" aria-label="Facebook">
+                  <FacebookIcon className="h-6 w-6" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
