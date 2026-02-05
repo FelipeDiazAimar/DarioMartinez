@@ -1,61 +1,128 @@
 import Image from 'next/image';
+import {
+  Award,
+  BrainCircuit,
+  Handshake,
+  Shield,
+  Search,
+  Wrench,
+  Eye,
+  Heart,
+  Calendar,
+} from 'lucide-react';
+
 
 export default function SobreNosotrosPage() {
     return (
         <section
-        id="sobre-nosotros"
-        className="w-full py-12 md:py-24 lg:py-32"
-      >
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                Sobre Nosotros
-              </h1>
-              <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.
-              </p>
+            id="sobre-nosotros"
+            className="w-full py-12 md:py-24 lg:py-32 bg-white"
+        >
+            <div className="container px-4 md:px-6">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div className="space-y-3">
+                        <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Nuestra Historia</div>
+                        <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
+                            Casi 50 Años de Confianza y Tecnología
+                        </h1>
+                        <p className="mx-auto max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                            Darío Martínez Computación nace en San Francisco con un objetivo claro: brindar soluciones reales y confiables. Hemos acompañado la evolución tecnológica desde sus inicios, consolidándonos como un referente de seriedad y conocimiento técnico en la región.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mx-auto grid max-w-7xl items-start gap-12 py-12 lg:grid-cols-2">
+                    <div className="grid gap-8">
+                        <div>
+                            <h3 className="text-2xl font-bold mb-4 flex items-center">
+                                <Calendar className="mr-3 h-7 w-7 text-primary" />
+                                Nuestra Forma de Trabajar
+                            </h3>
+                            <p className="text-foreground/80 mb-6">
+                                Cada cliente y cada equipo es único. Por eso, nuestro proceso se basa en la escucha, el análisis detallado y la búsqueda de la solución más eficiente y duradera. No aplicamos recetas, resolvemos problemas.
+                            </p>
+                            <ul className="grid gap-4">
+                                <li className="flex items-start gap-4">
+                                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                                        <Search className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-semibold">Diagnóstico Preciso</h4>
+                                        <p className="text-sm text-foreground/80">
+                                            Nos tomamos el tiempo para entender el problema a fondo, realizando todas las pruebas necesarias para dar con la causa raíz de la falla.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li className="flex items-start gap-4">
+                                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                                        <Wrench className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-semibold">Soluciones a Medida</h4>
+                                        <p className="text-sm text-foreground/80">
+                                            Te explicamos las opciones disponibles y te recomendamos la mejor alternativa en función de tu necesidad y presupuesto, ya sea una reparación, actualización o un equipo nuevo.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li className="flex items-start gap-4">
+                                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                                        <Eye className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-semibold">Transparencia Total</h4>
+                                        <p className="text-sm text-foreground/80">
+                                            Hablamos en un lenguaje claro, sin tecnicismos innecesarios. Siempre sabrás qué se va a hacer, por qué y cuál es el costo, sin sorpresas.
+                                        </p>
+                                    </div>
+                                </li>
+                                 <li className="flex items-start gap-4">
+                                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                                        <Heart className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-semibold">Compromiso Post-Venta</h4>
+                                        <p className="text-sm text-foreground/80">
+                                            Nuestro trabajo no termina con la entrega. Ofrecemos garantía y estamos a tu disposición para resolver cualquier duda o inconveniente posterior.
+                                        </p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                     <div className="sticky top-24 grid gap-8">
+                         <Image
+                            src="https://picsum.photos/seed/tech-workshop/600/700"
+                            data-ai-hint="tech workshop"
+                            alt="Taller de Darío Martínez Computación"
+                            width="600"
+                            height="700"
+                            className="mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center"
+                        />
+                        <div>
+                             <h3 className="text-2xl font-bold mb-4">Nuestros Pilares</h3>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4 text-center">
+                                    <Award className="h-8 w-8 text-primary" />
+                                    <p className="font-semibold">Experiencia</p>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4 text-center">
+                                    <BrainCircuit className="h-8 w-8 text-primary" />
+                                    <p className="font-semibold">Conocimiento</p>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4 text-center">
+                                    <Handshake className="h-8 w-8 text-primary" />
+                                    <p className="font-semibold">Atención Cercana</p>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 rounded-lg bg-muted/50 p-4 text-center">
+                                    <Shield className="h-8 w-8 text-primary" />
+                                    <p className="font-semibold">Confianza</p>
+                                </div>
+                             </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
-          </div>
-          <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-            <Image
-              src="https://picsum.photos/seed/team-working/600/400"
-              data-ai-hint="team working"
-              alt="Sobre Nosotros"
-              width="600"
-              height="400"
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-            />
-            <div className="flex flex-col justify-center space-y-4">
-              <ul className="grid gap-6">
-                <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Misión</h3>
-                    <p className="text-foreground/80">
-                      Facilitar el acceso a la tecnología, ofreciendo productos y servicios de vanguardia que impulsen el desarrollo de nuestros clientes.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Visión</h3>
-                    <p className="text-foreground/80">
-                      Ser la empresa líder en soluciones tecnológicas en la región, reconocida por nuestra innovación, confiabilidad y compromiso con el cliente.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Valores</h3>
-                    <p className="text-foreground/80">
-                      Confianza, Experiencia, Innovación y Atención Personalizada.
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
     );
 }
