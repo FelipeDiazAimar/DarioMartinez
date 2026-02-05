@@ -28,7 +28,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import imageData from '@/lib/placeholder-images.json';
+
+const PlaceHolderImages = imageData.placeholderImages;
 
 const services = [
     {
