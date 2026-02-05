@@ -153,7 +153,7 @@ export default function Home() {
               alt="Hero"
               width="600"
               height="400"
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full"
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover w-full"
             />
             <div className="flex flex-col justify-center space-y-4 lg:order-first">
               <div className="space-y-2">
@@ -293,7 +293,7 @@ export default function Home() {
               alt="Sobre Nosotros"
               width="600"
               height="400"
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center w-full lg:order-last"
             />
             <div className="flex flex-col justify-center space-y-4">
               <ul className="grid gap-6">
