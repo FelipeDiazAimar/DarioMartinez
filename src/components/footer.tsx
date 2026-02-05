@@ -63,7 +63,7 @@ export function Footer() {
               <MapsIcon className="h-6 w-6" />
             </Link>
           </div>
-          <Button asChild>
+          <Button asChild className="rounded-full px-8">
             <Link href="https://wa.me/5493564504977" target="_blank">
                 <WhatsAppIcon className="mr-2 h-5 w-5" />
                 Enviar Mensaje
