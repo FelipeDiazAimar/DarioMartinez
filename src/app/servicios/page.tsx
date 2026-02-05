@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -73,21 +74,21 @@ export default function ServiciosPage() {
             </p>
           </div>
         </div>
-        <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8 py-12">
           {services.map((service) => (
             <Card
               key={service.title}
               className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
             >
-              <CardHeader className="flex flex-row items-center gap-4">
+              <CardHeader className="flex flex-row items-start gap-4">
                 <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   {service.icon}
                 </div>
-                <CardTitle className="text-xl">{service.title}</CardTitle>
+                <div className="flex-1 space-y-1.5">
+                  <CardTitle className="text-xl">{service.title}</CardTitle>
+                  <CardDescription>{service.description}</CardDescription>
+                </div>
               </CardHeader>
-              <CardContent>
-                <CardDescription>{service.description}</CardDescription>
-              </CardContent>
             </Card>
           ))}
         </div>
