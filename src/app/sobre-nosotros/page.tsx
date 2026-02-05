@@ -22,7 +22,7 @@ export default function SobreNosotrosPage() {
             <div className="container px-4 md:px-6">
                 <div className="flex flex-col items-center justify-center space-y-4 text-center">
                     <div className="space-y-3">
-                        <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Nuestra Historia</div>
+                        <div className="inline-block rounded-full bg-muted px-3 py-1 text-sm">Nuestra Historia</div>
                         <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
                             Casi 50 Años de Confianza y Tecnología
                         </h1>
