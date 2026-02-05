@@ -53,6 +53,13 @@ export function Header() {
           >
             Productos
           </Link>
+
+          <Link
+            href="/posberry"
+            className="transition-colors hover:text-primary"
+          >
+            Posberry
+          </Link>
           
           <Link
             href="/sobre-nosotros"
@@ -119,6 +126,13 @@ export function Header() {
                     onClick={closeSheet}
                   >
                     Productos
+                </Link>
+                <Link
+                    href="/posberry"
+                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                    onClick={closeSheet}
+                  >
+                    Posberry
                 </Link>
                 <Link
                     href="/sobre-nosotros"
