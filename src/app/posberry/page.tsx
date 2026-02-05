@@ -138,7 +138,7 @@ export default function PosberryPage() {
             </div>
             <div className="flex justify-center">
               <Image
-                src="/POSBERRY-PC.png"
+                src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
                 width={600}
                 height={450}
