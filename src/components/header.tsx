@@ -59,7 +59,7 @@ export function Header() {
           >
             Posberry
             <Image
-              src="/LOGOPOSBERRY.png"
+              src="/LOGOPOSBERRY1.png"
               alt="Posberry"
               width={24}
               height={24}
@@ -139,7 +139,7 @@ export function Header() {
                   >
                     Posberry
                     <Image
-                      src="/LOGOPOSBERRY.png"
+                      src="/LOGOPOSBERRY1.png"
                       alt="Posberry"
                       width={24}
                       height={24}
