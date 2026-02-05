@@ -110,18 +110,17 @@ const advancedFeatures = [
 
 export default function PosberryPage() {
   return (
-    <div className="bg-white text-gray-800">
+    <div className="bg-white text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-primary text-primary-foreground py-20 md:py-32">
-        <div className="absolute inset-0 bg-black/30"></div>
+      <section className="relative bg-white text-foreground py-20 md:py-32">
         <div className="container relative z-10 mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="space-y-6 text-center lg:text-left">
               <Image src="/LOGOBOSBERRY3.png" alt="POSBerry Logo" width={200} height={50} className="mx-auto lg:mx-0"/>
-              <h1 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl md:text-6xl font-headline">
+              <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl font-headline">
                 Simple, flexible y confiable
               </h1>
-              <p className="max-w-2xl text-lg text-primary-foreground/80 md:text-xl mx-auto lg:mx-0">
+              <p className="max-w-2xl text-lg text-foreground/80 md:text-xl mx-auto lg:mx-0">
                 Formá parte de una comunidad de más de 9,000 comercios exitosos. Funciona sin internet y se adapta a cualquier rubro.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
@@ -131,7 +130,7 @@ export default function PosberryPage() {
                     Probar Gratis
                   </Link>
                 </Button>
-                <div className="flex items-center justify-center gap-2 text-sm text-primary-foreground/90">
+                <div className="flex items-center justify-center gap-2 text-sm text-foreground/90">
                     <CheckCircle className="h-5 w-5 text-secondary" />
                     <span>Sin tarjeta de crédito</span>
                 </div>
@@ -260,15 +259,15 @@ export default function PosberryPage() {
       {/* Pricing and CTA Section */}
       <section className="py-12 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mx-auto max-w-4xl rounded-xl bg-primary p-8 text-center text-primary-foreground shadow-2xl md:p-12">
+          <div className="mx-auto max-w-4xl rounded-xl border bg-white p-8 text-center text-foreground shadow-2xl md:p-12">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Empezá hoy mismo
             </h2>
             <p className="mt-4 text-lg">
                 Desde <span className="font-bold text-3xl">$42.000</span> /mes
             </p>
-            <p className="mt-2 text-primary-foreground/80">Usalo gratis hasta el 10 del próximo mes.</p>
-            <Button asChild size="lg" variant="secondary" className="mt-8 rounded-full px-12">
+            <p className="mt-2 text-foreground/80">Usalo gratis hasta el 10 del próximo mes.</p>
+            <Button asChild size="lg" variant="primary" className="mt-8 rounded-full px-12">
               <Link href="https://wa.me/5493564504977?text=Hola,%20quisiera%20más%20información%20sobre%20POSBerry" target="_blank">
                 Contactar para más info
               </Link>
