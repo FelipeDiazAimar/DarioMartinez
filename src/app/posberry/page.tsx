@@ -142,7 +142,7 @@ export default function PosberryPage() {
                 alt="POSBerry en una computadora"
                 width={600}
                 height={450}
-                className="rounded-xl shadow-2xl"
+                className=""
               />
             </div>
           </div>
