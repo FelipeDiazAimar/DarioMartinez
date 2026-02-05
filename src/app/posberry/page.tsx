@@ -140,8 +140,8 @@ export default function PosberryPage() {
               <Image
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
-                width={500}
-                height={375}
+                width={400}
+                height={300}
                 className=""
               />
             </div>
