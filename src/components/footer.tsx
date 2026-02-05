@@ -85,7 +85,7 @@ export function Footer() {
             ))}
           </Accordion>
           <div className="mt-6">
-            <Button asChild>
+            <Button asChild className="rounded-full">
               <Link href="#contacto">
                 Ver más
                 <ArrowRight className="ml-2 h-4 w-4" />
