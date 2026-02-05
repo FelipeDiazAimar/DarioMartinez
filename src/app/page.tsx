@@ -147,7 +147,15 @@ export default function Home() {
       <section id="inicio" className="w-full py-12 md:py-20 lg:py-28">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-            <div className="flex flex-col justify-center space-y-4">
+            <Image
+              src={heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
+              data-ai-hint={heroImage?.imageHint || "computer repair"}
+              alt="Hero"
+              width="600"
+              height="400"
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full"
+            />
+            <div className="flex flex-col justify-center space-y-4 lg:order-first">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                   Tu Aliado en Soluciones Tecnológicas
@@ -168,14 +176,6 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <Image
-              src={heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
-              data-ai-hint={heroImage?.imageHint || "computer repair"}
-              alt="Hero"
-              width="600"
-              height="400"
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
-            />
           </div>
         </div>
       </section>
