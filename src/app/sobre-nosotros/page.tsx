@@ -9,6 +9,7 @@ import {
   Eye,
   Heart,
   Calendar,
+  ArrowRight,
 } from 'lucide-react';
 
 
@@ -120,6 +121,32 @@ export default function SobreNosotrosPage() {
                              </div>
                         </div>
 
+                    </div>
+                </div>
+
+                <div className="mt-16 text-center">
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
+                        Nuestra Evolución
+                    </h2>
+                    <p className="mx-auto mt-4 max-w-[600px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                        Adaptándonos a los nuevos tiempos, sin perder la esencia.
+                    </p>
+                    <div className="mt-8 flex items-center justify-center gap-8 md:gap-16">
+                        <Image
+                            src="/LOGO3.png"
+                            alt="Logo Antiguo"
+                            width={150}
+                            height={150}
+                            className="h-auto"
+                        />
+                        <ArrowRight className="h-12 w-12 text-primary" />
+                        <Image
+                            src="/LOGO1.png"
+                            alt="Logo Nuevo"
+                            width={180}
+                            height={180}
+                            className="h-auto"
+                        />
                     </div>
                 </div>
             </div>
