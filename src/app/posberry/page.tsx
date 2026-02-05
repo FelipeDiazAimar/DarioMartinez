@@ -125,9 +125,9 @@ export default function PosberryPage() {
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
                 <Button asChild size="lg" variant="secondary" className="rounded-full">
-                  <Link href="https://wa.me/5493564504977?text=Hola,%20quisiera%20probar%20POSBerry%20gratis" target="_blank">
+                  <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
-                    Probar Gratis
+                    Consultanos
                   </Link>
                 </Button>
                 <div className="flex items-center justify-center gap-2 text-sm text-foreground/90">
