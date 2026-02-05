@@ -47,7 +47,7 @@ export function Footer() {
             />
           </Link>
           <p className="text-sm text-foreground/70">
-            Tu aliado en soluciones tecnológicas desde hace más de 20 años.
+            Tu aliado en soluciones tecnológicas desde hace más de 50 años.
           </p>
           <div className="flex gap-4">
             <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
