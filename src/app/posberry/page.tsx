@@ -140,8 +140,8 @@ export default function PosberryPage() {
               <Image
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
-                width={320}
-                height={240}
+                width={256}
+                height={192}
                 className=""
               />
             </div>
@@ -246,12 +246,12 @@ export default function PosberryPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <Image src="/mercadopago.png" alt="Mercado Pago" width={150} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/fiserv.png" alt="Fiserv" width={120} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/clover.png" alt="Clover" width={140} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/payway.png" alt="Payway" width={130} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/pvs.png" alt="PVS SuperPOS" width={100} height={40} className="grayscale hover:grayscale-0 transition-all"/>
-            <Image src="/bind.png" alt="QR Bind" width={90} height={40} className="grayscale hover:grayscale-0 transition-all"/>
+            <Image src="/mercadopago.png" alt="Mercado Pago" width={150} height={40} />
+            <Image src="/fiserv.png" alt="Fiserv" width={120} height={40} />
+            <Image src="/clover.png" alt="Clover" width={140} height={40} />
+            <Image src="/payway.png" alt="Payway" width={130} height={40} />
+            <Image src="/pvs.png" alt="PVS SuperPOS" width={100} height={40} />
+            <Image src="/bind.png" alt="QR Bind" width={90} height={40} />
           </div>
         </div>
       </section>
