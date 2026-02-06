@@ -171,7 +171,7 @@ export default function Home() {
                   Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg" className="rounded-full">
                   <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
@@ -205,20 +205,21 @@ export default function Home() {
           </div>
           <div className="mx-auto grid grid-cols-1 gap-4 py-12 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
             {services.map((service) => (
-              <Card
-                key={service.title}
-                className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <CardHeader className="flex flex-row items-center gap-4 p-4 sm:p-6">
-                  <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground sm:h-16 sm:w-16">
-                    {service.icon}
-                  </div>
-                  <CardTitle className="text-lg sm:text-xl">{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="hidden sm:block">
-                  <CardDescription>{service.description}</CardDescription>
-                </CardContent>
-              </Card>
+              <Link href="/servicios" key={service.title} className="block h-full">
+                <Card
+                  className="h-full transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 p-4 sm:p-6">
+                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground sm:h-16 sm:w-16">
+                      {service.icon}
+                    </div>
+                    <CardTitle className="text-lg sm:text-xl">{service.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="hidden sm:block">
+                    <CardDescription>{service.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
           <div className="mt-8 flex justify-center">
