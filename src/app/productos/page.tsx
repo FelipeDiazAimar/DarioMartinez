@@ -131,6 +131,7 @@ export default function ProductosPage() {
                               alt={product.title}
                               fill
                               className="object-cover"
+                              sizes="50vw"
                             />
                           </div>
                         </Card>
