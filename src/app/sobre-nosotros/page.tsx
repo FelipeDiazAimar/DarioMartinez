@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import {
   Award,
@@ -117,8 +118,7 @@ export default function SobreNosotrosPage() {
                     </div>
                      <div className="sticky top-24 grid gap-8">
                          <Image
-                            src="https://picsum.photos/seed/tech-workshop/600/700"
-                            data-ai-hint="tech workshop"
+                            src="/FOTOFRENTE.JPEG"
                             alt="Taller de Darío Martínez Computación"
                             width="600"
                             height="700"
