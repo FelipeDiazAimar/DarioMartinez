@@ -294,12 +294,11 @@ export default function Home() {
           </div>
           <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
             <Image
-              src="https://picsum.photos/seed/team-working/600/400"
-              data-ai-hint="team working"
-              alt="Sobre Nosotros"
+              src="/FOTOFRENTE.jpeg"
+              alt="Frente del local Darío Martínez Computación"
               width="600"
-              height="400"
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center w-full lg:order-last"
+              height="700"
+              className="mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center w-full lg:order-last"
             />
             <div className="flex flex-col justify-center space-y-4">
               <ul className="grid gap-6">
