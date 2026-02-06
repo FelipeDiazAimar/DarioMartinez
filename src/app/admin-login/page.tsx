@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123') {
+    if (password === 'MartinezDario@') {
       sessionStorage.setItem('isAdminAuthenticated', 'true');
       router.push('/admin');
     } else {
