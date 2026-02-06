@@ -132,7 +132,7 @@ export default function PosberryPage() {
                 </Button>
                 <div className="flex items-center justify-center gap-2 text-sm text-foreground/90">
                     <CheckCircle className="h-5 w-5 text-secondary" />
-                    <span>Sin tarjeta de crédito</span>
+                    <span>Facturación electrónica ARCA integrada</span>
                 </div>
               </div>
             </div>
