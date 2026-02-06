@@ -25,7 +25,7 @@ const sections = [
     { title: 'Contacto', href: '/admin/editar-contacto', icon: <Mail className="h-8 w-8" /> },
     { title: 'Consultas', href: '/admin/consultas', icon: <Inbox className="h-8 w-8" /> },
     { title: 'Estadísticas', href: '/admin/estadisticas', icon: <BarChart className="h-8 w-8" /> },
-    { title: 'Preguntas Frecuentes', href: '/preguntas-frecuentes', icon: <HelpCircle className="h-8 w-8" /> },
+    { title: 'Preguntas Frecuentes', href: '/admin/editar-preguntas-frecuentes', icon: <HelpCircle className="h-8 w-8" /> },
 ];
 
 export default function AdminPage() {
