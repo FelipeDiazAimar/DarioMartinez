@@ -148,7 +148,7 @@ export default function StatisticsPage() {
                               {productClicksData.map((product) => (
                                   <li key={product.name} className="flex justify-between text-sm">
                                       <span className="text-muted-foreground">{product.name}</span>
-                                      <span className="font-medium">{product.clicks} clics</span>
+                                      <span className="font-medium whitespace-nowrap">{product.clicks} clics</span>
                                   </li>
                               ))}
                           </ul>
