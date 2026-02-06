@@ -41,7 +41,7 @@ export default function AdminPage() {
 
     if (!isAuthenticated) {
         return (
-            <div className="container py-12 md:py-16 lg:py-20">
+            <div className="container px-4 md:px-6 py-12 md:py-16 lg:py-20">
                  <div className="space-y-4 mb-8">
                     <Skeleton className="h-10 w-1/2" />
                     <Skeleton className="h-6 w-3/4" />
@@ -56,7 +56,7 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="container py-12 md:py-16 lg:py-20">
+        <div className="container px-4 md:px-6 py-12 md:py-16 lg:py-20">
             <div className="space-y-4 mb-8">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline flex items-center gap-3">
                     <Cog className="h-8 w-8" />
