@@ -39,13 +39,14 @@ export function Footer() {
         {/* Logo and Socials */}
         <div className="flex flex-col items-start gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/LOGO1.png"
-              alt="Darío Martínez Computación"
-              width={72}
-              height={72}
-              className="h-[72px] w-[72px]"
-            />
+            <div className="h-[72px] w-[72px]">
+              <Image
+                src="/LOGO1.png"
+                alt="Darío Martínez Computación"
+                width={72}
+                height={72}
+              />
+            </div>
           </Link>
           <p className="text-sm text-foreground/70">
             Tu aliado en soluciones tecnológicas desde hace más de 50 años.
