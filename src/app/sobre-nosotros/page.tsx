@@ -104,7 +104,7 @@ export default function SobreNosotrosPage() {
                                     height={150}
                                     className="h-auto"
                                 />
-                                <ArrowRight className="h-12 w-12 text-primary" />
+                                <ArrowRight className="h-12 w-12 flex-shrink-0 text-primary" />
                                 <Image
                                     src="/LOGO1.png"
                                     alt="Logo Nuevo"
