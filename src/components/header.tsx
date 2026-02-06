@@ -62,7 +62,7 @@ export function Header() {
               alt="Posberry"
               width={28}
               height={28}
-              className="mr-2"
+              style={{ marginRight: '-2px' }}
             />
             Posberry
           </Link>
@@ -144,7 +144,7 @@ export function Header() {
                         alt="Posberry"
                         width={28}
                         height={28}
-                        className="mr-2"
+                        style={{ marginRight: '-2px' }}
                       />
                       Posberry
                   </Link>
