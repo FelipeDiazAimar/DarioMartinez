@@ -10,7 +10,6 @@ import {
   Heart,
   Calendar,
   ArrowRight,
-  ArrowDown,
 } from 'lucide-react';
 
 
@@ -97,22 +96,21 @@ export default function SobreNosotrosPage() {
                             <p className="mx-auto mt-4 max-w-[600px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed lg:mx-0">
                                 Adaptándonos a los nuevos tiempos, sin perder la esencia.
                             </p>
-                            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8 md:gap-16 lg:justify-start">
+                            <div className="mt-8 flex flex-row items-center justify-center gap-x-2 sm:gap-x-4">
                                 <Image
                                     src="/LOGO3.png"
                                     alt="Logo Antiguo"
                                     width={150}
                                     height={150}
-                                    className="h-auto"
+                                    className="h-auto w-28 sm:w-36"
                                 />
-                                <ArrowDown className="h-12 w-12 flex-shrink-0 text-primary sm:hidden" />
-                                <ArrowRight className="hidden h-12 w-12 flex-shrink-0 text-primary sm:block" />
+                                <ArrowRight className="h-8 w-8 flex-shrink-0 text-primary sm:h-12 sm:w-12" />
                                 <Image
                                     src="/LOGO1.png"
                                     alt="Logo Nuevo"
                                     width={180}
                                     height={180}
-                                    className="h-auto"
+                                    className="h-auto w-32 sm:w-44"
                                 />
                             </div>
                         </div>
