@@ -118,7 +118,7 @@ export default function ProductosPage() {
                     >
                       <AccordionTrigger className="w-full p-0 text-left hover:no-underline [&>svg]:hidden">
                         <div className="flex w-full flex-col">
-                          <div className="relative block aspect-[9/16] w-full overflow-hidden rounded-lg">
+                          <div className="relative block aspect-[9/16] w-full overflow-hidden rounded-lg group-data-[state=open]:rounded-b-none">
                             <Image
                               src={
                                 productImage?.imageUrl ||
