@@ -129,7 +129,7 @@ export default function Home() {
           <CarouselContent>
             {carouselImages.map((image, index) => (
               <CarouselItem key={image.id}>
-                <div className="relative h-[400px] w-full md:h-[500px] lg:h-[600px]">
+                <div className="relative w-full aspect-[9/16] md:aspect-auto md:h-[500px] lg:h-[600px]">
                   <Image
                     src={image.imageUrl}
                     alt={image.description}
