@@ -347,7 +347,7 @@ export default function StatisticsPage() {
                         label: 'Vistas',
                         color: 'hsl(var(--chart-2))',
                     },
-                }} className="min-h-[300px] w-full">
+                }} className="min-h-[250px] w-full">
                     <BarChart accessibilityLayer data={pageViewsData} layout="vertical">
                         <CartesianGrid horizontal={false} />
                         <YAxis
