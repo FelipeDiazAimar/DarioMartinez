@@ -114,48 +114,49 @@ export default function ProductosPage() {
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem
                       value={product.imageId}
-                      className="border-none"
+                      className="group border-none"
                     >
-                      <Card className="overflow-hidden rounded-lg">
-                        <AccordionTrigger className="group w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                          <div>
-                            <div className="relative block aspect-video w-full">
-                              <Image
-                                src={
-                                  productImage?.imageUrl ||
-                                  `https://picsum.photos/seed/${product.imageId}/600/400`
-                                }
-                                data-ai-hint={
-                                  productImage?.imageHint ||
-                                  product.imageId.replace('-', ' ')
-                                }
-                                alt={product.title}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <h3 className="p-3 text-base font-semibold text-foreground transition-colors group-hover:text-primary">
-                              {product.title}
-                            </h3>
+                      <AccordionTrigger className="w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                        <Card className="overflow-hidden rounded-lg">
+                          <div className="relative block aspect-[9/16] w-full">
+                            <Image
+                              src={
+                                productImage?.imageUrl ||
+                                `https://picsum.photos/seed/${product.imageId}/600/400`
+                              }
+                              data-ai-hint={
+                                productImage?.imageHint ||
+                                product.imageId.replace('-', ' ')
+                              }
+                              alt={product.title}
+                              fill
+                              className="object-cover"
+                            />
                           </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="px-3 pb-3">
-                            <p className="mb-4 text-sm text-foreground/80">
-                              {product.description}
-                            </p>
-                            <Button asChild className="w-full rounded-full">
-                              <Link
-                                href="https://wa.me/5493564504977"
-                                target="_blank"
-                              >
-                                Consultar
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                              </Link>
-                            </Button>
-                          </div>
-                        </AccordionContent>
-                      </Card>
+                        </Card>
+                      </AccordionTrigger>
+                      <h3 className="pt-3 text-center text-base font-semibold text-foreground group-data-[state=open]:hidden">
+                        {product.title}
+                      </h3>
+                      <AccordionContent>
+                        <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
+                          <h3 className="mb-2 text-lg font-semibold">
+                            {product.title}
+                          </h3>
+                          <p className="mb-4 text-sm text-foreground/80">
+                            {product.description}
+                          </p>
+                          <Button asChild className="w-full rounded-full">
+                            <Link
+                              href="https://wa.me/5493564504977"
+                              target="_blank"
+                            >
+                              Consultar
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </AccordionContent>
                     </AccordionItem>
                   </Accordion>
                 </div>
