@@ -157,7 +157,7 @@ export default function Home() {
                 className="mx-auto aspect-video w-full max-w-full overflow-hidden rounded-xl object-cover"
                 />
             </div>
-            <div className="flex flex-col justify-center space-y-4 md:order-first lg:order-last">
+            <div className="flex flex-col justify-center space-y-4 lg:order-first">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                   Tu Aliado en Soluciones Tecnológicas
@@ -166,7 +166,7 @@ export default function Home() {
                   Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg" className="rounded-full">
                   <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
@@ -239,7 +239,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto grid grid-cols-2 gap-4 py-12 sm:gap-8 lg:grid-cols-3">
             {products.map((product) => {
                const productImage = PlaceHolderImages.find(img => img.id === product.imageId);
                return (
@@ -255,7 +255,7 @@ export default function Home() {
                     <CardHeader>
                       <CardTitle className="text-xl">{product.title}</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow">
+                    <CardContent className="flex-grow hidden sm:block">
                       <CardDescription>{product.description}</CardDescription>
                     </CardContent>
                     <CardFooter>
