@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Eye,
   Users,
@@ -41,6 +43,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 // Dummy data
@@ -110,6 +113,39 @@ const contactQueriesData = [
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
 
 export default function StatisticsPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
+    const localAuth = localStorage.getItem('isAdminAuthenticated');
+    if (sessionAuth === 'true' || localAuth === 'true') {
+        setIsAuthenticated(true);
+    } else {
+        router.replace('/admin-login');
+    }
+  }, [router]);
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen w-full flex-col">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+          <div className="flex items-center">
+            <Skeleton className="h-10 w-1/2" />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 md:items-start md:gap-8 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[120px] w-full" />)}
+          </div>
+          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            <Skeleton className="xl:col-span-2 h-[400px] w-full" />
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+          <Skeleton className="h-[300px] w-full" />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">

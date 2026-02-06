@@ -33,8 +33,9 @@ export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const authStatus = sessionStorage.getItem('isAdminAuthenticated');
-        if (authStatus === 'true') {
+        const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
+        const localAuth = localStorage.getItem('isAdminAuthenticated');
+        if (sessionAuth === 'true' || localAuth === 'true') {
             setIsAuthenticated(true);
         } else {
             router.replace('/admin-login');

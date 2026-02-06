@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -12,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Inbox } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const allSubmissions = [
     { id: 1, date: '2024-07-28', name: 'Carlos', lastname: 'Rodriguez', email: 'carlos.r@email.com', message: 'Hola, necesito saber si tienen stock de la impresora fiscal X.' },
@@ -34,7 +36,20 @@ const allSubmissions = [
 const ITEMS_PER_PAGE = 10;
 
 export default function ConsultasPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
+    const localAuth = localStorage.getItem('isAdminAuthenticated');
+    if (sessionAuth === 'true' || localAuth === 'true') {
+        setIsAuthenticated(true);
+    } else {
+        router.replace('/admin-login');
+    }
+  }, [router]);
+
 
   const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -48,6 +63,41 @@ export default function ConsultasPage() {
   const goToPreviousPage = () => {
     setCurrentPage((page) => Math.max(page - 1, 1));
   };
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen w-full flex-col">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+          <div className="flex items-center">
+            <Skeleton className="h-10 w-1/2" />
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-1/4" />
+              <Skeleton className="h-5 w-1/2" />
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg p-2">
+                <Skeleton className="h-10 w-full mb-2" />
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full mb-2" />
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <div className="flex items-center justify-between w-full">
+                <Skeleton className="h-5 w-1/4" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-9 w-20" />
+                  <Skeleton className="h-9 w-20" />
+                </div>
+              </div>
+            </CardFooter>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
