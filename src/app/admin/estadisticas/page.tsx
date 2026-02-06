@@ -76,6 +76,21 @@ const productClicksData = [
     { name: 'Calculadoras', clicks: 190 },
 ].sort((a, b) => b.clicks - a.clicks);
 
+const contactQueriesData = [
+    { name: 'Juan Pérez' },
+    { name: 'María García' },
+    { name: 'Carlos Rodríguez' },
+    { name: 'Ana Martínez' },
+    { name: 'Luis Hernández' },
+    { name: 'Laura Gómez' },
+    { name: 'José González' },
+    { name: 'Sofía López' },
+    { name: 'Miguel Sánchez' },
+    { name: 'Elena Ramírez' },
+    { name: 'Lucía Díaz' },
+    { name: 'Javier Torres' },
+].sort((a,b) => a.name.localeCompare(b.name));
+
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
 
 export default function StatisticsPage() {
@@ -143,16 +158,42 @@ export default function StatisticsPage() {
             </Collapsible>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Consultas de Contacto</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+1,234</div>
-              <p className="text-xs text-muted-foreground">
-                +19% desde el mes pasado
-              </p>
-            </CardContent>
+            <Collapsible>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Consultas de Contacto</CardTitle>
+                <div className="flex items-center">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="-mr-2 h-8 w-8">
+                            <ChevronsUpDown className="h-4 w-4" />
+                            <span className="sr-only">Desplegar</span>
+                        </Button>
+                    </CollapsibleTrigger>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold">+1,234</div>
+                <p className="text-xs text-muted-foreground">
+                  +19% desde el mes pasado
+                </p>
+              </CardContent>
+              <CollapsibleContent>
+                  <CardContent className="pt-0">
+                      <div className="border-t pt-4">
+                          <h4 className="mb-2 text-sm font-semibold">Historial de Consultas</h4>
+                          <div className="max-h-28 overflow-y-auto pr-4">
+                            <ul className="space-y-1.5">
+                                {contactQueriesData.map((contact) => (
+                                    <li key={contact.name} className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">{contact.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                          </div>
+                      </div>
+                  </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
