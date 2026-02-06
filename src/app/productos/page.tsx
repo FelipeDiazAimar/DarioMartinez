@@ -184,7 +184,7 @@ export default function ProductosPage() {
         <Accordion
           type="single"
           collapsible
-          className="mx-auto hidden items-start py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+          className="mx-auto hidden py-12 sm:block sm:columns-2 sm:gap-8 lg:columns-3"
           value={openItemId || ''}
           onValueChange={(value) => setOpenItemId(value || null)}
         >
@@ -198,7 +198,7 @@ export default function ProductosPage() {
                 value={product.imageId}
                 key={product.imageId + '-desktop'}
                 className={cn(
-                  'group/item rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
+                  'group/item mb-8 break-inside-avoid rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
                   isExpanded && 'shadow-xl'
                 )}
               >
@@ -279,41 +279,44 @@ export default function ProductosPage() {
                 <AccordionItem
                   value={product.imageId}
                   key={product.imageId}
-                  className={cn('group border-none', isExpanded && 'col-span-2')}
+                  className={cn(
+                    'group border-none',
+                    isExpanded && 'col-span-2'
+                  )}
                 >
-                  <AccordionTrigger className="w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                    <div className="flex w-full flex-col">
-                      <div
-                        className={cn(
-                          'relative block aspect-[9/16] w-full overflow-hidden rounded-lg',
-                          isExpanded && 'rounded-b-none'
-                        )}
-                      >
-                        <Image
-                          src={
-                            productImage?.imageUrl ||
-                            `https://picsum.photos/seed/${product.imageId}/450/800`
-                          }
-                          data-ai-hint={
-                            productImage?.imageHint ||
-                            product.imageId.replace('-', ' ')
-                          }
-                          alt={product.title}
-                          fill
-                          className="object-cover"
-                          sizes={isExpanded ? '100vw' : '50vw'}
-                        />
-                      </div>
-                      <h3
-                        className={cn(
-                          'pt-3 text-left text-base font-semibold text-foreground',
-                          isExpanded && 'hidden'
-                        )}
-                      >
-                        {product.title}
-                      </h3>
-                    </div>
+                  <div
+                    className={cn(
+                      'relative block aspect-[9/16] w-full overflow-hidden rounded-lg',
+                      isExpanded && 'rounded-b-none'
+                    )}
+                  >
+                    <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                      <Image
+                        src={
+                          productImage?.imageUrl ||
+                          `https://picsum.photos/seed/${product.imageId}/450/800`
+                        }
+                        data-ai-hint={
+                          productImage?.imageHint ||
+                          product.imageId.replace('-', ' ')
+                        }
+                        alt={product.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, 100vw"
+                      />
+                    </AccordionTrigger>
+                  </div>
+
+                  <AccordionTrigger
+                    className={cn(
+                      'w-full pt-3 text-left text-base font-semibold text-foreground hover:no-underline [&>svg]:hidden',
+                      isExpanded && 'hidden'
+                    )}
+                  >
+                    <h3>{product.title}</h3>
                   </AccordionTrigger>
+
                   <AccordionContent>
                     <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
                       <h3 className="mb-4 text-left text-2xl font-bold">
