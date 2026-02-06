@@ -44,7 +44,7 @@ export function Footer() {
               alt="Darío Martínez Computación"
               width={60}
               height={60}
-              className="h-[96px] w-[96px] md:h-[60px] md:w-[60px]"
+              className="h-[154px] w-[154px] md:h-[60px] md:w-[60px]"
             />
           </Link>
           <p className="text-sm text-foreground/70">
@@ -75,7 +75,9 @@ export function Footer() {
         {/* FAQs */}
         <div className="lg:col-span-2">
           <h3 className="mb-4 text-lg font-semibold">
-            Preguntas Frecuentes
+            <Link href="/preguntas-frecuentes" className="hover:text-primary transition-colors">
+              Preguntas Frecuentes
+            </Link>
           </h3>
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
