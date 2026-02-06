@@ -255,8 +255,8 @@ export default function Home() {
                     <CardHeader>
                       <CardTitle className="text-xl">{product.title}</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow hidden sm:block">
-                      <CardDescription>{product.description}</CardDescription>
+                    <CardContent className="flex-grow p-0 sm:px-6 sm:pb-6">
+                      <CardDescription className="hidden sm:block">{product.description}</CardDescription>
                     </CardContent>
                     <CardFooter>
                        <Button asChild className="w-full rounded-full">
