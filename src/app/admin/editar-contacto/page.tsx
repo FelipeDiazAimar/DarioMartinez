@@ -21,7 +21,8 @@ const formSchema = z.object({
   phone: z.string().min(5, { message: "El teléfono es muy corto." }),
   address: z.string().min(5, { message: "La dirección es muy corta." }),
   googleMaps: z.string().url({ message: "Por favor, ingresá una URL válida." }),
-  hoursWeek: z.string().min(5, { message: "El horario es muy corto." }),
+  hoursMonThu: z.string().min(5, { message: "El horario es muy corto." }),
+  hoursFri: z.string().min(5, { message: "El horario es muy corto." }),
   hoursSat: z.string().min(5, { message: "El horario es muy corto." }),
 });
 
@@ -50,8 +51,9 @@ export default function EditContactPage() {
       phone: "03564 15-504977",
       address: "Libertador Norte 163",
       googleMaps: "https://share.google/WFdtCtDtE7RPHKL5o",
-      hoursWeek: "Lunes a viernes de 8:30 a 12:30 y de 16:00 a 20:00",
-      hoursSat: "Sábados de 9:00 a 13:00",
+      hoursMonThu: "Lunes a Jueves de 7:30 a 12:30 y de 15:30 a 19:30",
+      hoursFri: "Viernes de 8:00 a 12:00 y de 15:30 a 19:30",
+      hoursSat: "Sábados cerrado",
     },
   });
 
@@ -76,7 +78,7 @@ export default function EditContactPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Array.from({ length: 9 }).map((_, i) => (
+                {Array.from({ length: 10 }).map((_, i) => (
                   <div key={i} className="space-y-2">
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" />
@@ -204,12 +206,25 @@ export default function EditContactPage() {
                             />
                             <FormField
                                 control={form.control}
-                                name="hoursWeek"
+                                name="hoursMonThu"
                                 render={({ field }) => (
                                     <FormItem>
-                                    <FormLabel>Horario Lunes a Viernes</FormLabel>
+                                    <FormLabel>Horario Lunes a Jueves</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej: 8:30 a 12:30 y 16:00 a 20:00" {...field} />
+                                        <Input placeholder="Ej: 7:30 a 12:30 y de 15:30 a 19:30" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="hoursFri"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Horario Viernes</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej: 8:00 a 12:00 y de 15:30 a 19:30" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -222,7 +237,7 @@ export default function EditContactPage() {
                                     <FormItem>
                                     <FormLabel>Horario Sábados</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej: 9:00 a 13:00" {...field} />
+                                        <Input placeholder="Ej: Sábados cerrado" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
