@@ -117,8 +117,8 @@ export default function ProductosPage() {
                       className="group border-none"
                     >
                       <AccordionTrigger className="w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                        <Card className="overflow-hidden rounded-lg">
-                          <div className="relative block aspect-[9/16] w-full">
+                        <div className="flex w-full flex-col">
+                          <div className="relative block aspect-[9/16] w-full overflow-hidden rounded-lg">
                             <Image
                               src={
                                 productImage?.imageUrl ||
@@ -134,14 +134,14 @@ export default function ProductosPage() {
                               sizes="50vw"
                             />
                           </div>
-                        </Card>
+                          <h3 className="pt-3 text-left text-base font-semibold text-foreground group-data-[state=open]:hidden">
+                            {product.title}
+                          </h3>
+                        </div>
                       </AccordionTrigger>
-                      <h3 className="pt-3 text-left text-base font-semibold text-foreground group-data-[state=open]:hidden">
-                        {product.title}
-                      </h3>
                       <AccordionContent>
                         <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
-                          <h3 className="mb-2 text-lg font-semibold">
+                          <h3 className="mb-2 text-left text-lg font-semibold">
                             {product.title}
                           </h3>
                           <p className="mb-4 text-sm text-foreground/80">
