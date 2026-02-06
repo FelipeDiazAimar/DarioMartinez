@@ -136,7 +136,7 @@ export default function ProductosPage() {
                           </div>
                         </Card>
                       </AccordionTrigger>
-                      <h3 className="pt-3 text-center text-base font-semibold text-foreground group-data-[state=open]:hidden">
+                      <h3 className="pt-3 text-left text-base font-semibold text-foreground group-data-[state=open]:hidden">
                         {product.title}
                       </h3>
                       <AccordionContent>
