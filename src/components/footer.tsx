@@ -42,9 +42,9 @@ export function Footer() {
             <Image
               src="/LOGO1.png"
               alt="Darío Martínez Computación"
-              width={60}
-              height={60}
-              className="h-[154px] w-[154px] md:h-[60px] md:w-[60px]"
+              width={72}
+              height={72}
+              className="h-[72px] w-[72px]"
             />
           </Link>
           <p className="text-sm text-foreground/70">
