@@ -12,7 +12,8 @@ import {
     Mail,
     BarChart,
     HelpCircle,
-    Cog
+    Cog,
+    Inbox,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -22,6 +23,7 @@ const sections = [
     { title: 'Posberry', href: '/posberry', icon: <ShoppingBasket className="h-8 w-8" /> },
     { title: 'Sobre Nosotros', href: '/sobre-nosotros', icon: <Users className="h-8 w-8" /> },
     { title: 'Contacto', href: '/contacto', icon: <Mail className="h-8 w-8" /> },
+    { title: 'Consultas', href: '/admin/consultas', icon: <Inbox className="h-8 w-8" /> },
     { title: 'Estadísticas', href: '/admin/estadisticas', icon: <BarChart className="h-8 w-8" /> },
     { title: 'Preguntas Frecuentes', href: '/preguntas-frecuentes', icon: <HelpCircle className="h-8 w-8" /> },
 ];
@@ -47,7 +49,7 @@ export default function AdminPage() {
                     <Skeleton className="h-6 w-3/4" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {Array.from({ length: 7 }).map((_, i) => (
+                    {Array.from({ length: 8 }).map((_, i) => (
                        <Skeleton key={i} className="h-40 w-full" />
                     ))}
                 </div>
