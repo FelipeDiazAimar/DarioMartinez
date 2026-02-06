@@ -44,6 +44,7 @@ export function Footer() {
               alt="Darío Martínez Computación"
               width={60}
               height={60}
+              className="h-[72px] w-[72px] md:h-[60px] md:w-[60px]"
             />
           </Link>
           <p className="text-sm text-foreground/70">
@@ -73,11 +74,9 @@ export function Footer() {
 
         {/* FAQs */}
         <div className="lg:col-span-2">
-          <Link href="/preguntas-frecuentes">
-            <h3 className="mb-4 text-lg font-semibold transition-colors hover:text-primary">
-              Preguntas Frecuentes
-            </h3>
-          </Link>
+          <h3 className="mb-4 text-lg font-semibold">
+            Preguntas Frecuentes
+          </h3>
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
               <AccordionItem value={`item-${index}`} key={index} className="border-b-foreground/10">
