@@ -8,7 +8,8 @@ import {
   MousePointerClick,
   Smartphone,
   Tablet,
-  Laptop
+  Laptop,
+  ChevronsUpDown,
 } from 'lucide-react';
 import {
   Bar,
@@ -32,7 +33,13 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 
 // Dummy data
@@ -59,6 +66,15 @@ const deviceData = [
   { name: 'Escritorio', value: 300, icon: Laptop },
   { name: 'Tablet', value: 100, icon: Tablet },
 ];
+
+const productClicksData = [
+    { name: 'Impresoras Fiscales', clicks: 450 },
+    { name: 'PC de Escritorio', clicks: 380 },
+    { name: 'Notebooks', clicks: 620 },
+    { name: 'Comanderas y Ticketeadoras', clicks: 300 },
+    { name: 'Lectores de Códigos de Barra', clicks: 410 },
+    { name: 'Calculadoras', clicks: 190 },
+].sort((a, b) => b.clicks - a.clicks);
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
 
@@ -88,18 +104,43 @@ export default function StatisticsPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Clics en Productos
-              </CardTitle>
-              <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+2,350</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% desde el mes pasado
-              </p>
-            </CardContent>
+            <Collapsible>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Clics en Productos
+                </CardTitle>
+                <div className="flex items-center">
+                    <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                    <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="-mr-2 h-8 w-8">
+                            <ChevronsUpDown className="h-4 w-4" />
+                            <span className="sr-only">Desplegar</span>
+                        </Button>
+                    </CollapsibleTrigger>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-2xl font-bold">+2,350</div>
+                <p className="text-xs text-muted-foreground">
+                  +180.1% desde el mes pasado
+                </p>
+              </CardContent>
+              <CollapsibleContent>
+                  <CardContent className="pt-0">
+                      <div className="border-t pt-4">
+                          <h4 className="mb-2 text-sm font-semibold">Desglose por producto</h4>
+                          <ul className="space-y-1.5">
+                              {productClicksData.map((product) => (
+                                  <li key={product.name} className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">{product.name}</span>
+                                      <span className="font-medium">{product.clicks} clics</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
+                  </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
