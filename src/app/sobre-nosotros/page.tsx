@@ -118,7 +118,7 @@ export default function SobreNosotrosPage() {
                     </div>
                      <div className="sticky top-24 grid gap-8">
                          <Image
-                            src="/FOTOFRENTE.JPEG"
+                            src="/FOTOFRENTE.jpeg"
                             alt="Taller de Darío Martínez Computación"
                             width="600"
                             height="700"
