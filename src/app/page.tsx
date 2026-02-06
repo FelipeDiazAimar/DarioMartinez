@@ -38,34 +38,34 @@ import { FacebookIcon } from '@/components/icons/facebook-icon';
 
 const services = [
   {
-    icon: <Wrench className="h-10 w-10" />,
+    icon: <Wrench className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Reparación de PC y Notebooks',
     description: 'Diagnóstico y solución de problemas de hardware y software.',
   },
   {
-    icon: <HardDrive className="h-10 w-10" />,
+    icon: <HardDrive className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Instalación de Windows y Software',
     description:
       'Instalación y configuración de sistemas operativos y programas.',
   },
   {
-    icon: <Cpu className="h-10 w-10" />,
+    icon: <Cpu className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Actualización de Hardware',
     description: 'Mejora el rendimiento con nuevos componentes (SSD, RAM).',
   },
   {
-    icon: <ShieldCheck className="h-10 w-10" />,
+    icon: <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Mantenimiento Preventivo',
     description:
       'Limpieza y optimización para alargar la vida útil de tus equipos.',
   },
   {
-    icon: <Wifi className="h-10 w-10" />,
+    icon: <Wifi className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Redes, WiFi y Routers',
     description: 'Configuración y optimización de tu red doméstica o de oficina.',
   },
   {
-    icon: <Users className="h-10 w-10" />,
+    icon: <Users className="h-8 w-8 sm:h-10 sm:w-10" />,
     title: 'Asistencia Técnica',
     description: 'Soporte remoto y presencial para hogares y empresas.',
   },
@@ -146,18 +146,18 @@ export default function Home() {
 
       <section id="inicio" className="w-full py-12 md:py-20 lg:py-28">
         <div className="container px-4 md:px-6">
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-12">
-            <div className="w-full max-w-md mx-auto">
+          <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="w-full max-w-md mx-auto sm:max-w-none">
                 <Image
                 src={heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
                 data-ai-hint={heroImage?.imageHint || "computer repair"}
                 alt="Hero"
                 width={600}
                 height={400}
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover w-full"
+                className="mx-auto aspect-video w-full max-w-full overflow-hidden rounded-xl object-cover"
                 />
             </div>
-            <div className="flex flex-col justify-center space-y-4 md:order-first">
+            <div className="flex flex-col justify-center space-y-4 md:order-first lg:order-last">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                   Tu Aliado en Soluciones Tecnológicas
@@ -204,13 +204,13 @@ export default function Home() {
                 key={service.title}
                 className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                <CardHeader className="flex flex-row items-center gap-4 p-4 sm:p-6">
+                  <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground sm:h-16 sm:w-16">
                     {service.icon}
                   </div>
-                  <CardTitle className="text-xl">{service.title}</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">{service.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="hidden sm:block">
                   <CardDescription>{service.description}</CardDescription>
                 </CardContent>
               </Card>
