@@ -23,7 +23,6 @@ const formSchema = z.object({
   googleMaps: z.string().url({ message: "Por favor, ingresá una URL válida." }),
   hoursMonThu: z.string().min(5, { message: "El horario es muy corto." }),
   hoursFri: z.string().min(5, { message: "El horario es muy corto." }),
-  hoursSat: z.string().min(5, { message: "El horario es muy corto." }),
 });
 
 export default function EditContactPage() {
@@ -53,7 +52,6 @@ export default function EditContactPage() {
       googleMaps: "https://share.google/WFdtCtDtE7RPHKL5o",
       hoursMonThu: "Lunes a Jueves de 7:30 a 12:30 y de 15:30 a 19:30",
       hoursFri: "Viernes de 8:00 a 12:00 y de 15:30 a 19:30",
-      hoursSat: "Sábados cerrado",
     },
   });
 
@@ -78,7 +76,7 @@ export default function EditContactPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Array.from({ length: 10 }).map((_, i) => (
+                {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="space-y-2">
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" />
@@ -225,19 +223,6 @@ export default function EditContactPage() {
                                     <FormLabel>Horario Viernes</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Ej: 8:00 a 12:00 y de 15:30 a 19:30" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="hoursSat"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Horario Sábados</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Sábados cerrado" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
