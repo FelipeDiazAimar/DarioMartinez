@@ -26,7 +26,7 @@ import {
   Briefcase,
   FileText,
   Zap,
-  Handheld,
+  Hand,
   Activity,
   Sigma,
 } from 'lucide-react';
@@ -129,7 +129,7 @@ const products = [
         text: 'Lectores 1D y 2D (QR) para agilizar el cobro y la gestión de inventario.',
       },
       {
-        icon: <Handheld className="h-5 w-5 text-primary" />,
+        icon: <Hand className="h-5 w-5 text-primary" />,
         text: 'Modelos de mano con cable, inalámbricos y fijos de mostrador.',
       },
       {
