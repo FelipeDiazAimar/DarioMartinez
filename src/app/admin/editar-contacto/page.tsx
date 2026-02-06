@@ -228,7 +228,10 @@ export default function EditContactPage() {
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit">Guardar Cambios</Button>
+                            <div className="flex items-center gap-2">
+                                <Button type="submit">Guardar Cambios</Button>
+                                <Button type="button" variant="outline" onClick={() => form.reset()}>Deshacer Cambios</Button>
+                            </div>
                         </form>
                     </Form>
                 </CardContent>
