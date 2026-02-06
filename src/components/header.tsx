@@ -55,13 +55,14 @@ export function Header() {
 
           <Link
             href="/posberry"
-            className="flex items-center gap-2 transition-colors hover:text-primary"
+            className="flex items-center transition-colors hover:text-primary"
           >
             <Image
               src="/LOGOBOSBERRY3.png"
               alt="Posberry"
               width={28}
               height={28}
+              className="mr-2"
             />
             Posberry
           </Link>
@@ -135,7 +136,7 @@ export function Header() {
                   </Link>
                   <Link
                       href="/posberry"
-                      className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                      className="flex items-center px-2.5 text-foreground hover:text-primary"
                       onClick={closeSheet}
                     >
                       <Image
@@ -143,6 +144,7 @@ export function Header() {
                         alt="Posberry"
                         width={28}
                         height={28}
+                        className="mr-2"
                       />
                       Posberry
                   </Link>
