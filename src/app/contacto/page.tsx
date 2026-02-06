@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ContactForm } from '@/components/contact-form';
 import { Button } from '@/components/ui/button';
-import { Instagram } from 'lucide-react';
+import { Instagram, Cog } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 
@@ -48,6 +48,11 @@ export default function ContactoPage() {
               <Button asChild size="icon" className="rounded-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
                 <Link href="https://www.facebook.com/profile.php?id=61585160335205" target="_blank" aria-label="Facebook">
                   <FacebookIcon className="h-6 w-6" />
+                </Link>
+              </Button>
+              <Button asChild size="icon" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/admin-login" aria-label="Admin">
+                    <Cog className="h-6 w-6" />
                 </Link>
               </Button>
             </div>
