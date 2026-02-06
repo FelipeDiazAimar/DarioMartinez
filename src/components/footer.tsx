@@ -73,7 +73,9 @@ export function Footer() {
 
         {/* FAQs */}
         <div className="lg:col-span-2">
-          <h3 className="mb-4 text-lg font-semibold">Preguntas Frecuentes</h3>
+          <Link href="/preguntas-frecuentes" className="transition-colors hover:text-primary">
+            <h3 className="mb-4 text-lg font-semibold">Preguntas Frecuentes</h3>
+          </Link>
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
               <AccordionItem value={`item-${index}`} key={index} className="border-b-foreground/10">
