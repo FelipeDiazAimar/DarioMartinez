@@ -19,7 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const sections = [
     { title: 'Home', href: '/', icon: <Home className="h-8 w-8" /> },
-    { title: 'Servicio Técnico', href: '/servicios', icon: <Wrench className="h-8 w-8" /> },
+    { title: 'Servicio Técnico', href: '/admin/editar-servicios', icon: <Wrench className="h-8 w-8" /> },
     { title: 'Posberry', href: '/admin/editar-posberry', icon: <ShoppingBasket className="h-8 w-8" /> },
     { title: 'Sobre Nosotros', href: '/admin/editar-sobre-nosotros', icon: <Users className="h-8 w-8" /> },
     { title: 'Contacto', href: '/admin/editar-contacto', icon: <Mail className="h-8 w-8" /> },
