@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Menu,
   Instagram,
+  Cog,
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -95,6 +96,11 @@ export function Header() {
               Instagram
             </Link>
           </Button>
+          <Button asChild size="icon" className="hidden rounded-full md:flex">
+            <Link href="/admin-login" aria-label="Admin">
+              <Cog className="h-5 w-5" />
+            </Link>
+          </Button>
 
           {/* Mobile Navigation */}
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -166,15 +172,21 @@ export function Header() {
               </div>
               <div className="mt-auto grid grid-cols-1 gap-4">
                 <Button asChild size="lg" className="w-full rounded-full">
-                  <Link href="https://wa.me/5493564504977" target="_blank">
+                  <Link href="https://wa.me/5493564504977" target="_blank" onClick={closeSheet}>
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
                     WhatsApp
                   </Link>
                 </Button>
                 <Button asChild size="lg" className="w-full rounded-full">
-                  <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank">
+                  <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank" onClick={closeSheet}>
                     <Instagram className="mr-2 h-5 w-5" />
                     Instagram
+                  </Link>
+                </Button>
+                <Button asChild size="lg" className="w-full rounded-full">
+                  <Link href="/admin-login" onClick={closeSheet}>
+                    <Cog className="mr-2 h-5 w-5" />
+                    Admin
                   </Link>
                 </Button>
               </div>

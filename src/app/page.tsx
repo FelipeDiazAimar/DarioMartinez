@@ -384,11 +384,6 @@ export default function Home() {
                   <FacebookIcon className="h-6 w-6" />
                 </Link>
               </Button>
-              <Button asChild size="icon" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/admin-login" aria-label="Admin">
-                    <Cog className="h-6 w-6" />
-                </Link>
-              </Button>
             </div>
           </div>
         </div>
