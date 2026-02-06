@@ -44,7 +44,7 @@ export function Footer() {
               alt="Darío Martínez Computación"
               width={60}
               height={60}
-              className="h-[72px] w-[72px] md:h-[60px] md:w-[60px]"
+              className="h-[96px] w-[96px] md:h-[60px] md:w-[60px]"
             />
           </Link>
           <p className="text-sm text-foreground/70">
