@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const products = [
   {
@@ -68,15 +76,14 @@ export default function ProductosPage() {
               (img) => img.id === product.imageId
             );
             return (
-              <Link
-                href="https://wa.me/5493564504977"
-                target="_blank"
-                className="group block"
-                key={product.title}
-              >
-                <Card className="overflow-hidden rounded-lg transition-shadow duration-300 group-hover:shadow-xl">
-                  {/* Desktop View */}
-                  <div className="hidden sm:block">
+              <div key={product.title}>
+                {/* Desktop View */}
+                <Link
+                  href="https://wa.me/5493564504977"
+                  target="_blank"
+                  className="group hidden h-full sm:block"
+                >
+                  <Card className="flex h-full flex-col overflow-hidden rounded-lg transition-shadow duration-300 group-hover:shadow-xl">
                     <div className="overflow-hidden">
                       <Image
                         src={
@@ -96,31 +103,63 @@ export default function ProductosPage() {
                     <CardHeader>
                       <CardTitle className="text-xl">{product.title}</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex-grow">
                       <CardDescription>{product.description}</CardDescription>
                     </CardContent>
-                  </div>
-                  {/* Mobile View */}
-                  <div className="relative block aspect-video w-full sm:hidden">
-                    <Image
-                      src={
-                        productImage?.imageUrl ||
-                        `https://picsum.photos/seed/${product.imageId}/600/400`
-                      }
-                      data-ai-hint={
-                        productImage?.imageHint ||
-                        product.imageId.replace('-', ' ')
-                      }
-                      alt={product.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </Card>
-                <h3 className="mt-2 text-base font-semibold text-foreground transition-colors group-hover:text-primary sm:hidden">
-                  {product.title}
-                </h3>
-              </Link>
+                  </Card>
+                </Link>
+
+                {/* Mobile View */}
+                <div className="block sm:hidden">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem
+                      value={product.imageId}
+                      className="border-none"
+                    >
+                      <Card className="overflow-hidden rounded-lg">
+                        <AccordionTrigger className="group w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                          <div>
+                            <div className="relative block aspect-video w-full">
+                              <Image
+                                src={
+                                  productImage?.imageUrl ||
+                                  `https://picsum.photos/seed/${product.imageId}/600/400`
+                                }
+                                data-ai-hint={
+                                  productImage?.imageHint ||
+                                  product.imageId.replace('-', ' ')
+                                }
+                                alt={product.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <h3 className="p-3 text-base font-semibold text-foreground transition-colors group-hover:text-primary">
+                              {product.title}
+                            </h3>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="px-3 pb-3">
+                            <p className="mb-4 text-sm text-foreground/80">
+                              {product.description}
+                            </p>
+                            <Button asChild className="w-full rounded-full">
+                              <Link
+                                href="https://wa.me/5493564504977"
+                                target="_blank"
+                              >
+                                Consultar
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </AccordionContent>
+                      </Card>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+              </div>
             );
           })}
         </div>
