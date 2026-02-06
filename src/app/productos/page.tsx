@@ -184,7 +184,7 @@ export default function ProductosPage() {
         <Accordion
           type="single"
           collapsible
-          className="mx-auto hidden py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+          className="mx-auto hidden items-start py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
           value={openItemId || ''}
           onValueChange={(value) => setOpenItemId(value || null)}
         >
@@ -279,10 +279,7 @@ export default function ProductosPage() {
                 <AccordionItem
                   value={product.imageId}
                   key={product.imageId}
-                  className={cn(
-                    'group border-none',
-                    isExpanded && 'col-span-2'
-                  )}
+                  className={cn('group border-none', isExpanded && 'col-span-2')}
                 >
                   <AccordionTrigger className="w-full p-0 text-left hover:no-underline [&>svg]:hidden">
                     <div className="flex w-full flex-col">
