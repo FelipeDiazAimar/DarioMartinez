@@ -3,13 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import * as React from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import {
@@ -188,46 +181,85 @@ export default function ProductosPage() {
         </div>
 
         {/* Desktop grid */}
-        <div className="mx-auto hidden grid-cols-2 gap-x-4 gap-y-8 py-12 sm:grid sm:gap-8 lg:grid-cols-3">
+        <Accordion
+          type="single"
+          collapsible
+          className="mx-auto hidden py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+          value={openItemId || ''}
+          onValueChange={(value) => setOpenItemId(value || null)}
+        >
           {products.map((product) => {
             const productImage = PlaceHolderImages.find(
               (img) => img.id === product.imageId
             );
+            const isExpanded = openItemId === product.imageId;
             return (
-              <Link
-                href="https://wa.me/5493564504977"
-                target="_blank"
-                className="group h-full"
+              <AccordionItem
+                value={product.imageId}
                 key={product.imageId + '-desktop'}
+                className={cn(
+                  'group/item rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
+                  isExpanded && 'shadow-xl'
+                )}
               >
-                <Card className="flex h-full flex-col overflow-hidden rounded-lg transition-shadow duration-300 group-hover:shadow-xl">
-                  <div className="overflow-hidden">
-                    <Image
-                      src={
-                        productImage?.imageUrl ||
-                        `https://picsum.photos/seed/${product.imageId}/600/400`
-                      }
-                      data-ai-hint={
-                        productImage?.imageHint ||
-                        product.imageId.replace('-', ' ')
-                      }
-                      alt={product.title}
-                      width={600}
-                      height={400}
-                      className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                <AccordionTrigger className="group/trigger w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                  <div className="flex w-full flex-col">
+                    <div
+                      className={cn(
+                        'overflow-hidden rounded-t-lg',
+                        isExpanded && 'rounded-b-none'
+                      )}
+                    >
+                      <Image
+                        src={
+                          productImage?.imageUrl ||
+                          `https://picsum.photos/seed/${product.imageId}/600/400`
+                        }
+                        data-ai-hint={
+                          productImage?.imageHint ||
+                          product.imageId.replace('-', ' ')
+                        }
+                        alt={product.title}
+                        width={600}
+                        height={400}
+                        className="aspect-video w-full object-cover transition-transform duration-300 group-hover/item:scale-105"
+                      />
+                    </div>
+                    <div className="flex-grow p-6">
+                      <h3 className="text-xl font-semibold leading-none tracking-tight">
+                        {product.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {product.description}
+                      </p>
+                    </div>
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-xl">{product.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <CardDescription>{product.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="border-t p-6">
+                    <ul className="mb-6 space-y-4 text-foreground/80">
+                      {product.details.map((detail, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <div className="flex-shrink-0">{detail.icon}</div>
+                          <span>{detail.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button asChild className="w-full rounded-full">
+                      <Link
+                        href="https://wa.me/5493564504977"
+                        target="_blank"
+                      >
+                        Consultar
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             );
           })}
-        </div>
+        </Accordion>
 
         {/* Mobile Accordion Grid */}
         <div className="mx-auto block py-12 sm:hidden">
