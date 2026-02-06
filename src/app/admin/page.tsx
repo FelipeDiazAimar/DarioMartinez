@@ -22,7 +22,7 @@ const sections = [
     { title: 'Posberry', href: '/posberry', icon: <ShoppingBasket className="h-8 w-8" /> },
     { title: 'Sobre Nosotros', href: '/sobre-nosotros', icon: <Users className="h-8 w-8" /> },
     { title: 'Contacto', href: '/contacto', icon: <Mail className="h-8 w-8" /> },
-    { title: 'Estadísticas', href: '#', icon: <BarChart className="h-8 w-8" /> },
+    { title: 'Estadísticas', href: '/admin/estadisticas', icon: <BarChart className="h-8 w-8" /> },
     { title: 'Preguntas Frecuentes', href: '/preguntas-frecuentes', icon: <HelpCircle className="h-8 w-8" /> },
 ];
 

@@ -1,0 +1,240 @@
+'use client';
+
+import {
+  Eye,
+  Users,
+  BarChart2,
+  FileText,
+  MousePointerClick,
+  Smartphone,
+  Tablet,
+  Laptop
+} from 'lucide-react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+
+
+// Dummy data
+const dailyVisitsData = [
+  { date: 'Lun', visits: 22 },
+  { date: 'Mar', visits: 34 },
+  { date: 'Mié', visits: 54 },
+  { date: 'Jue', visits: 42 },
+  { date: 'Vie', visits: 78 },
+  { date: 'Sáb', visits: 92 },
+  { date: 'Dom', visits: 65 },
+];
+
+const pageViewsData = [
+    { name: '/servicios', views: 1203 },
+    { name: '/posberry', views: 982 },
+    { name: '/productos', views: 876 },
+    { name: '/', views: 750 },
+    { name: '/contacto', views: 453 },
+];
+
+const deviceData = [
+  { name: 'Móvil', value: 400, icon: Smartphone },
+  { name: 'Escritorio', value: 300, icon: Laptop },
+  { name: 'Tablet', value: 100, icon: Tablet },
+];
+
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
+
+export default function StatisticsPage() {
+  return (
+    <div className="flex min-h-screen w-full flex-col">
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <div className="flex items-center">
+             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline flex items-center gap-3">
+                <BarChart2 className="h-8 w-8" />
+                Estadísticas del Sitio
+            </h1>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Visitas Totales
+              </CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">45,231</div>
+              <p className="text-xs text-muted-foreground">
+                +20.1% desde el mes pasado
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Clics en Productos
+              </CardTitle>
+              <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+2,350</div>
+              <p className="text-xs text-muted-foreground">
+                +180.1% desde el mes pasado
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Consultas de Contacto</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+1,234</div>
+              <p className="text-xs text-muted-foreground">
+                +19% desde el mes pasado
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Nuevos Usuarios</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+573</div>
+              <p className="text-xs text-muted-foreground">
+                +201 desde el mes pasado
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          <Card className="xl:col-span-2">
+            <CardHeader>
+              <CardTitle>Visitas de la Última Semana</CardTitle>
+            </CardHeader>
+            <CardContent>
+               <ChartContainer config={{
+                    visits: {
+                        label: 'Visitas',
+                        color: 'hsl(var(--chart-1))',
+                    },
+                }} className="min-h-[300px] w-full">
+                    <BarChart accessibilityLayer data={dailyVisitsData}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        />
+                         <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={10}
+                        />
+                        <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Bar dataKey="visits" fill="var(--color-visits)" radius={4} />
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Visitas por Dispositivo</CardTitle>
+              <CardDescription>
+                Distribución de visitas en los últimos 30 días.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pb-0">
+               <ChartContainer
+                    config={{
+                        mobile: { label: 'Móvil', color: 'hsl(var(--chart-1))', icon: Smartphone },
+                        desktop: { label: 'Escritorio', color: 'hsl(var(--chart-2))', icon: Laptop },
+                        tablet: { label: 'Tablet', color: 'hsl(var(--chart-3))', icon: Tablet },
+                    }}
+                    className="mx-auto aspect-square h-[250px]"
+                >
+                    <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={deviceData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={5}>
+                             {deviceData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Pie>
+                    </PieChart>
+               </ChartContainer>
+            </CardContent>
+             <CardContent className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex-1">
+                    <div className="flex justify-center gap-4">
+                        {deviceData.map((entry) => (
+                            <div key={entry.name} className="flex items-center gap-1.5">
+                                <div className="h-2 w-2 rounded-full" style={{backgroundColor: COLORS[deviceData.indexOf(entry)]}}></div>
+                                <span>{entry.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+         <Card>
+              <CardHeader>
+                <CardTitle>Páginas Más Visitadas</CardTitle>
+                <CardDescription>
+                  Ranking de las páginas con más tráfico en el sitio.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <ChartContainer config={{
+                    views: {
+                        label: 'Vistas',
+                        color: 'hsl(var(--chart-2))',
+                    },
+                }} className="min-h-[300px] w-full">
+                    <BarChart accessibilityLayer data={pageViewsData} layout="vertical">
+                        <CartesianGrid horizontal={false} />
+                        <YAxis
+                            dataKey="name"
+                            type="category"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                            width={80}
+                        />
+                        <XAxis type="number" hide />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Bar dataKey="views" fill="var(--color-views)" radius={4} />
+                    </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+      </main>
+    </div>
+  );
+}
