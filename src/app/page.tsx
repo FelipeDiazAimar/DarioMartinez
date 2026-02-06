@@ -171,7 +171,7 @@ export default function Home() {
                   Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button asChild size="lg" className="rounded-full">
                   <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
