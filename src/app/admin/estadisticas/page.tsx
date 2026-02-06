@@ -40,6 +40,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 // Dummy data
@@ -51,6 +52,21 @@ const dailyVisitsData = [
   { date: 'Vie', visits: 78 },
   { date: 'Sáb', visits: 92 },
   { date: 'Dom', visits: 65 },
+];
+
+const yearlyVisitsData = [
+    { month: 'Ene', visits: 12032 },
+    { month: 'Feb', visits: 15342 },
+    { month: 'Mar', visits: 18234 },
+    { month: 'Abr', visits: 17895 },
+    { month: 'May', visits: 21234 },
+    { month: 'Jun', visits: 25345 },
+    { month: 'Jul', visits: 23456 },
+    { month: 'Ago', visits: 27890 },
+    { month: 'Sep', visits: 30123 },
+    { month: 'Oct', visits: 32456 },
+    { month: 'Nov', visits: 35678 },
+    { month: 'Dic', visits: 40321 },
 ];
 
 const pageViewsData = [
@@ -210,37 +226,73 @@ export default function StatisticsPage() {
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <Card className="xl:col-span-2">
-            <CardHeader>
-              <CardTitle>Visitas de la Última Semana</CardTitle>
-            </CardHeader>
-            <CardContent>
-               <ChartContainer config={{
-                    visits: {
-                        label: 'Visitas',
-                        color: 'hsl(var(--chart-1))',
-                    },
-                }} className="min-h-[300px] w-full">
-                    <BarChart accessibilityLayer data={dailyVisitsData}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        />
-                         <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={10}
-                        />
-                        <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar dataKey="visits" fill="var(--color-visits)" radius={4} />
-                    </BarChart>
-                </ChartContainer>
-            </CardContent>
+            <Tabs defaultValue="week">
+                <CardHeader className="flex flex-row items-center">
+                    <CardTitle>Visitas</CardTitle>
+                    <TabsList className="ml-auto">
+                        <TabsTrigger value="week">Última Semana</TabsTrigger>
+                        <TabsTrigger value="year">Último Año</TabsTrigger>
+                    </TabsList>
+                </CardHeader>
+                <CardContent>
+                    <TabsContent value="week" className="mt-0">
+                        <ChartContainer config={{
+                            visits: {
+                                label: 'Visitas',
+                                color: 'hsl(var(--chart-1))',
+                            },
+                        }} className="min-h-[300px] w-full">
+                            <BarChart accessibilityLayer data={dailyVisitsData}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                dataKey="date"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                />
+                                 <YAxis
+                                  tickLine={false}
+                                  axisLine={false}
+                                  tickMargin={10}
+                                />
+                                <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent indicator="dot" />}
+                                />
+                                <Bar dataKey="visits" fill="var(--color-visits)" radius={4} />
+                            </BarChart>
+                        </ChartContainer>
+                    </TabsContent>
+                    <TabsContent value="year" className="mt-0">
+                        <ChartContainer config={{
+                            visits: {
+                                label: 'Visitas',
+                                color: 'hsl(var(--chart-1))',
+                            },
+                        }} className="min-h-[300px] w-full">
+                            <BarChart accessibilityLayer data={yearlyVisitsData}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                dataKey="month"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                />
+                                 <YAxis
+                                  tickLine={false}
+                                  axisLine={false}
+                                  tickMargin={10}
+                                />
+                                <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent indicator="dot" />}
+                                />
+                                <Bar dataKey="visits" fill="var(--color-visits)" radius={4} />
+                            </BarChart>
+                        </ChartContainer>
+                    </TabsContent>
+                </CardContent>
+            </Tabs>
           </Card>
           <Card>
             <CardHeader>
