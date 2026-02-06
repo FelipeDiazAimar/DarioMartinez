@@ -13,6 +13,9 @@ import {
   HardDrive,
   ArrowRight,
   Instagram,
+  Target,
+  Eye,
+  Gem,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -300,25 +303,34 @@ export default function Home() {
             <div className="flex flex-col justify-center space-y-4">
               <ul className="grid gap-6">
                 <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Misión</h3>
-                    <p className="text-foreground/80">
+                  <div className="grid gap-2">
+                    <h3 className="text-xl font-bold flex items-center gap-3">
+                      <Target className="h-6 w-6 text-primary" />
+                      Misión
+                    </h3>
+                    <p className="text-foreground/80 pl-[36px]">
                       Facilitar el acceso a la tecnología, ofreciendo productos y servicios de vanguardia que impulsen el desarrollo de nuestros clientes.
                     </p>
                   </div>
                 </li>
                 <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Visión</h3>
-                    <p className="text-foreground/80">
+                  <div className="grid gap-2">
+                    <h3 className="text-xl font-bold flex items-center gap-3">
+                      <Eye className="h-6 w-6 text-primary" />
+                      Visión
+                    </h3>
+                    <p className="text-foreground/80 pl-[36px]">
                       Ser la empresa líder en soluciones tecnológicas en la región, reconocida por nuestra innovación, confiabilidad y compromiso con el cliente.
                     </p>
                   </div>
                 </li>
                 <li>
-                  <div className="grid gap-1">
-                    <h3 className="text-xl font-bold">Valores</h3>
-                    <p className="text-foreground/80">
+                  <div className="grid gap-2">
+                    <h3 className="text-xl font-bold flex items-center gap-3">
+                      <Gem className="h-6 w-6 text-primary" />
+                      Valores
+                    </h3>
+                    <p className="text-foreground/80 pl-[36px]">
                       Confianza, Experiencia, Innovación y Atención Personalizada.
                     </p>
                   </div>
