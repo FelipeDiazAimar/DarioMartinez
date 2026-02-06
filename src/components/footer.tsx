@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, ArrowRight } from "lucide-react";
+import { Instagram, ArrowRight, Clock } from "lucide-react";
 
 import {
   Accordion,
@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     question: "¿Cuál es el horario de atención?",
-    answer: "Nuestro horario de atención es de lunes a viernes de 8:30 a 12:30 y de 16:00 a 20:00. Sábados de 9:00 a 13:00.",
+    answer: "Nuestro horario de atención de Lunes a Jueves es de 7:30 a 12:30 y de 15:30 a 19:30 hs. Los Viernes es de 8:00 a 12:00 y de 15:30 a 19:30 hs. Los sábados el local permanece cerrado.",
   },
   {
     question: "¿Ofrecen garantía por las reparaciones?",
@@ -51,7 +51,13 @@ export function Footer() {
           <p className="text-sm text-foreground/70">
             Tu aliado en soluciones tecnológicas desde hace más de 50 años.
           </p>
-          <div className="flex gap-4">
+          <div className="text-sm text-foreground/70 space-y-1">
+            <h4 className="font-semibold flex items-center gap-2 text-foreground/90"><Clock className="h-4 w-4" /> Horarios de atención</h4>
+            <p>Lunes a Jueves: 7:30-12:30 y 15:30-19:30 hs.</p>
+            <p>Viernes: 8:00-12:00 y 15:30-19:30 hs.</p>
+            <p>Sábados: Cerrado</p>
+          </div>
+          <div className="flex gap-4 pt-2">
             <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
               <WhatsAppIcon className="h-6 w-6" />
             </Link>

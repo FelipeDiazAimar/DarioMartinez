@@ -19,7 +19,7 @@ const allFaqs = [
   },
   {
     question: '¿Cuál es el horario de atención?',
-    answer: 'Nuestro horario de atención es de lunes a viernes de 8:30 a 12:30 y de 16:00 a 20:00. Los sábados atendemos de 9:00 a 13:00.',
+    answer: 'Nuestro horario de atención de Lunes a Jueves es de 7:30 a 12:30 y de 15:30 a 19:30 hs. Los Viernes es de 8:00 a 12:00 y de 15:30 a 19:30 hs. Los sábados el local permanece cerrado.',
     icon: <Clock className="h-6 w-6 text-primary" />,
   },
   {
