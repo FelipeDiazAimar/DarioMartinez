@@ -255,6 +255,26 @@ export default function PosberryPage() {
           </div>
         </div>
       </section>
+
+      {/* CTA Section */}
+      <section className="bg-primary text-primary-foreground py-20 md:py-24">
+        <div className="container mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
+            ¿Listo para transformar tu negocio?
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-primary-foreground/80">
+            Descubrí cómo POSBerry puede simplificar tu gestión y potenciar tus ventas. ¡Hablemos!
+          </p>
+          <div className="mt-8">
+            <Button asChild size="lg" variant="secondary" className="rounded-full text-lg px-8 py-6">
+              <Link href="https://wa.me/5493564504977" target="_blank">
+                <WhatsAppIcon className="mr-2 h-5 w-5" />
+                Solicitar una Demostración
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
