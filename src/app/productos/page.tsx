@@ -26,6 +26,8 @@ import {
   Search,
   X,
   History,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   Accordion,
@@ -165,6 +167,90 @@ const allProducts = [
   },
 ];
 
+const ITEMS_PER_PAGE = 12;
+
+function Pagination({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number
+    totalPages: number
+    onPageChange: (page: number) => void
+  }) {
+    const getPageNumbers = () => {
+      const pageNumbers = []
+      const maxPagesToShow = 5
+      const half = Math.floor(maxPagesToShow / 2)
+  
+      if (totalPages <= maxPagesToShow) {
+        for (let i = 1; i <= totalPages; i++) {
+          pageNumbers.push(i)
+        }
+      } else {
+        if (currentPage <= half + 1) {
+          for (let i = 1; i <= maxPagesToShow - 1; i++) {
+            pageNumbers.push(i)
+          }
+          pageNumbers.push('...')
+          pageNumbers.push(totalPages)
+        } else if (currentPage >= totalPages - half) {
+          pageNumbers.push(1)
+          pageNumbers.push('...')
+          for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
+            pageNumbers.push(i)
+          }
+        } else {
+          pageNumbers.push(1)
+          pageNumbers.push('...')
+          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+            pageNumbers.push(i)
+          }
+          pageNumbers.push('...')
+          pageNumbers.push(totalPages)
+        }
+      }
+      return pageNumbers
+    }
+  
+    return (
+      <div className="flex items-center justify-center space-x-2 mt-12">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        {getPageNumbers().map((page, index) =>
+          typeof page === 'number' ? (
+            <Button
+              key={index}
+              variant={currentPage === page ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </Button>
+          ) : (
+            <span key={index} className="px-1 text-muted-foreground">
+              ...
+            </span>
+          )
+        )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
+
 export default function ProductosPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -175,6 +261,7 @@ export default function ProductosPage() {
 
   const searchTerm = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'a-z';
+  const currentPage = Number(searchParams.get('page') || '1');
   
   const [inputValue, setInputValue] = React.useState(searchTerm);
   const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
@@ -207,12 +294,14 @@ export default function ProductosPage() {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (inputValue !== searchTerm) {
+        setOpenItemId(null);
         const params = new URLSearchParams(searchParams.toString());
         if (inputValue) {
           params.set('q', inputValue);
         } else {
           params.delete('q');
         }
+        params.delete('page');
         router.push(`${pathname}?${params.toString()}`);
         if (inputValue) {
           updateSearchHistory(inputValue);
@@ -240,14 +329,32 @@ export default function ProductosPage() {
   }, [searchContainerRef]);
 
   const handleSortChange = (order: string) => {
+    setOpenItemId(null);
     const params = new URLSearchParams(searchParams);
     params.set('sort', order);
+    params.delete('page');
     router.push(`${pathname}?${params.toString()}`);
   };
 
   const handleHistoryClick = (term: string) => {
     setInputValue(term);
     setIsHistoryVisible(false);
+  };
+  
+  const handlePageChange = (page: number) => {
+    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+    
+    setOpenItemId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (page === 1) {
+      params.delete('page');
+    } else {
+      params.set('page', page.toString());
+    }
+    
+    router.push(`${pathname}?${params.toString()}`);
+    window.scrollTo(0, 0);
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
@@ -266,17 +373,23 @@ export default function ProductosPage() {
       });
   }, [searchTerm, sortOrder]);
 
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
+
+  const currentProducts = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedProducts, currentPage]);
 
   const mobileProducts = React.useMemo(() => {
     if (!openItemId) {
-      return filteredAndSortedProducts;
+      return currentProducts;
     }
-    const openItem = filteredAndSortedProducts.find((p) => p.imageId === openItemId);
+    const openItem = currentProducts.find((p) => p.imageId === openItemId);
     if (!openItem) {
-      return filteredAndSortedProducts;
+      return currentProducts;
     }
-    return [openItem, ...filteredAndSortedProducts.filter((p) => p.imageId !== openItemId)];
-  }, [openItemId, filteredAndSortedProducts]);
+    return [openItem, ...currentProducts.filter((p) => p.imageId !== openItemId)];
+  }, [openItemId, currentProducts]);
 
   return (
     <section id="productos" className="w-full py-12 md:py-24 lg:py-32">
@@ -354,11 +467,11 @@ export default function ProductosPage() {
         <Accordion
           type="single"
           collapsible
-          className="mx-auto hidden py-12 sm:block sm:columns-2 sm:gap-8 lg:columns-3"
+          className="mx-auto hidden py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
           value={openItemId || ''}
           onValueChange={(value) => setOpenItemId(value || null)}
         >
-          {filteredAndSortedProducts.map((product) => {
+          {currentProducts.map((product) => {
             const productImage = PlaceHolderImages.find(
               (img) => img.id === product.imageId
             );
@@ -368,7 +481,7 @@ export default function ProductosPage() {
                 value={product.imageId}
                 key={product.imageId + '-desktop'}
                 className={cn(
-                  'group/item mb-8 break-inside-avoid rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
+                  'group/item mb-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
                   isExpanded && 'shadow-xl'
                 )}
               >
@@ -516,6 +629,13 @@ export default function ProductosPage() {
             })}
           </Accordion>
         </div>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
     </section>
   );
