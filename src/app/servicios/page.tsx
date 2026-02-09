@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ChevronRight,
   Check,
+  Download,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -131,7 +132,7 @@ export default function ServiciosPage() {
             </p>
           </div>
         </div>
-        <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 py-12">
+        <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 pt-12">
           {services.map((service, index) => {
             const serviceImage = PlaceHolderImages.find(img => img.id === service.imageId);
             return(
@@ -182,7 +183,40 @@ export default function ServiciosPage() {
             )
           })}
         </Accordion>
-        <div className="mt-8 flex justify-center">
+        
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 pt-6">
+            <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+                <CardHeader className="p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                            <Download className="h-10 w-10" />
+                        </div>
+                        <div className="flex-1 space-y-1.5">
+                            <CardTitle className="text-xl">Herramientas de Asistencia Remota</CardTitle>
+                            <CardDescription>Para recibir soporte a distancia, descargá una de las siguientes herramientas y contactanos.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-6 pb-6">
+                   <div className="flex flex-col sm:flex-row gap-4">
+                        <Button asChild className="w-full rounded-full">
+                            <Link href="https://anydesk.com/es/downloads/windows" target="_blank" rel="noopener noreferrer">
+                                <Download className="mr-2 h-5 w-5" />
+                                Descargar AnyDesk
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="w-full rounded-full">
+                            <Link href="https://www.teamviewer.com/es/descarga/" target="_blank" rel="noopener noreferrer">
+                                <Download className="mr-2 h-5 w-5" />
+                                Descargar TeamViewer
+                            </Link>
+                        </Button>
+                   </div>
+                </CardContent>
+            </Card>
+        </div>
+
+        <div className="mt-12 flex justify-center">
           <Button asChild size="lg" className="rounded-full">
             <Link href="/contacto">
               Contactar
