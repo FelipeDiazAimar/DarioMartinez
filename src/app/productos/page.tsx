@@ -1072,7 +1072,7 @@ export default function ProductosPage() {
                       <Image
                         src={
                           productImage?.imageUrl ||
-                          `https://picsum.photos/seed/${product.imageId}/450/800`
+                          `https://picsum.photos/seed/${product.imageId}/600/400`
                         }
                         data-ai-hint={
                           productImage?.imageHint ||

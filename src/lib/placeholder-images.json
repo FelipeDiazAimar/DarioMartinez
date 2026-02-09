@@ -3,229 +3,229 @@
     {
       "id": "carousel-1",
       "description": "Técnico reparando una computadora.",
-      "imageUrl": "https://images.unsplash.com/photo-1580835916389-569402438200?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0ZWNobmljaWFuJTIwY29tcHV0ZXIlMjByZXBhaXJ8ZW58MHx8fHwxNzcwMjE0MTUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1709102884400-b50ca1a12bc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0ZWNobmljaWFuJTIwY29tcHV0ZXIlMjByZXBhaXJ8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "technician computer repair"
     },
     {
       "id": "carousel-2",
       "description": "Primer plano de una placa de circuito.",
-      "imageUrl": "https://images.unsplash.com/photo-1631375937044-6dd5beac01d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzcwMTkzMDYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzcwNjQ1ODUyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "circuit board"
     },
     {
       "id": "carousel-3",
       "description": "Componentes de computadora organizados.",
-      "imageUrl": "https://images.unsplash.com/photo-1583267926030-339452e741c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y29tcHV0ZXIlMjBjb21wb25lbnRzfGVufDB8fHx8MTc3MDIxNDE1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNvbXBvbmVudHN8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "computer components"
     },
     {
       "id": "hero-image",
       "description": "Hero image showing computer repair tools.",
-      "imageUrl": "https://images.unsplash.com/photo-1553273883-a89f8f89f492?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb21wdXRlciUyMHJlcGFpcnxlbnwwfHx8fDE3NzAxOTM0OTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1591238372338-22d30c883a86?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb21wdXRlciUyMHJlcGFpcnxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "computer repair"
     },
     {
       "id": "fiscal-printer",
       "description": "Image of a fiscal printer.",
-      "imageUrl": "https://images.unsplash.com/photo-1701836924569-a0b887ed1322?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmaXNjYWwlMjBwcmludGVyfGVufDB8fHx8MTc3MDIxNDE1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1650696868612-4b836291b323?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmaXNjYWwlMjBwcmludGVyfGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fiscal printer"
     },
     {
       "id": "notebook",
       "description": "Image of a notebook laptop.",
-      "imageUrl": "https://images.unsplash.com/photo-1693206578603-8a6c02d71116?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxub3RlYm9vayUyMGxhcHRvcHxlbnwwfHx8fDE3NzAyMTQxNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1693206578601-21cdc341d2c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxub3RlYm9vayUyMGxhcHRvcHxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "notebook laptop"
     },
     {
       "id": "ticket-printer",
       "description": "Image of a ticket printer.",
-      "imageUrl": "https://images.unsplash.com/photo-1726661025462-b0ddd7a363a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWNlaXB0JTIwcHJpbnRlcnxlbnwwfHx8fDE3NzAyMTQxNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1645776104975-589d9e5542c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVjZWlwdCUyMHByaW50ZXJ8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "receipt printer"
     },
     {
       "id": "calculator",
       "description": "Image of a calculator.",
-      "imageUrl": "https://images.unsplash.com/photo-1649209979970-f01d950cc5ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYWxjdWxhdG9yJTIwb2ZmaWNlfGVufDB8fHx8MTc3MDIxNDE1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1762319007311-31597c44aad8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FsY3VsYXRvciUyMG9mZmljZXxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "calculator office"
     },
     {
       "id": "barcode-scanner",
       "description": "Image of a barcode scanner.",
-      "imageUrl": "https://images.unsplash.com/photo-1758543102397-e14b5dfdd8bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiYXJjb2RlJTIwc2Nhbm5lcnxlbnwwfHx8fDE3NzAyMTQxNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1758542113402-b46079642dc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiYXJjb2RlJTIwc2Nhbm5lcnxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "barcode scanner"
     },
     {
       "id": "service-pc-repair",
       "description": "Technician repairing a laptop.",
-      "imageUrl": "https://images.unsplash.com/photo-1620368523635-df9d83338fc1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsYXB0b3AlMjByZXBhaXJ8ZW58MHx8fHwxNzcwMjk2ODA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1658240527554-9cf987b4de49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjByZXBhaXJ8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "laptop repair"
     },
     {
       "id": "service-software-install",
       "description": "Windows logo on a screen.",
-      "imageUrl": "https://images.unsplash.com/photo-1662947036583-d67dd8055edf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx3aW5kb3dzJTIwbG9nb3xlbnwwfHx8fDE3NzAzMDA4MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1530133532239-eda6f53fcf0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3aW5kb3dzJTIwbG9nb3xlbnwwfHx8fDE3NzA1ODk4NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "windows logo"
     },
     {
       "id": "service-hardware-upgrade",
       "description": "Close-up of a RAM module being installed.",
-      "imageUrl": "https://images.unsplash.com/photo-1758577675588-c5bbbbbf8e97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxSQU0lMjB1cGdyYWRlfGVufDB8fHx8MTc3MDMwMDgxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1759836096317-e746643cc277?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8UkFNJTIwdXBncmFkZXxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "RAM upgrade"
     },
     {
       "id": "service-maintenance",
       "description": "Technician cleaning a dusty computer fan.",
-      "imageUrl": "https://images.unsplash.com/photo-1560131930-485758fc17b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb21wdXRlciUyMGNsZWFuaW5nfGVufDB8fHx8MTc3MDMwMDgxOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1464580148015-c844134b925f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y29tcHV0ZXIlMjBjbGVhbmluZ3xlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "computer cleaning"
     },
     {
       "id": "service-networking",
       "description": "A modern Wi-Fi router on a desk.",
-      "imageUrl": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aWZpJTIwcm91dGVyfGVufDB8fHx8MTcyMTg0NDIwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1606421753414-8d165c9d48e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3aWZpJTIwcm91dGVyfGVufDB8fHx8MTc3MDYyNTk5NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "wifi router"
     },
     {
       "id": "service-tech-support",
       "description": "Person providing remote technical support on a laptop.",
-      "imageUrl": "https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWNobmljYWwlMjBzdXBwb3J0fGVufDB8fHx8MTcyMTg0NDIyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1521898284481-a5ec348cb555?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWNobmljYWwlMjBzdXBwb3J0fGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "technical support"
     },
     {
       "id": "network-switch",
       "description": "A network switch with multiple ethernet ports.",
-      "imageUrl": "https://images.unsplash.com/photo-1614285458348-827478745c14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZXR3b3JrJTIwc3dpdGNofGVufDB8fHx8MTcyMTk0MjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1531765408077-9a1f85f90df1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxuZXR3b3JrJTIwc3dpdGNofGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "network switch"
     },
     {
       "id": "usb-adapters",
       "description": "A USB dongle for wireless connectivity.",
-      "imageUrl": "https://images.unsplash.com/photo-1616447823594-5a1a67a42183?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx1c2IlMjBkb25nbGV8ZW58MHx8fHwxNzIxOTQyNDA0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1662553739062-3c2570008adc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx1c2IlMjBkb25nbGV8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "usb dongle"
     },
     {
       "id": "mousepads",
       "description": "A large gaming mousepad on a desk.",
-      "imageUrl": "https://images.unsplash.com/photo-1598971457999-ca4ef48a9a71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZXBhZHxlbnwwfHx8fDE3MjE5NDI0MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1616071358846-9f34f471815d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBtb3VzZXBhZHxlbnwwfHx8fDE3NzA1NjUzNjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gaming mousepad"
     },
     {
       "id": "keyboards",
       "description": "A mechanical keyboard with RGB lighting.",
-      "imageUrl": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtZWNoYW5pY2FsJTIwa2V5Ym9hcmR8ZW58MHx8fHwxNzIxOTQyNDA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1626958390898-162d3577f293?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtZWNoYW5pY2FsJTIwa2V5Ym9hcmR8ZW58MHx8fHwxNzcwNjMyOTUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "mechanical keyboard"
     },
     {
       "id": "mice",
       "description": "A sleek gaming mouse with side buttons.",
-      "imageUrl": "https://images.unsplash.com/photo-1615663249852-2431760b54da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBtb3VzZXxlbnwwfHx8fDE3MjE5NDI0MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1629429408708-3a59f51979c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnYW1pbmclMjBtb3VzZXxlbnwwfHx8fDE3NzA1NTk1MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gaming mouse"
     },
     {
       "id": "webcams",
       "description": "A high-definition webcam mounted on a monitor.",
-      "imageUrl": "https://images.unsplash.com/photo-1617397298646-a8015b43292d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZWJjYW0lMjBkZXNrfGVufDB8fHx8MTcyMTk0MjQwNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1758874572744-26aa02a8f5c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3ZWJjYW0lMjBkZXNrfGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "webcam desk"
     },
     {
       "id": "network-cards",
       "description": "A PCI express network interface card.",
-      "imageUrl": "https://images.unsplash.com/photo-1624898748369-e937662c5a04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwaSUyMG5ldHdvcmssJTIwY2FyZHxlbnwwfHx8fDE3MjE5NDI0MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1666334111978-614a8d680bbf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwY2klMjBuZXR3b3JrJTIwY2FyZHxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "pci network card"
     },
     {
       "id": "routers",
       "description": "A modern WiFi router on a shelf.",
-      "imageUrl": "https://images.unsplash.com/photo-1563191399-3171f543217e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aWZpJTIwcm91dGVyfGVufDB8fHx8fDE3MjE5NDI0MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1726033589589-c4628bbba368?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3aWZpJTIwcm91dGVyfGVufDB8fHx8MTc3MDYyNTk5NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "wifi router"
     },
     {
       "id": "tech-backpacks",
       "description": "A stylish backpack designed for carrying laptops and tech gear.",
-      "imageUrl": "https://images.unsplash.com/photo-1563242278-8543885f9588?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0ZWNoJTIwYmFja3BhY2t8ZW58MHx8fHwxNzIxOTQyNDA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1678655538220-f736e7bb292e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0ZWNoJTIwYmFja3BhY2t8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "tech backpack"
     },
     {
       "id": "headphones",
       "description": "A pair of high-quality gaming headphones.",
-      "imageUrl": "https://images.unsplash.com/photo-1583394838336-acd977736f90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBoZWFkc2V0fGVufDB8fHx8fDE3MjE5NDI0MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1629429407756-4a7703614972?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBoZWFkc2V0fGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gaming headset"
     },
     {
       "id": "cash-registers",
       "description": "An old-fashioned cash register.",
-      "imageUrl": "https://images.unsplash.com/photo-1583206788819-94a37f2a17b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXNoJTIwcmVnaXN0ZXJ8ZW58MHx8fHwxNzIxOTQyNDA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1556740772-1a741367b93e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXNoJTIwcmVnaXN0ZXJ8ZW58MHx8fHwxNzcwNTkwMjM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cash register"
     },
     {
       "id": "monitors",
       "description": "A curved ultrawide computer monitor on a desk.",
-      "imageUrl": "https://images.unsplash.com/photo-1586221469502-33b66f7a6270?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb25pdG9yJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzIxOTQyNDA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1594400344473-cf8b48733c1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb21wdXRlciUyMG1vbml0b3J8ZW58MHx8fHwxNzcwNjE4ODYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "computer monitor"
     },
     {
       "id": "printers",
       "description": "A multifunction office printer.",
-      "imageUrl": "https://images.unsplash.com/photo-1612815154858-60aa4c59915b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBwcmludGVyfGVufDB8fHx8fDE3MjE5NDI0MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1666101041092-468eb2818c87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvZmZpY2UlMjBwcmludGVyfGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "office printer"
     },
     {
       "id": "electronic-scales",
       "description": "A commercial electronic scale used for weighing goods.",
-      "imageUrl": "https://images.unsplash.com/photo-1593106362493-2287f7634f59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwc2NhbGV8ZW58MHx8fHwxNzIxOTQyNDA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1545426373-6588267475be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb21tZXJjaWFsJTIwc2NhbGV8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "commercial scale"
     },
     {
       "id": "office-chairs",
       "description": "An ergonomic office chair in a modern workspace.",
-      "imageUrl": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlcmdvbm9taWMlMjBjaGFpcnxlbnwwfHx8fDE3MjE5NDI0MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1688578735972-b61ec274df7b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxlcmdvbm9taWMlMjBjaGFpcnxlbnwwfHx8fDE3NzA2MTY0MDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "ergonomic chair"
     },
     {
       "id": "office-supplies",
       "description": "A collection of various office supplies on a desk.",
-      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBzdXBwbGllc3xlbnwwfHx8fHwxNzIxOTQyNDA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBzdXBwbGllc3xlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "office supplies"
     },
     {
       "id": "printer-toner",
       "description": "Printer toner cartridges lined up.",
-      "imageUrl": "https://images.unsplash.com/photo-1599819732182-3d84a7065e12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcmludGVyJTIwdG9uZXJ8ZW58MHx8fHwxNzIxOTQyNDA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1764712738421-3b597dff8345?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cHJpbnRlciUyMHRvbmVyfGVufDB8fHx8MTc3MDY1MDg3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "printer toner"
     },
     {
       "id": "safes",
       "description": "A small digital safe.",
-      "imageUrl": "https://images.unsplash.com/photo-1584615462334-21aaa6e48041?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwc2FmZXxlbnwwfHx8fDE3MjE5NDI0MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1763477388140-46badf1d8ac8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkaWdpdGFsJTIwc2FmZXxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "digital safe"
     },
     {
       "id": "usb-drives",
       "description": "A person holding a USB flash drive.",
-      "imageUrl": "https://images.unsplash.com/photo-1533633631372-f01b3c433194?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx1c2IlMjBkcml2ZXxlbnwwfHx8fHwxNzIxOTQyNDEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1703354521539-177dcce12b4d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx1c2IlMjBkcml2ZXxlbnwwfHx8fDE3NzA1NjUyMDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "usb drive"
     },
     {
       "id": "cables",
       "description": "A tangled collection of various computer cables.",
-      "imageUrl": "https://images.unsplash.com/photo-1547027958-999a385150a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGNhYmxlc3xlbnwwfHx8fHwxNzIxOTQyNDEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1601462904263-f2fa0c851cb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb21wdXRlciUyMGNhYmxlc3xlbnwwfHx8fDE3NzA2NTA4Nzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "computer cables"
     },
     {
       "id": "pc-components",
       "description": "Various PC components like a motherboard, GPU, and RAM laid out.",
-      "imageUrl": "https://images.unsplash.com/photo-1591799264318-7e6e74e3dce9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxQQyUyMGNvbXBvbmVudHN8ZW58MHx8fHwxNzIxOTQyNDExfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1694466049397-68368a38299a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwYyUyMGNvbXBvbmVudHN8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "pc components"
     },
     {
       "id": "scientific-calculator",
       "description": "A scientific calculator on a desk with notes.",
-      "imageUrl": "https://images.unsplash.com/photo-1594921473215-681423531b79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzY2llbnRpZmljJTIwY2FsY3VsYXRvcnxlbnwwfHx8fDE3MjE5NDI0MTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1645905108459-f69ed6cbbe89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzY2llbnRpZmljJTIwY2FsY3VsYXRvcnxlbnwwfHx8fDE3NzA2NTA4Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "scientific calculator"
     },
     {
       "id": "stationery",
       "description": "Various stationery items organized on a table.",
-      "imageUrl": "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdGF0aW9uZXJ5JTIwaXRlbXN8ZW58MHx8fHwxNzIxOTQyNDEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1758366278318-d0f457e3bb4f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdGF0aW9uZXJ5JTIwaXRlbXN8ZW58MHx8fHwxNzcwNjUwODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "stationery items"
     }
   ]
