@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import * as React from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import {
@@ -164,9 +165,42 @@ const allProducts = [
 ];
 
 export default function ProductosPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [openItemId, setOpenItemId] = React.useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [sortOrder, setSortOrder] = React.useState('a-z');
+
+  const searchTerm = searchParams.get('q') || '';
+  const sortOrder = searchParams.get('sort') || 'a-z';
+  
+  const [inputValue, setInputValue] = React.useState(searchTerm);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputValue !== searchTerm) {
+        const params = new URLSearchParams(searchParams.toString());
+        if (inputValue) {
+          params.set('q', inputValue);
+        } else {
+          params.delete('q');
+        }
+        router.push(`${pathname}?${params.toString()}`);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, searchTerm, pathname, router, searchParams]);
+
+  React.useEffect(() => {
+    setInputValue(searchTerm);
+  }, [searchTerm]);
+
+  const handleSortChange = (order: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('sort', order);
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const filteredAndSortedProducts = React.useMemo(() => {
     return allProducts
@@ -217,17 +251,17 @@ export default function ProductosPage() {
               <Input
                 type="text"
                 placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
               />
-              {searchTerm && (
+              {inputValue && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => setInputValue('')}
                 >
                   <X className="h-5 w-5" />
                   <span className="sr-only">Limpiar búsqueda</span>
@@ -235,7 +269,7 @@ export default function ProductosPage() {
               )}
             </div>
             <Separator orientation="vertical" className="h-6" />
-            <Select value={sortOrder} onValueChange={setSortOrder}>
+            <Select value={sortOrder} onValueChange={handleSortChange}>
               <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
