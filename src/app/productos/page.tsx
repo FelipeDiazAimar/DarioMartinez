@@ -639,86 +639,89 @@ const allProducts = [
 const ITEMS_PER_PAGE = 12;
 
 function Pagination({
-    currentPage,
-    totalPages,
-    onPageChange,
-  }: {
-    currentPage: number
-    totalPages: number
-    onPageChange: (page: number) => void
-  }) {
-    const getPageNumbers = () => {
-      const pageNumbers = []
-      const maxPagesToShow = 5
-      const half = Math.floor(maxPagesToShow / 2)
-  
-      if (totalPages <= maxPagesToShow) {
-        for (let i = 1; i <= totalPages; i++) {
-          pageNumbers.push(i)
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    const half = Math.floor(maxPagesToShow / 2);
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= half + 1) {
+        for (let i = 1; i <= maxPagesToShow - 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - half) {
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
+          pageNumbers.push(i);
         }
       } else {
-        if (currentPage <= half + 1) {
-          for (let i = 1; i <= maxPagesToShow - 1; i++) {
-            pageNumbers.push(i)
-          }
-          pageNumbers.push('...')
-          pageNumbers.push(totalPages)
-        } else if (currentPage >= totalPages - half) {
-          pageNumbers.push(1)
-          pageNumbers.push('...')
-          for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
-            pageNumbers.push(i)
-          }
-        } else {
-          pageNumbers.push(1)
-          pageNumbers.push('...')
-          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-            pageNumbers.push(i)
-          }
-          pageNumbers.push('...')
-          pageNumbers.push(totalPages)
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
         }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
       }
-      return pageNumbers
     }
-  
-    return (
-      <div className="flex items-center justify-center space-x-2 mt-12">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        {getPageNumbers().map((page, index) =>
-          typeof page === 'number' ? (
-            <Button
-              key={index}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="icon"
-              onClick={() => onPageChange(page)}
-            >
-              {page}
-            </Button>
-          ) : (
-            <span key={index} className="px-1 text-muted-foreground">
-              ...
-            </span>
-          )
-        )}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    )
-  }
+    return pageNumbers;
+  };
+
+  return (
+    <div className="flex items-center justify-center space-x-2 mt-12">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="rounded-full"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      {getPageNumbers().map((page, index) =>
+        typeof page === 'number' ? (
+          <Button
+            key={index}
+            variant={currentPage === page ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => onPageChange(page)}
+            className="rounded-full"
+          >
+            {page}
+          </Button>
+        ) : (
+          <span key={index} className="px-1 text-muted-foreground">
+            ...
+          </span>
+        )
+      )}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="rounded-full"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 export default function ProductosPage() {
   const router = useRouter();
@@ -731,7 +734,7 @@ export default function ProductosPage() {
   const searchTerm = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'a-z';
   const currentPage = Number(searchParams.get('page') || '1');
-  
+
   const [inputValue, setInputValue] = React.useState(searchTerm);
   const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
   const [isHistoryVisible, setIsHistoryVisible] = React.useState(false);
@@ -743,7 +746,7 @@ export default function ProductosPage() {
         setSearchHistory(JSON.parse(storedHistory));
       }
     } catch (error) {
-      console.error("Failed to parse search history from localStorage", error);
+      console.error('Failed to parse search history from localStorage', error);
     }
   }, []);
 
@@ -752,11 +755,17 @@ export default function ProductosPage() {
     try {
       const storedHistory = localStorage.getItem('productSearchHistory');
       let history: string[] = storedHistory ? JSON.parse(storedHistory) : [];
-      history = [term, ...history.filter((item) => item.toLowerCase() !== term.toLowerCase())].slice(0, 5);
+      history = [
+        term,
+        ...history.filter((item) => item.toLowerCase() !== term.toLowerCase()),
+      ].slice(0, 5);
       localStorage.setItem('productSearchHistory', JSON.stringify(history));
       setSearchHistory(history);
     } catch (error) {
-      console.error("Failed to update search history in localStorage", error);
+      console.error(
+        'Failed to update search history in localStorage',
+        error
+      );
     }
   }, []);
 
@@ -779,7 +788,14 @@ export default function ProductosPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [inputValue, searchTerm, pathname, router, searchParams, updateSearchHistory]);
+  }, [
+    inputValue,
+    searchTerm,
+    pathname,
+    router,
+    searchParams,
+    updateSearchHistory,
+  ]);
 
   React.useEffect(() => {
     setInputValue(searchTerm);
@@ -787,13 +803,16 @@ export default function ProductosPage() {
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
         setIsHistoryVisible(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [searchContainerRef]);
 
@@ -809,19 +828,19 @@ export default function ProductosPage() {
     setInputValue(term);
     setIsHistoryVisible(false);
   };
-  
+
   const handlePageChange = (page: number) => {
     if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-    
+
     setOpenItemId(null);
     const params = new URLSearchParams(searchParams.toString());
-    
+
     if (page === 1) {
       params.delete('page');
     } else {
       params.set('page', page.toString());
     }
-    
+
     router.push(`${pathname}?${params.toString()}`);
     window.scrollTo(0, 0);
   };
@@ -842,11 +861,16 @@ export default function ProductosPage() {
       });
   }, [searchTerm, sortOrder]);
 
-  const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(
+    filteredAndSortedProducts.length / ITEMS_PER_PAGE
+  );
 
   const currentProducts = React.useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAndSortedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    return filteredAndSortedProducts.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
   }, [filteredAndSortedProducts, currentPage]);
 
   const mobileProducts = React.useMemo(() => {
@@ -857,7 +881,10 @@ export default function ProductosPage() {
     if (!openItem) {
       return currentProducts;
     }
-    return [openItem, ...currentProducts.filter((p) => p.imageId !== openItemId)];
+    return [
+      openItem,
+      ...currentProducts.filter((p) => p.imageId !== openItemId),
+    ];
   }, [openItemId, currentProducts]);
 
   return (
@@ -911,9 +938,11 @@ export default function ProductosPage() {
                 </SelectContent>
               </Select>
             </div>
-             {isHistoryVisible && searchHistory.length > 0 && (
+            {isHistoryVisible && searchHistory.length > 0 && (
               <div className="absolute top-full z-10 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
-                <p className="p-3 text-sm font-semibold text-muted-foreground">Búsquedas recientes</p>
+                <p className="p-3 text-sm font-semibold text-muted-foreground">
+                  Búsquedas recientes
+                </p>
                 <ul className="py-1">
                   {searchHistory.map((term, index) => (
                     <li key={index}>
@@ -1031,10 +1060,7 @@ export default function ProductosPage() {
                 <AccordionItem
                   value={product.imageId}
                   key={product.imageId}
-                  className={cn(
-                    'group border-none',
-                    isExpanded && 'col-span-2'
-                  )}
+                  className={cn('group border-none', isExpanded && 'col-span-2')}
                 >
                   <div
                     className={cn(
