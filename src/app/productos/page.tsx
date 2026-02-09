@@ -78,7 +78,7 @@ import {
   Plug,
   MemoryStick,
   Chip,
-  SquareRoot,
+  FunctionSquare,
   FlaskConical,
   Book,
   Pen,
@@ -246,7 +246,7 @@ const allProducts = [
         text: 'Calculadoras con cientos de funciones científicas y estadísticas.',
       },
       {
-        icon: <SquareRoot className="h-5 w-5 text-primary" />,
+        icon: <FunctionSquare className="h-5 w-5 text-primary" />,
         text: 'Modelos programables y graficadores para carreras técnicas.',
       },
       {
