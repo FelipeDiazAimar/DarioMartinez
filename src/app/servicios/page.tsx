@@ -199,13 +199,13 @@ export default function ServiciosPage() {
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Button asChild className="w-full rounded-full">
+                        <Button asChild className="w-full rounded-full text-white hover:opacity-90" style={{ backgroundColor: '#ef443b' }}>
                             <Link href="https://anydesk.com/es/downloads/windows" target="_blank" rel="noopener noreferrer">
                                 <Download className="mr-2 h-5 w-5" />
                                 Descargar AnyDesk
                             </Link>
                         </Button>
-                        <Button asChild className="w-full rounded-full">
+                        <Button asChild className="w-full rounded-full text-white hover:opacity-90" style={{ backgroundColor: '#050a52' }}>
                             <Link href="https://www.teamviewer.com/es/descarga/" target="_blank" rel="noopener noreferrer">
                                 <Download className="mr-2 h-5 w-5" />
                                 Descargar TeamViewer
