@@ -65,7 +65,7 @@ import {
   Check,
   Armchair,
   UserCheck,
-  Spine,
+  Spline,
   Paperclip,
   Stapler,
   Paintbrush,
@@ -83,6 +83,7 @@ import {
   Book,
   Pen,
   Clipboard,
+  Shield,
 } from 'lucide-react';
 import {
   Accordion,
@@ -594,7 +595,7 @@ const allProducts = [
         text: 'Diseños ergonómicos con soporte lumbar, apoyabrazos y apoyacabeza.',
       },
       {
-        icon: <Spine className="h-5 w-5 text-primary" />,
+        icon: <Spline className="h-5 w-5 text-primary" />,
         text: 'Sillas gamer para largas sesiones de juego con máximo confort.',
       },
     ],
