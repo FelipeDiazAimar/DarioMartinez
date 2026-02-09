@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const allProducts = [
   {
@@ -208,26 +209,29 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        <div className="my-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-xs">
-                <Input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <div className="my-8 flex justify-center">
+          <div className="flex w-full max-w-md items-center overflow-hidden rounded-full border bg-card shadow-sm">
+            <div className="relative flex-grow">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-12 w-full border-0 bg-transparent pl-12 pr-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
             </div>
+            <Separator orientation="vertical" className="h-6" />
             <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="a-z">Ordenar de A-Z</SelectItem>
-                    <SelectItem value="z-a">Ordenar de Z-A</SelectItem>
-                </SelectContent>
+              <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
+                <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
+              </SelectContent>
             </Select>
+          </div>
         </div>
 
         {/* Desktop grid */}
