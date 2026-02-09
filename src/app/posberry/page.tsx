@@ -269,7 +269,7 @@ export default function PosberryPage() {
             <Button asChild size="lg" variant="secondary" className="rounded-full text-lg px-8 py-6">
               <Link href="https://wa.me/5493564504977" target="_blank">
                 <WhatsAppIcon className="mr-2 h-5 w-5" />
-                Solicitar una Demostración
+                Consultanos
               </Link>
             </Button>
           </div>
