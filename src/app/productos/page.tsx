@@ -25,6 +25,7 @@ import {
   Sigma,
   Search,
   X,
+  History,
 } from 'lucide-react';
 import {
   Accordion,
@@ -168,6 +169,7 @@ export default function ProductosPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [openItemId, setOpenItemId] = React.useState<string | null>(null);
 
@@ -175,6 +177,32 @@ export default function ProductosPage() {
   const sortOrder = searchParams.get('sort') || 'a-z';
   
   const [inputValue, setInputValue] = React.useState(searchTerm);
+  const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
+  const [isHistoryVisible, setIsHistoryVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      const storedHistory = localStorage.getItem('productSearchHistory');
+      if (storedHistory) {
+        setSearchHistory(JSON.parse(storedHistory));
+      }
+    } catch (error) {
+      console.error("Failed to parse search history from localStorage", error);
+    }
+  }, []);
+
+  const updateSearchHistory = React.useCallback((term: string) => {
+    if (!term.trim()) return;
+    try {
+      const storedHistory = localStorage.getItem('productSearchHistory');
+      let history: string[] = storedHistory ? JSON.parse(storedHistory) : [];
+      history = [term, ...history.filter((item) => item.toLowerCase() !== term.toLowerCase())].slice(0, 5);
+      localStorage.setItem('productSearchHistory', JSON.stringify(history));
+      setSearchHistory(history);
+    } catch (error) {
+      console.error("Failed to update search history in localStorage", error);
+    }
+  }, []);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -186,20 +214,40 @@ export default function ProductosPage() {
           params.delete('q');
         }
         router.push(`${pathname}?${params.toString()}`);
+        if (inputValue) {
+          updateSearchHistory(inputValue);
+        }
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [inputValue, searchTerm, pathname, router, searchParams]);
+  }, [inputValue, searchTerm, pathname, router, searchParams, updateSearchHistory]);
 
   React.useEffect(() => {
     setInputValue(searchTerm);
   }, [searchTerm]);
 
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsHistoryVisible(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchContainerRef]);
+
   const handleSortChange = (order: string) => {
     const params = new URLSearchParams(searchParams);
     params.set('sort', order);
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleHistoryClick = (term: string) => {
+    setInputValue(term);
+    setIsHistoryVisible(false);
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
@@ -245,39 +293,60 @@ export default function ProductosPage() {
         </div>
 
         <div className="my-8 flex justify-center">
-          <div className="flex w-full max-w-md items-center overflow-hidden rounded-full border bg-card shadow-sm">
-            <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Buscar productos..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              {inputValue && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
-                  onClick={() => setInputValue('')}
-                >
-                  <X className="h-5 w-5" />
-                  <span className="sr-only">Limpiar búsqueda</span>
-                </Button>
-              )}
+          <div ref={searchContainerRef} className="relative w-full max-w-md">
+            <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
+              <div className="relative flex-grow">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onFocus={() => setIsHistoryVisible(true)}
+                  className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                {inputValue && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
+                    onClick={() => setInputValue('')}
+                  >
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Limpiar búsqueda</span>
+                  </Button>
+                )}
+              </div>
+              <Separator orientation="vertical" className="h-6" />
+              <Select value={sortOrder} onValueChange={handleSortChange}>
+                <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
+                  <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Separator orientation="vertical" className="h-6" />
-            <Select value={sortOrder} onValueChange={handleSortChange}>
-              <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
-                <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
-              </SelectContent>
-            </Select>
+             {isHistoryVisible && searchHistory.length > 0 && (
+              <div className="absolute top-full z-10 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
+                <p className="p-3 text-sm font-semibold text-muted-foreground">Búsquedas recientes</p>
+                <ul className="py-1">
+                  {searchHistory.map((term, index) => (
+                    <li key={index}>
+                      <button
+                        onMouseDown={() => handleHistoryClick(term)}
+                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
+                      >
+                        <History className="h-4 w-4 text-muted-foreground" />
+                        <span>{term}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
