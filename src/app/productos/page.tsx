@@ -22,6 +22,7 @@ import {
   Hand,
   Activity,
   Sigma,
+  Search,
 } from 'lucide-react';
 import {
   Accordion,
@@ -29,9 +30,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-const products = [
+const allProducts = [
   {
     imageId: 'fiscal-printer',
     title: 'Impresoras Fiscales',
@@ -154,17 +163,36 @@ const products = [
 
 export default function ProductosPage() {
   const [openItemId, setOpenItemId] = React.useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [sortOrder, setSortOrder] = React.useState('a-z');
+
+  const filteredAndSortedProducts = React.useMemo(() => {
+    return allProducts
+      .filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        if (sortOrder === 'a-z') {
+          return a.title.localeCompare(b.title);
+        } else {
+          return b.title.localeCompare(a.title);
+        }
+      });
+  }, [searchTerm, sortOrder]);
+
 
   const mobileProducts = React.useMemo(() => {
     if (!openItemId) {
-      return products;
+      return filteredAndSortedProducts;
     }
-    const openItem = products.find((p) => p.imageId === openItemId);
+    const openItem = filteredAndSortedProducts.find((p) => p.imageId === openItemId);
     if (!openItem) {
-      return products;
+      return filteredAndSortedProducts;
     }
-    return [openItem, ...products.filter((p) => p.imageId !== openItemId)];
-  }, [openItemId]);
+    return [openItem, ...filteredAndSortedProducts.filter((p) => p.imageId !== openItemId)];
+  }, [openItemId, filteredAndSortedProducts]);
 
   return (
     <section id="productos" className="w-full py-12 md:py-24 lg:py-32">
@@ -180,6 +208,28 @@ export default function ProductosPage() {
           </div>
         </div>
 
+        <div className="my-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-xs">
+                <Input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            </div>
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="a-z">Ordenar de A-Z</SelectItem>
+                    <SelectItem value="z-a">Ordenar de Z-A</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
         {/* Desktop grid */}
         <Accordion
           type="single"
@@ -188,7 +238,7 @@ export default function ProductosPage() {
           value={openItemId || ''}
           onValueChange={(value) => setOpenItemId(value || null)}
         >
-          {products.map((product) => {
+          {filteredAndSortedProducts.map((product) => {
             const productImage = PlaceHolderImages.find(
               (img) => img.id === product.imageId
             );
