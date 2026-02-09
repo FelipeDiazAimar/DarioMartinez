@@ -23,6 +23,7 @@ import {
   Activity,
   Sigma,
   Search,
+  X,
 } from 'lucide-react';
 import {
   Accordion,
@@ -218,8 +219,20 @@ export default function ProductosPage() {
                 placeholder="Buscar productos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 w-full border-0 bg-transparent pl-12 pr-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
               />
+              {searchTerm && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Limpiar búsqueda</span>
+                </Button>
+              )}
             </div>
             <Separator orientation="vertical" className="h-6" />
             <Select value={sortOrder} onValueChange={setSortOrder}>
