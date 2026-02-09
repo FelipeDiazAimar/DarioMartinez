@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, ArrowRight, Clock } from "lucide-react";
+import { Instagram, ArrowRight, Clock, Phone } from "lucide-react";
 
 import {
   Accordion,
@@ -54,8 +54,14 @@ export function Footer() {
           <div className="text-sm text-foreground/70 space-y-1">
             <h4 className="font-semibold flex items-center gap-2 text-foreground/90"><Clock className="h-4 w-4" /> Horarios de atención</h4>
             <p>Lunes a Jueves: 7:30-12:30 y 15:30-19:30 hs.</p>
-            <p>Viernes: 8:00-12:00 y 15:30-19:30 hs.</p>
+            <p>Viernes: 8:00-12:00 y de 15:30 a 19:30 hs.</p>
             <p>Sábados: Cerrado</p>
+          </div>
+          <div className="text-sm text-foreground/70 space-y-1">
+            <h4 className="font-semibold flex items-center gap-2 text-foreground/90"><Phone className="h-4 w-4" /> Teléfonos</h4>
+            <p><a href="tel:+5493564560790" className="hover:text-primary transition-colors">Natalia: +54 9 3564 56-0790</a></p>
+            <p><a href="tel:+5493564504977" className="hover:text-primary transition-colors">Nidia: +54 9 3564 50-4977</a></p>
+            <p><a href="tel:03564422664" className="hover:text-primary transition-colors">Fijo: 03564 422664</a></p>
           </div>
           <div className="flex gap-4 pt-2">
             <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
