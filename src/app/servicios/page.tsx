@@ -205,7 +205,7 @@ export default function ServiciosPage() {
                                 Descargar AnyDesk
                             </Link>
                         </Button>
-                        <Button asChild variant="outline" className="w-full rounded-full">
+                        <Button asChild className="w-full rounded-full">
                             <Link href="https://www.teamviewer.com/es/descarga/" target="_blank" rel="noopener noreferrer">
                                 <Download className="mr-2 h-5 w-5" />
                                 Descargar TeamViewer
