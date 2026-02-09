@@ -28,6 +28,61 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
+  Network,
+  Waypoints,
+  PlugZap,
+  Wifi,
+  Bluetooth,
+  Usb,
+  Square,
+  MousePointer2,
+  Gamepad2,
+  Keyboard,
+  Type,
+  Rss,
+  Mouse,
+  MousePointerClick,
+  Cable,
+  Camera,
+  Video,
+  Monitor,
+  Server,
+  Plus,
+  Router as RouterIcon,
+  Signal,
+  Home,
+  Backpack,
+  Headphones,
+  Mic,
+  Volume2,
+  Landmark,
+  Scan,
+  RectangleHorizontal,
+  Expand,
+  Copy,
+  Scale,
+  ShoppingBasket,
+  Check,
+  Armchair,
+  UserCheck,
+  Spine,
+  Paperclip,
+  Stapler,
+  Paintbrush,
+  Droplets,
+  Replace,
+  Lock,
+  Key,
+  HardDrive,
+  Save,
+  Plug,
+  MemoryStick,
+  Chip,
+  SquareRoot,
+  FlaskConical,
+  Book,
+  Pen,
+  Clipboard,
 } from 'lucide-react';
 import {
   Accordion,
@@ -48,62 +103,192 @@ import { Separator } from '@/components/ui/separator';
 
 const allProducts = [
   {
-    imageId: 'fiscal-printer',
-    title: 'Impresoras Fiscales',
-    description:
-      'Modelos homologados por AFIP para cumplir con todas las normativas vigentes.',
+    imageId: 'stationery',
+    title: 'Artículos de Librería',
+    description: 'Resmas de papel, cuadernos, bolígrafos y más.',
     details: [
+      {
+        icon: <Book className="h-5 w-5 text-primary" />,
+        text: 'Cuadernos, blocks de notas y agendas de distintos tamaños y formatos.',
+      },
+      {
+        icon: <Pen className="h-5 w-5 text-primary" />,
+        text: 'Bolígrafos, lápices, marcadores y todo para la escritura.',
+      },
+      {
+        icon: <Clipboard className="h-5 w-5 text-primary" />,
+        text: 'Papelería comercial, resmas de papel y cartulinas.',
+      },
+    ],
+  },
+  {
+    imageId: 'headphones',
+    title: 'Auriculares y Micrófonos',
+    description: 'Audio de alta calidad para música, gaming y llamadas.',
+    details: [
+      {
+        icon: <Headphones className="h-5 w-5 text-primary" />,
+        text: 'Auriculares con y sin cable, in-ear, on-ear y over-ear.',
+      },
+      {
+        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
+        text: 'Headsets para gaming con sonido envolvente y micrófono integrado.',
+      },
+      {
+        icon: <Mic className="h-5 w-5 text-primary" />,
+        text: 'Micrófonos de escritorio y de solapa para streaming y conferencias.',
+      },
+    ],
+  },
+  {
+    imageId: 'electronic-scales',
+    title: 'Balanzas Electrónicas',
+    description: 'Balanzas comerciales homologadas para pesar con precisión.',
+    details: [
+      {
+        icon: <Scale className="h-5 w-5 text-primary" />,
+        text: 'Balanzas para comercios con cálculo de precio e importe.',
+      },
       {
         icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Equipos fiscales de 1ra y 2da generación, para todo volumen de facturación.',
+        text: 'Modelos con impresor de etiquetas de código de barras y QR.',
       },
       {
-        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
-        text: 'Homologados por AFIP, garantizando cumplimiento y transacciones seguras.',
-      },
-      {
-        icon: <Wrench className="h-5 w-5 text-primary" />,
-        text: 'Servicio técnico integral: inicialización, mantenimiento y reparaciones.',
+        icon: <Check className="h-5 w-5 text-primary" />,
+        text: 'Homologadas y certificadas para uso comercial.',
       },
     ],
   },
   {
-    imageId: 'desktop-pc',
-    title: 'PC de Escritorio',
-    description:
-      'Armamos equipos a medida para oficina, diseño, gaming o uso hogareño.',
+    imageId: 'cables',
+    title: 'Cables y Conectividad',
+    description: 'HDMI, USB, VGA, red y todo tipo de cables que necesites.',
     details: [
       {
-        icon: <Cpu className="h-5 w-5 text-primary" />,
-        text: 'Ensamblamos PCs personalizadas para gaming, diseño gráfico, oficina o uso doméstico.',
+        icon: <Cable className="h-5 w-5 text-primary" />,
+        text: 'Cables de video: HDMI, DisplayPort, VGA, DVI en todas las longitudes.',
       },
       {
-        icon: <Puzzle className="h-5 w-5 text-primary" />,
-        text: 'Seleccionamos componentes de primeras marcas para asegurar rendimiento y durabilidad.',
+        icon: <Usb className="h-5 w-5 text-primary" />,
+        text: 'Cables USB de todo tipo: A, B, C, micro, mini, y extensiones.',
       },
       {
-        icon: <Package className="h-5 w-5 text-primary" />,
-        text: 'También ofrecemos equipos de marca, listos para usar, con garantía oficial.',
+        icon: <Plug className="h-5 w-5 text-primary" />,
+        text: 'Cables de alimentación, audio, y de red (patch cords).',
       },
     ],
   },
   {
-    imageId: 'notebook',
-    title: 'Notebooks',
-    description:
-      'Las mejores marcas y modelos para trabajar o estudiar desde donde quieras.',
+    imageId: 'safes',
+    title: 'Cajas Fuertes',
+    description: 'Protege tu dinero y documentos importantes.',
     details: [
       {
-        icon: <Laptop className="h-5 w-5 text-primary" />,
-        text: 'Amplia variedad de las mejores marcas: HP, Dell, Lenovo, Asus y más.',
-      },
-      {
-        icon: <Briefcase className="h-5 w-5 text-primary" />,
-        text: 'Modelos para trabajo, estudio, diseño o gaming, adaptados a tu movilidad.',
+        icon: <Lock className="h-5 w-5 text-primary" />,
+        text: 'Cajas de seguridad con cerradura electrónica, a llave o combinadas.',
       },
       {
         icon: <ShieldCheck className="h-5 w-5 text-primary" />,
-        text: 'Garantía oficial y nuestro respaldo técnico especializado.',
+        text: 'Distintos tamaños y niveles de seguridad para hogar y comercio.',
+      },
+      {
+        icon: <Key className="h-5 w-5 text-primary" />,
+        text: 'Modelos para amurar, de sobreponer y con ranura buzón.',
+      },
+    ],
+  },
+  {
+    imageId: 'cash-registers',
+    title: 'Cajas Registradoras',
+    description: 'Control fiscal y de ventas para tu comercio.',
+    details: [
+      {
+        icon: <Landmark className="h-5 w-5 text-primary" />,
+        text: 'Registradoras fiscales homologadas por AFIP.',
+      },
+      {
+        icon: <Scan className="h-5 w-5 text-primary" />,
+        text: 'Modelos alfanuméricos con control de stock y reportes Z.',
+      },
+      {
+        icon: <Printer className="h-5 w-5 text-primary" />,
+        text: 'Servicio de inicialización y programación.',
+      },
+    ],
+  },
+  {
+    imageId: 'calculator',
+    title: 'Calculadoras Comerciales',
+    description: 'Calculadoras con impresor y funciones comerciales.',
+    details: [
+      {
+        icon: <Calculator className="h-5 w-5 text-primary" />,
+        text: 'Calculadoras comerciales y de escritorio para el día a día.',
+      },
+      {
+        icon: <Printer className="h-5 w-5 text-primary" />,
+        text: 'Modelos con rollo de papel para un registro físico de tus operaciones.',
+      },
+      {
+        icon: <Sigma className="h-5 w-5 text-primary" />,
+        text: 'Funciones de cálculo de impuestos, costo, venta y margen.',
+      },
+    ],
+  },
+  {
+    imageId: 'scientific-calculator',
+    title: 'Calculadoras Científicas',
+    description: 'Funciones avanzadas para estudiantes y profesionales.',
+    details: [
+      {
+        icon: <Sigma className="h-5 w-5 text-primary" />,
+        text: 'Calculadoras con cientos de funciones científicas y estadísticas.',
+      },
+      {
+        icon: <SquareRoot className="h-5 w-5 text-primary" />,
+        text: 'Modelos programables y graficadores para carreras técnicas.',
+      },
+      {
+        icon: <FlaskConical className="h-5 w-5 text-primary" />,
+        text: 'Las marcas líderes del mercado: Casio, HP y más.',
+      },
+    ],
+  },
+  {
+    imageId: 'webcams',
+    title: 'Cámaras Web',
+    description: 'Video en alta definición para streaming y videollamadas.',
+    details: [
+      {
+        icon: <Camera className="h-5 w-5 text-primary" />,
+        text: 'Cámaras HD, Full HD y 4K para una imagen nítida.',
+      },
+      {
+        icon: <Video className="h-5 w-5 text-primary" />,
+        text: 'Ideales para teletrabajo, clases online, streaming y creación de contenido.',
+      },
+      {
+        icon: <Mic className="h-5 w-5 text-primary" />,
+        text: 'Modelos con micrófono incorporado y enfoque automático.',
+      },
+    ],
+  },
+  {
+    imageId: 'printer-toner',
+    title: 'Cartuchos y Toners',
+    description: 'Consumibles originales y alternativos para todas las marcas.',
+    details: [
+      {
+        icon: <Paintbrush className="h-5 w-5 text-primary" />,
+        text: 'Amplio stock de cartuchos de tinta y toners para impresoras.',
+      },
+      {
+        icon: <Droplets className="h-5 w-5 text-primary" />,
+        text: 'Trabajamos con todas las marcas: HP, Epson, Brother, Canon, etc.',
+      },
+      {
+        icon: <Replace className="h-5 w-5 text-primary" />,
+        text: 'Opciones originales y alternativas de alta calidad y rendimiento.',
       },
     ],
   },
@@ -128,6 +313,102 @@ const allProducts = [
     ],
   },
   {
+    imageId: 'pc-components',
+    title: 'Componentes de PC',
+    description: 'Procesadores, motherboards, memorias, fuentes y más.',
+    details: [
+      {
+        icon: <Cpu className="h-5 w-5 text-primary" />,
+        text: 'Procesadores Intel y AMD, placas madre, memorias RAM.',
+      },
+      {
+        icon: <HardDrive className="h-5 w-5 text-primary" />,
+        text: 'Discos SSD y HDD, placas de video, fuentes de alimentación.',
+      },
+      {
+        icon: <Package className="h-5 w-5 text-primary" />,
+        text: 'Gabinetes, coolers y todo para armar o actualizar tu PC.',
+      },
+    ],
+  },
+  {
+    imageId: 'fiscal-printer',
+    title: 'Impresoras Fiscales',
+    description:
+      'Modelos homologados por AFIP para cumplir con todas las normativas vigentes.',
+    details: [
+      {
+        icon: <Printer className="h-5 w-5 text-primary" />,
+        text: 'Equipos fiscales de 1ra y 2da generación, para todo volumen de facturación.',
+      },
+      {
+        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
+        text: 'Homologados por AFIP, garantizando cumplimiento y transacciones seguras.',
+      },
+      {
+        icon: <Wrench className="h-5 w-5 text-primary" />,
+        text: 'Servicio técnico integral: inicialización, mantenimiento y reparaciones.',
+      },
+    ],
+  },
+  {
+    imageId: 'printers',
+    title: 'Impresoras Multifunción',
+    description: 'Imprime, escanea y copia con un solo equipo. Tinta y láser.',
+    details: [
+      {
+        icon: <Printer className="h-5 w-5 text-primary" />,
+        text: 'Equipos inkjet y láser, monocromáticos y a color.',
+      },
+      {
+        icon: <Scan className="h-5 w-5 text-primary" />,
+        text: 'Funciones de impresión, copiado y escaneo en un solo dispositivo.',
+      },
+      {
+        icon: <Copy className="h-5 w-5 text-primary" />,
+        text: 'Modelos con conectividad WiFi y sistemas de tinta continua.',
+      },
+    ],
+  },
+  {
+    imageId: 'office-supplies',
+    title: 'Insumos para Oficina',
+    description: 'Todo lo que necesitás para el día a día de tu oficina.',
+    details: [
+      {
+        icon: <Paperclip className="h-5 w-5 text-primary" />,
+        text: 'Artículos de librería, resmas de papel, carpetas y archivos.',
+      },
+      {
+        icon: <Stapler className="h-5 w-5 text-primary" />,
+        text: 'Abrochadoras, perforadoras y todo para la organización de documentos.',
+      },
+      {
+        icon: <FileText className="h-5 w-5 text-primary" />,
+        text: 'Rollos de papel para ticketeadoras y calculadoras.',
+      },
+    ],
+  },
+  {
+    imageId: 'keyboards',
+    title: 'Teclados',
+    description: 'Mecánicos, de membrana, ergonómicos e inalámbricos.',
+    details: [
+      {
+        icon: <Keyboard className="h-5 w-5 text-primary" />,
+        text: 'Teclados para oficina, gaming y uso general.',
+      },
+      {
+        icon: <Type className="h-5 w-5 text-primary" />,
+        text: 'Modelos mecánicos, de membrana, con y sin pad numérico.',
+      },
+      {
+        icon: <Rss className="h-5 w-5 text-primary" />,
+        text: 'Opciones con cable USB o inalámbricos por Bluetooth o radiofrecuencia.',
+      },
+    ],
+  },
+  {
     imageId: 'barcode-scanner',
     title: 'Lectores de Códigos de Barra',
     description: 'Agilizá tus ventas y control de stock con lectores láser y 2D.',
@@ -147,21 +428,212 @@ const allProducts = [
     ],
   },
   {
-    imageId: 'calculator',
-    title: 'Calculadoras',
-    description: 'Calculadoras científicas, comerciales y con impresor.',
+    imageId: 'mice',
+    title: 'Mouses',
+    description: 'Ópticos, láser, gamers y ergonómicos para cada necesidad.',
     details: [
       {
-        icon: <Calculator className="h-5 w-5 text-primary" />,
-        text: 'Calculadoras comerciales y científicas para estudiantes y profesionales.',
+        icon: <Mouse className="h-5 w-5 text-primary" />,
+        text: 'Mouses ópticos y láser para todo tipo de superficies.',
       },
       {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Modelos con rollo de papel para un registro físico de tus operaciones.',
+        icon: <MousePointerClick className="h-5 w-5 text-primary" />,
+        text: 'Diseños ergonómicos para prevenir lesiones y mejorar la comodidad.',
       },
       {
-        icon: <Sigma className="h-5 w-5 text-primary" />,
-        text: 'Funciones financieras, estadísticas y de conversión de unidades.',
+        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
+        text: 'Modelos para gaming con alta precisión (DPI) y botones programables.',
+      },
+    ],
+  },
+  {
+    imageId: 'tech-backpacks',
+    title: 'Mochilas para Notebooks',
+    description: 'Transportá tus equipos de forma segura y con estilo.',
+    details: [
+      {
+        icon: <Backpack className="h-5 w-5 text-primary" />,
+        text: 'Mochilas y maletines con compartimento acolchado para notebooks.',
+      },
+      {
+        icon: <Laptop className="h-5 w-5 text-primary" />,
+        text: 'Disponibles en varios tamaños para distintos modelos de laptops.',
+      },
+      {
+        icon: <Shield className="h-5 w-5 text-primary" />,
+        text: 'Materiales resistentes y diseños ergonómicos para mayor comodidad.',
+      },
+    ],
+  },
+  {
+    imageId: 'monitors',
+    title: 'Monitores',
+    description: 'Pantallas Full HD y 4K para trabajo, diseño y gaming.',
+    details: [
+      {
+        icon: <Monitor className="h-5 w-5 text-primary" />,
+        text: 'Monitores LED y IPS de diferentes tamaños y resoluciones (HD, FHD, 4K).',
+      },
+      {
+        icon: <RectangleHorizontal className="h-5 w-5 text-primary" />,
+        text: 'Modelos para gaming con alta tasa de refresco y bajo tiempo de respuesta.',
+      },
+      {
+        icon: <Expand className="h-5 w-5 text-primary" />,
+        text: 'Opciones con diferentes tipos de conexión: HDMI, DisplayPort, VGA.',
+      },
+    ],
+  },
+  {
+    imageId: 'mousepads',
+    title: 'Mousepads',
+    description: 'Superficies optimizadas para precisión y comodidad.',
+    details: [
+      {
+        icon: <Square className="h-5 w-5 text-primary" />,
+        text: 'Mousepads de tela, rígidos y con reposamuñecas de gel.',
+      },
+      {
+        icon: <MousePointer2 className="h-5 w-5 text-primary" />,
+        text: 'Superficies diseñadas para un deslizamiento suave y preciso del mouse.',
+      },
+      {
+        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
+        text: 'Modelos extendidos (XL y XXL) que cubren todo el escritorio.',
+      },
+    ],
+  },
+  {
+    imageId: 'notebook',
+    title: 'Notebooks',
+    description:
+      'Las mejores marcas y modelos para trabajar o estudiar desde donde quieras.',
+    details: [
+      {
+        icon: <Laptop className="h-5 w-5 text-primary" />,
+        text: 'Amplia variedad de las mejores marcas: HP, Dell, Lenovo, Asus y más.',
+      },
+      {
+        icon: <Briefcase className="h-5 w-5 text-primary" />,
+        text: 'Modelos para trabajo, estudio, diseño o gaming, adaptados a tu movilidad.',
+      },
+      {
+        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
+        text: 'Garantía oficial y nuestro respaldo técnico especializado.',
+      },
+    ],
+  },
+  {
+    imageId: 'usb-drives',
+    title: 'Pendrives y Almacenamiento',
+    description: 'Memorias USB y discos externos para tus archivos.',
+    details: [
+      {
+        icon: <Usb className="h-5 w-5 text-primary" />,
+        text: 'Pendrives de distintas capacidades y velocidades (USB 2.0, 3.0, 3.1).',
+      },
+      {
+        icon: <HardDrive className="h-5 w-5 text-primary" />,
+        text: 'Discos duros externos (HDD y SSD) para backups y almacenamiento masivo.',
+      },
+      {
+        icon: <Save className="h-5 w-5 text-primary" />,
+        text: 'Tarjetas de memoria (SD y microSD) para cámaras y celulares.',
+      },
+    ],
+  },
+  {
+    imageId: 'network-cards',
+    title: 'Placas de Red',
+    description: 'Añade o mejora la conexión a internet de tu PC.',
+    details: [
+      {
+        icon: <Network className="h-5 w-5 text-primary" />,
+        text: 'Placas de red PCI Express para conexión por cable Ethernet.',
+      },
+      {
+        icon: <Wifi className="h-5 w-5 text-primary" />,
+        text: 'Placas de red WiFi para conectar tu PC de escritorio de forma inalámbrica.',
+      },
+      {
+        icon: <Plus className="h-5 w-5 text-primary" />,
+        text: 'Modelos con las últimas tecnologías para mayor velocidad y estabilidad.',
+      },
+    ],
+  },
+  {
+    imageId: 'routers',
+    title: 'Routers y Repetidores',
+    description: 'Mejora la cobertura y velocidad de tu señal WiFi.',
+    details: [
+      {
+        icon: <RouterIcon className="h-5 w-5 text-primary" />,
+        text: 'Routers neutros para gestionar tu red y mejorar el rendimiento.',
+      },
+      {
+        icon: <Signal className="h-5 w-5 text-primary" />,
+        text: 'Repetidores y extensores de rango para eliminar zonas sin WiFi.',
+      },
+      {
+        icon: <Home className="h-5 w-5 text-primary" />,
+        text: 'Sistemas Mesh para una cobertura total y sin interrupciones en casas grandes.',
+      },
+    ],
+  },
+  {
+    imageId: 'office-chairs',
+    title: 'Sillas de Escritorio',
+    description: 'Sillas ergonómicas para cuidar tu postura durante el trabajo.',
+    details: [
+      {
+        icon: <Armchair className="h-5 w-5 text-primary" />,
+        text: 'Sillas gerenciales y operativas con múltiples ajustes.',
+      },
+      {
+        icon: <UserCheck className="h-5 w-5 text-primary" />,
+        text: 'Diseños ergonómicos con soporte lumbar, apoyabrazos y apoyacabeza.',
+      },
+      {
+        icon: <Spine className="h-5 w-5 text-primary" />,
+        text: 'Sillas gamer para largas sesiones de juego con máximo confort.',
+      },
+    ],
+  },
+  {
+    imageId: 'network-switch',
+    title: 'Switches de Red',
+    description: 'Expande tu red cableada de forma rápida y eficiente.',
+    details: [
+      {
+        icon: <Network className="h-5 w-5 text-primary" />,
+        text: 'Switches de 5, 8, 16 y 24 puertos para redes domésticas y de oficina.',
+      },
+      {
+        icon: <Waypoints className="h-5 w-5 text-primary" />,
+        text: 'Multiplica los puntos de conexión de tu red cableada fácilmente.',
+      },
+      {
+        icon: <PlugZap className="h-5 w-5 text-primary" />,
+        text: 'Modelos no administrables (plug and play) y administrables.',
+      },
+    ],
+  },
+  {
+    imageId: 'usb-adapters',
+    title: 'Adaptadores USB WiFi/Bluetooth',
+    description: 'Conectividad inalámbrica para cualquier equipo.',
+    details: [
+      {
+        icon: <Wifi className="h-5 w-5 text-primary" />,
+        text: 'Adaptadores USB para agregar conectividad WiFi a PCs de escritorio.',
+      },
+      {
+        icon: <Bluetooth className="h-5 w-5 text-primary" />,
+        text: 'Dongles Bluetooth para conectar periféricos inalámbricos.',
+      },
+      {
+        icon: <Usb className="h-5 w-5 text-primary" />,
+        text: 'Fáciles de instalar y compatibles con todos los sistemas operativos.',
       },
     ],
   },
