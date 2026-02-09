@@ -11,6 +11,7 @@ import {
   Heart,
   Calendar,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 
 
@@ -145,7 +146,17 @@ export default function SobreNosotrosPage() {
                                 </div>
                              </div>
                         </div>
-
+                        <div className="rounded-lg border bg-card text-card-foreground p-6 shadow-sm">
+                            <h3 className="text-2xl font-bold mb-4 flex items-center">
+                                <Clock className="mr-3 h-7 w-7 text-primary" />
+                                Nuestros Horarios
+                            </h3>
+                            <div className="space-y-2 text-muted-foreground">
+                                <p><span className="font-semibold text-foreground">Lunes a Jueves:</span><br/> 7:30 a 12:30 y 15:30 a 19:30 hs.</p>
+                                <p><span className="font-semibold text-foreground">Viernes:</span><br/> 8:00 a 12:00 y 15:30 a 19:30 hs.</p>
+                                <p><span className="font-semibold text-foreground">Sábados:</span> Cerrado</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
