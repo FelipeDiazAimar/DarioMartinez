@@ -39,6 +39,8 @@ import { ContactForm } from '@/components/contact-form';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
+import { useInView } from '@/hooks/use-in-view';
+import { cn } from '@/lib/utils';
 
 const services = [
   {
@@ -115,6 +117,12 @@ export default function Home() {
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
 
+  const [inicioRef, inicioInView] = useInView({ threshold: 0.2 });
+  const [serviciosRef, serviciosInView] = useInView({ threshold: 0.1 });
+  const [productosRef, productosInView] = useInView({ threshold: 0.1 });
+  const [sobreNosotrosRef, sobreNosotrosInView] = useInView({ threshold: 0.2 });
+  const [contactoRef, contactoInView] = useInView({ threshold: 0.1 });
+
   return (
     <>
       <section className="w-full">
@@ -149,10 +157,10 @@ export default function Home() {
         </Carousel>
       </section>
 
-      <section id="inicio" className="w-full py-12 md:py-20 lg:py-28">
+      <section ref={inicioRef} id="inicio" className="w-full py-12 md:py-20 lg:py-28">
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="w-full max-w-md mx-auto sm:max-w-none">
+            <div className={cn("w-full max-w-md mx-auto sm:max-w-none opacity-0", inicioInView && "animate-slide-in-from-left")}>
                 <Image
                 src={heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
                 data-ai-hint={heroImage?.imageHint || "computer repair"}
@@ -162,7 +170,7 @@ export default function Home() {
                 className="mx-auto aspect-video w-full max-w-full overflow-hidden rounded-xl object-cover"
                 />
             </div>
-            <div className="flex flex-col justify-center space-y-4 lg:order-first">
+            <div className={cn("flex flex-col justify-center space-y-4 lg:order-first opacity-0", inicioInView && "animate-slide-in-from-right")}>
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                   Tu Aliado en Soluciones Tecnológicas
@@ -188,11 +196,12 @@ export default function Home() {
       </section>
 
       <section
+        ref={serviciosRef}
         id="servicios"
         className="w-full bg-muted py-12 md:py-24 lg:py-32"
       >
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", serviciosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
                 Servicio Técnico
@@ -204,8 +213,8 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid grid-cols-1 gap-4 py-12 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
-            {services.map((service) => (
-              <Link href="/servicios" key={service.title} className="block h-full">
+            {services.map((service, index) => (
+              <Link href="/servicios" key={service.title} className={cn("block h-full opacity-0", serviciosInView && "animate-slide-in-from-bottom")} style={{ animationDelay: `${index * 150}ms` }}>
                 <Card
                   className="h-full transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
                 >
@@ -222,7 +231,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <div className="mt-8 flex justify-center">
+          <div className={cn("mt-8 flex justify-center opacity-0", serviciosInView && "animate-fade-in")} style={{ animationDelay: `${services.length * 150}ms` }}>
             <Button asChild size="lg" className="rounded-full">
               <Link href="/servicios">
                 Ver más
@@ -233,9 +242,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="productos" className="w-full py-12 md:py-24 lg:py-32">
+      <section ref={productosRef} id="productos" className="w-full py-12 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", productosInView && 'animate-fade-in')}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
                 Nuestros Productos
@@ -246,33 +255,35 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid grid-cols-2 gap-4 py-12 sm:gap-8 lg:grid-cols-3">
-            {products.map((product) => {
+            {products.map((product, index) => {
                const productImage = PlaceHolderImages.find(img => img.id === product.imageId);
                return (
-                  <Card key={product.title} className="flex flex-col overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-                    <Image
-                      src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
-                      data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
-                      alt={product.title}
-                      width={600}
-                      height={400}
-                      className="aspect-video object-cover w-full"
-                    />
-                    <CardHeader>
-                      <CardTitle className="text-xl">{product.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow p-0 sm:px-6 sm:pb-6">
-                      <CardDescription className="hidden sm:block">{product.description}</CardDescription>
-                    </CardContent>
-                    <CardFooter>
-                       <Button asChild className="w-full rounded-full">
-                          <Link href="https://wa.me/5493564504977" target="_blank">
-                            Ver más
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                          </Link>
-                        </Button>
-                    </CardFooter>
-                  </Card>
+                  <div key={product.title} className={cn("opacity-0", productosInView && 'animate-slide-in-from-bottom')} style={{animationDelay: `${index * 150}ms`}}>
+                    <Card className="flex flex-col h-full overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+                      <Image
+                        src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                        data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
+                        alt={product.title}
+                        width={600}
+                        height={400}
+                        className="aspect-video object-cover w-full"
+                      />
+                      <CardHeader>
+                        <CardTitle className="text-xl">{product.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-grow p-0 sm:px-6 sm:pb-6">
+                        <CardDescription className="hidden sm:block">{product.description}</CardDescription>
+                      </CardContent>
+                      <CardFooter>
+                        <Button asChild className="w-full rounded-full">
+                            <Link href="https://wa.me/5493564504977" target="_blank">
+                              Ver más
+                              <ArrowRight className="ml-2 h-5 w-5" />
+                            </Link>
+                          </Button>
+                      </CardFooter>
+                    </Card>
+                  </div>
                 );
             })}
           </div>
@@ -280,11 +291,12 @@ export default function Home() {
       </section>
 
       <section
+        ref={sobreNosotrosRef}
         id="sobre-nosotros"
         className="w-full py-12 md:py-24 lg:py-32"
       >
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", sobreNosotrosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
                 Sobre Nosotros
@@ -295,14 +307,16 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-            <Image
-              src="/FOTOFRENTE.jpeg"
-              alt="Frente del local Darío Martínez Computación"
-              width="600"
-              height="700"
-              className="mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center w-full lg:order-last"
-            />
-            <div className="flex flex-col justify-center space-y-4">
+            <div className={cn("opacity-0", sobreNosotrosInView && "animate-slide-in-from-right")}>
+              <Image
+                src="/FOTOFRENTE.jpeg"
+                alt="Frente del local Darío Martínez Computación"
+                width="600"
+                height="700"
+                className="mx-auto aspect-[4/5] overflow-hidden rounded-xl object-cover object-center w-full lg:order-last"
+              />
+            </div>
+            <div className={cn("flex flex-col justify-center space-y-4 opacity-0", sobreNosotrosInView && "animate-slide-in-from-left")}>
               <ul className="grid gap-6">
                 <li>
                   <div className="grid gap-2">
@@ -344,8 +358,9 @@ export default function Home() {
       </section>
 
       <section
+        ref={contactoRef}
         id="contacto"
-        className="w-full bg-muted pt-6 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32"
+        className={cn("w-full bg-muted pt-6 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32 opacity-0", contactoInView && "animate-fade-in")}
       >
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
