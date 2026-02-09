@@ -63,7 +63,7 @@ import {
   UserCheck,
   Spline,
   Paperclip,
-  Stapler,
+  Stamp,
   Paintbrush,
   Droplets,
   Replace,
@@ -77,7 +77,7 @@ import {
   FunctionSquare,
   FlaskConical,
   Book,
-  Pen,
+  PenLine,
   Clipboard,
   Shield,
 } from 'lucide-react';
@@ -109,7 +109,7 @@ const allProducts = [
         text: 'Cuadernos, blocks de notas y agendas de distintos tamaños y formatos.',
       },
       {
-        icon: <Pen className="h-5 w-5 text-primary" />,
+        icon: <PenLine className="h-5 w-5 text-primary" />,
         text: 'Bolígrafos, lápices, marcadores y todo para la escritura.',
       },
       {
@@ -377,7 +377,7 @@ const allProducts = [
         text: 'Artículos de librería, resmas de papel, carpetas y archivos.',
       },
       {
-        icon: <Stapler className="h-5 w-5 text-primary" />,
+        icon: <Stamp className="h-5 w-5 text-primary" />,
         text: 'Abrochadoras, perforadoras y todo para la organización de documentos.',
       },
       {
