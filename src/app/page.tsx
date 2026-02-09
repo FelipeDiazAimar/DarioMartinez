@@ -17,6 +17,7 @@ import {
   Eye,
   Gem,
   Cog,
+  Clock,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -352,6 +353,17 @@ export default function Home() {
                   </div>
                 </li>
               </ul>
+              <div className="mt-6 rounded-lg border bg-muted/50 p-6">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-3">
+                      <Clock className="h-6 w-6 text-primary" />
+                      Nuestros Horarios
+                  </h3>
+                  <div className="space-y-2 text-muted-foreground">
+                      <p><span className="font-semibold text-foreground">Lunes a Jueves:</span><br/> 7:30 a 12:30 y 15:30 a 19:30 hs.</p>
+                      <p><span className="font-semibold text-foreground">Viernes:</span><br/> 8:00 a 12:00 y de 15:30 a 19:30 hs.</p>
+                      <p><span className="font-semibold text-foreground">Sábados:</span> Cerrado</p>
+                  </div>
+              </div>
             </div>
           </div>
         </div>
