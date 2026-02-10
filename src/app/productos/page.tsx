@@ -97,6 +97,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const allProducts = [
   {
@@ -828,6 +829,11 @@ export default function ProductosPage() {
     setInputValue(term);
     setIsHistoryVisible(false);
   };
+  
+  const handleCategoryClick = (category: string) => {
+    setInputValue(category);
+    window.scrollTo(0, 0);
+  };
 
   const handlePageChange = (page: number) => {
     if (page < 1 || (totalPages > 0 && page > totalPages)) return;
@@ -860,6 +866,9 @@ export default function ProductosPage() {
         }
       });
   }, [searchTerm, sortOrder]);
+
+  const sortedCategories = React.useMemo(() => [...allProducts].sort((a,b) => a.title.localeCompare(b.title)), []);
+
 
   const totalPages = Math.ceil(
     filteredAndSortedProducts.length / ITEMS_PER_PAGE
@@ -901,236 +910,256 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        <div className="my-8 flex justify-center">
-          <div ref={searchContainerRef} className="relative w-full max-w-md">
-            <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
-              <div className="relative flex-grow">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onFocus={() => setIsHistoryVisible(true)}
-                  className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-                {inputValue && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
-                    onClick={() => setInputValue('')}
-                  >
-                    <X className="h-5 w-5" />
-                    <span className="sr-only">Limpiar búsqueda</span>
-                  </Button>
-                )}
-              </div>
-              <Separator orientation="vertical" className="h-6" />
-              <Select value={sortOrder} onValueChange={handleSortChange}>
-                <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
-                  <SelectValue placeholder="Ordenar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
-                  <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {isHistoryVisible && searchHistory.length > 0 && (
-              <div className="absolute top-full z-10 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
-                <p className="p-3 text-sm font-semibold text-muted-foreground">
-                  Búsquedas recientes
-                </p>
-                <ul className="py-1">
-                  {searchHistory.map((term, index) => (
-                    <li key={index}>
-                      <button
-                        onMouseDown={() => handleHistoryClick(term)}
-                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
-                      >
-                        <History className="h-4 w-4 text-muted-foreground" />
-                        <span>{term}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Desktop grid */}
-        <Accordion
-          type="single"
-          collapsible
-          className="mx-auto hidden py-12 sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
-          value={openItemId || ''}
-          onValueChange={(value) => setOpenItemId(value || null)}
-        >
-          {currentProducts.map((product) => {
-            const productImage = PlaceHolderImages.find(
-              (img) => img.id === product.imageId
-            );
-            const isExpanded = openItemId === product.imageId;
-            return (
-              <AccordionItem
-                value={product.imageId}
-                key={product.imageId + '-desktop'}
-                className={cn(
-                  'group/item mb-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
-                  isExpanded && 'shadow-xl'
-                )}
-              >
-                <AccordionTrigger className="group/trigger w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                  <div className="flex w-full flex-col">
-                    <div
-                      className={cn(
-                        'overflow-hidden rounded-t-lg',
-                        isExpanded && 'rounded-b-none'
-                      )}
-                    >
-                      <Image
-                        src={
-                          productImage?.imageUrl ||
-                          `https://picsum.photos/seed/${product.imageId}/600/400`
-                        }
-                        data-ai-hint={
-                          productImage?.imageHint ||
-                          product.imageId.replace('-', ' ')
-                        }
-                        alt={product.title}
-                        width={600}
-                        height={400}
-                        className="aspect-video w-full object-cover transition-transform duration-300 group-hover/item:scale-105"
-                      />
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 mt-12">
+            <div className="lg:col-span-3">
+                <div className="mb-8 flex justify-center">
+                    <div ref={searchContainerRef} className="relative w-full max-w-md">
+                        <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                            type="text"
+                            placeholder="Buscar productos..."
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onFocus={() => setIsHistoryVisible(true)}
+                            className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                            {inputValue && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
+                                onClick={() => setInputValue('')}
+                            >
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Limpiar búsqueda</span>
+                            </Button>
+                            )}
+                        </div>
+                        <Separator orientation="vertical" className="h-6" />
+                        <Select value={sortOrder} onValueChange={handleSortChange}>
+                            <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
+                            <SelectValue placeholder="Ordenar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
+                            <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        </div>
+                        {isHistoryVisible && searchHistory.length > 0 && (
+                        <div className="absolute top-full z-10 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
+                            <p className="p-3 text-sm font-semibold text-muted-foreground">
+                            Búsquedas recientes
+                            </p>
+                            <ul className="py-1">
+                            {searchHistory.map((term, index) => (
+                                <li key={index}>
+                                <button
+                                    onMouseDown={() => handleHistoryClick(term)}
+                                    className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
+                                >
+                                    <History className="h-4 w-4 text-muted-foreground" />
+                                    <span>{term}</span>
+                                </button>
+                                </li>
+                            ))}
+                            </ul>
+                        </div>
+                        )}
                     </div>
-                    <div className="flex-grow p-6">
-                      <h3 className="text-xl font-semibold leading-none tracking-tight">
-                        {product.title}
-                      </h3>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {product.description}
-                      </p>
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="border-t p-6">
-                    <ul className="mb-6 space-y-4 text-foreground/80">
-                      {product.details.map((detail, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <div className="flex-shrink-0">{detail.icon}</div>
-                          <span>{detail.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button asChild className="w-full rounded-full">
-                      <Link
-                        href="https://wa.me/5493564504977"
-                        target="_blank"
-                      >
-                        Consultar
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            );
-          })}
-        </Accordion>
+                </div>
 
-        {/* Mobile Accordion Grid */}
-        <div className="mx-auto block py-12 sm:hidden">
-          <Accordion
-            type="single"
-            collapsible
-            className="grid grid-cols-2 gap-x-4 gap-y-8"
-            value={openItemId || ''}
-            onValueChange={(value) => setOpenItemId(value || null)}
-          >
-            {mobileProducts.map((product) => {
-              const productImage = PlaceHolderImages.find(
-                (img) => img.id === product.imageId
-              );
-              const isExpanded = openItemId === product.imageId;
-              return (
-                <AccordionItem
-                  value={product.imageId}
-                  key={product.imageId}
-                  className={cn('group border-none', isExpanded && 'col-span-2')}
+                {/* Desktop grid */}
+                <Accordion
+                type="single"
+                collapsible
+                className="mx-auto hidden sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+                value={openItemId || ''}
+                onValueChange={(value) => setOpenItemId(value || null)}
                 >
-                  <div
-                    className={cn(
-                      'relative block aspect-[9/16] w-full overflow-hidden rounded-lg',
-                      isExpanded && 'rounded-b-none'
-                    )}
-                  >
-                    <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                      <Image
-                        src={
-                          productImage?.imageUrl ||
-                          `https://picsum.photos/seed/${product.imageId}/600/400`
-                        }
-                        data-ai-hint={
-                          productImage?.imageHint ||
-                          product.imageId.replace('-', ' ')
-                        }
-                        alt={product.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, 100vw"
-                      />
-                    </AccordionTrigger>
-                  </div>
+                {currentProducts.map((product) => {
+                    const isExpanded = openItemId === product.imageId;
+                    return (
+                    <AccordionItem
+                        value={product.imageId}
+                        key={product.imageId + '-desktop'}
+                        className={cn(
+                        'group/item mb-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
+                        isExpanded && 'shadow-xl'
+                        )}
+                    >
+                        <AccordionTrigger className="group/trigger w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                        <div className="flex w-full flex-col">
+                            <div
+                            className={cn(
+                                'overflow-hidden rounded-t-lg',
+                                isExpanded && 'rounded-b-none'
+                            )}
+                            >
+                            <Image
+                                src={
+                                `https://picsum.photos/seed/${product.imageId}/600/400`
+                                }
+                                data-ai-hint={
+                                product.imageId.replace('-', ' ')
+                                }
+                                alt={product.title}
+                                width={600}
+                                height={400}
+                                className="aspect-video w-full object-cover transition-transform duration-300 group-hover/item:scale-105"
+                            />
+                            </div>
+                            <div className="flex-grow p-6">
+                            <h3 className="text-xl font-semibold leading-none tracking-tight">
+                                {product.title}
+                            </h3>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {product.description}
+                            </p>
+                            </div>
+                        </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                        <div className="border-t p-6">
+                            <ul className="mb-6 space-y-4 text-foreground/80">
+                            {product.details.map((detail, i) => (
+                                <li key={i} className="flex items-start gap-3">
+                                <div className="flex-shrink-0">{detail.icon}</div>
+                                <span>{detail.text}</span>
+                                </li>
+                            ))}
+                            </ul>
+                            <Button asChild className="w-full rounded-full">
+                            <Link
+                                href="https://wa.me/5493564504977"
+                                target="_blank"
+                            >
+                                Consultar
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                            </Button>
+                        </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                    );
+                })}
+                </Accordion>
 
-                  <AccordionTrigger
-                    className={cn(
-                      'w-full pt-3 text-left text-base font-semibold text-foreground hover:no-underline [&>svg]:hidden',
-                      isExpanded && 'hidden'
-                    )}
-                  >
-                    <h3>{product.title}</h3>
-                  </AccordionTrigger>
-
-                  <AccordionContent>
-                    <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
-                      <h3 className="mb-4 text-left text-2xl font-bold">
-                        {product.title}
-                      </h3>
-                      <ul className="mb-6 space-y-4 text-foreground/80">
-                        {product.details.map((detail, i) => (
-                          <li key={i} className="flex items-start gap-3">
-                            <div className="flex-shrink-0">{detail.icon}</div>
-                            <span>{detail.text}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <Button asChild className="w-full rounded-full">
-                        <Link
-                          href="https://wa.me/5493564504977"
-                          target="_blank"
+                {/* Mobile Accordion Grid */}
+                <div className="mx-auto block sm:hidden">
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="grid grid-cols-2 gap-x-4 gap-y-8"
+                    value={openItemId || ''}
+                    onValueChange={(value) => setOpenItemId(value || null)}
+                >
+                    {mobileProducts.map((product) => {
+                    const isExpanded = openItemId === product.imageId;
+                    return (
+                        <AccordionItem
+                        value={product.imageId}
+                        key={product.imageId}
+                        className={cn('group border-none', isExpanded && 'col-span-2')}
                         >
-                          Consultar
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+                        <div
+                            className={cn(
+                            'relative block aspect-[9/16] w-full overflow-hidden rounded-lg',
+                            isExpanded && 'rounded-b-none'
+                            )}
+                        >
+                            <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
+                            <Image
+                                src={
+                                    `https://picsum.photos/seed/${product.imageId}/600/400`
+                                }
+                                data-ai-hint={
+                                    product.imageId.replace('-', ' ')
+                                }
+                                alt={product.title}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, 100vw"
+                            />
+                            </AccordionTrigger>
+                        </div>
+
+                        <AccordionTrigger
+                            className={cn(
+                            'w-full pt-3 text-left text-base font-semibold text-foreground hover:no-underline [&>svg]:hidden',
+                            isExpanded && 'hidden'
+                            )}
+                        >
+                            <h3>{product.title}</h3>
+                        </AccordionTrigger>
+
+                        <AccordionContent>
+                            <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
+                            <h3 className="mb-4 text-left text-2xl font-bold">
+                                {product.title}
+                            </h3>
+                            <ul className="mb-6 space-y-4 text-foreground/80">
+                                {product.details.map((detail, i) => (
+                                <li key={i} className="flex items-start gap-3">
+                                    <div className="flex-shrink-0">{detail.icon}</div>
+                                    <span>{detail.text}</span>
+                                </li>
+                                ))}
+                            </ul>
+                            <Button asChild className="w-full rounded-full">
+                                <Link
+                                href="https://wa.me/5493564504977"
+                                target="_blank"
+                                >
+                                Consultar
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                                </Link>
+                            </Button>
+                            </div>
+                        </AccordionContent>
+                        </AccordionItem>
+                    );
+                    })}
+                </Accordion>
+                </div>
+                {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                />
+                )}
+            </div>
+
+             <aside className="hidden lg:block lg:col-span-1">
+                <div className="sticky top-24">
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
+                    <ScrollArea className="h-[calc(100vh-12rem)]">
+                        <ul className="space-y-1 pr-4 pt-2">
+                             {sortedCategories.map((product) => (
+                              <li key={product.imageId}>
+                                <button
+                                  onClick={() => handleCategoryClick(product.title)}
+                                  className={cn(
+                                    "w-full rounded-md p-2 text-left text-sm transition-colors",
+                                    searchTerm.toLowerCase() === product.title.toLowerCase()
+                                      ? "bg-primary/10 font-semibold text-primary"
+                                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                  )}
+                                >
+                                  {product.title}
+                                </button>
+                              </li>
+                            ))}
+                        </ul>
+                    </ScrollArea>
+                </div>
+            </aside>
+
         </div>
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
       </div>
     </section>
   );
