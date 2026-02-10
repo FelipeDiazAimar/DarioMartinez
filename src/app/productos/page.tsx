@@ -924,7 +924,7 @@ export default function ProductosPage() {
                                     "w-full rounded-md p-2 text-left text-sm transition-colors",
                                     searchTerm.toLowerCase() === product.title.toLowerCase()
                                       ? "bg-primary/10 font-semibold text-primary"
-                                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                      : "text-muted-foreground hover:text-black"
                                   )}
                                 >
                                   {product.title}

@@ -14,11 +14,12 @@ import {
     HelpCircle,
     Cog,
     Inbox,
+    Eye,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const sections = [
-    { title: 'Home', href: '/', icon: <Home className="h-8 w-8" /> },
+    { title: 'Editar Home', href: '/admin/editar-home', icon: <Home className="h-8 w-8" /> },
     { title: 'Servicio Técnico', href: '/admin/editar-servicios', icon: <Wrench className="h-8 w-8" /> },
     { title: 'Posberry', href: '/admin/editar-posberry', icon: <ShoppingBasket className="h-8 w-8" /> },
     { title: 'Sobre Nosotros', href: '/admin/editar-sobre-nosotros', icon: <Users className="h-8 w-8" /> },
@@ -26,6 +27,7 @@ const sections = [
     { title: 'Consultas', href: '/admin/consultas', icon: <Inbox className="h-8 w-8" /> },
     { title: 'Estadísticas', href: '/admin/estadisticas', icon: <BarChart className="h-8 w-8" /> },
     { title: 'Preguntas Frecuentes', href: '/admin/editar-preguntas-frecuentes', icon: <HelpCircle className="h-8 w-8" /> },
+    { title: 'Ver Sitio Web', href: '/', icon: <Eye className="h-8 w-8" /> },
 ];
 
 export default function AdminPage() {
@@ -50,7 +52,7 @@ export default function AdminPage() {
                     <Skeleton className="h-6 w-3/4" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: 9 }).map((_, i) => (
                        <Skeleton key={i} className="h-40 w-full" />
                     ))}
                 </div>
