@@ -30,6 +30,14 @@ const faqs = [
     question: "¿Ofrecen garantía por las reparaciones?",
     answer: "Sí, todas nuestras reparaciones cuentan con una garantía de 90 días. La garantía cubre la mano de obra y los repuestos utilizados.",
   },
+  {
+    question: '¿Cuánto tiempo suelen tardar las reparaciones?',
+    answer: 'El tiempo de reparación varía según la complejidad del problema y la disponibilidad de repuestos. Para diagnósticos y reparaciones sencillas, el plazo suele ser de 24 a 72 horas. Si se requiere un repuesto específico, te informaremos el tiempo estimado de llegada.',
+  },
+  {
+    question: '¿Es necesario que lleve mi equipo al local?',
+    answer: 'Para la mayoría de las reparaciones de hardware, sí es necesario que traigas el equipo a nuestro taller para un diagnóstico preciso. Para problemas de software o configuración, ofrecemos servicio de asistencia remota. ¡Contactanos y vemos la mejor opción para tu caso!',
+  },
 ];
 
 export function Footer() {
