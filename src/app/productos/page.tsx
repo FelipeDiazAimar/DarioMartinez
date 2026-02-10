@@ -911,7 +911,7 @@ export default function ProductosPage() {
         </div>
 
         <div className="mt-12 relative">
-            <aside className="hidden lg:block absolute top-0 left-0 w-64">
+            <aside className="hidden lg:block absolute top-0 left-0 w-56">
                 <div className="sticky top-24">
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
                     <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -935,7 +935,7 @@ export default function ProductosPage() {
                     </ScrollArea>
                 </div>
             </aside>
-            <div className="lg:max-w-4xl lg:mx-auto">
+            <div className="lg:max-w-5xl lg:mx-auto">
                 <div className="mb-8 flex justify-center">
                     <div ref={searchContainerRef} className="relative w-full max-w-md">
                         <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
