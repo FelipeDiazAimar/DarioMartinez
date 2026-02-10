@@ -30,6 +30,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from '@/components/ui/badge';
 
 
 const productDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });
@@ -40,6 +41,8 @@ const productSchema = z.object({
   description: z.string().min(10, { message: "La descripción es muy corta." }),
   details: z.array(productDetailSchema),
   image: z.any().optional(),
+  isNew: z.boolean().optional(),
+  isFavorite: z.boolean().optional(),
 });
 
 const formSchema = z.object({
@@ -47,34 +50,34 @@ const formSchema = z.object({
 });
 
 const defaultProducts = [
-    { imageId: 'stationery', title: 'Artículos de Librería', description: 'Resmas de papel, cuadernos, bolígrafos y más.', details: ['Cuadernos, blocks de notas y agendas de distintos tamaños y formatos.', 'Bolígrafos, lápices, marcadores y todo para la escritura.', 'Papelería comercial, resmas de papel y cartulinas.'] },
-    { imageId: 'headphones', title: 'Auriculares y Micrófonos', description: 'Audio de alta calidad para música, gaming y llamadas.', details: ['Auriculares con y sin cable, in-ear, on-ear y over-ear.', 'Headsets para gaming con sonido envolvente y micrófono integrado.', 'Micrófonos de escritorio y de solapa para streaming y conferencias.'] },
-    { imageId: 'electronic-scales', title: 'Balanzas Electrónicas', description: 'Balanzas comerciales homologadas para pesar con precisión.', details: ['Balanzas para comercios con cálculo de precio e importe.', 'Modelos con impresor de etiquetas de código de barras y QR.', 'Homologadas y certificadas para uso comercial.'] },
-    { imageId: 'cables', title: 'Cables y Conectividad', description: 'HDMI, USB, VGA, red y todo tipo de cables que necesites.', details: ['Cables de video: HDMI, DisplayPort, VGA, DVI en todas las longitudes.', 'Cables USB de todo tipo: A, B, C, micro, mini, y extensiones.', 'Cables de alimentación, audio, y de red (patch cords).'] },
-    { imageId: 'safes', title: 'Cajas Fuertes', description: 'Protege tu dinero y documentos importantes.', details: ['Cajas de seguridad con cerradura electrónica, a llave o combinadas.', 'Distintos tamaños y niveles de seguridad para hogar y comercio.', 'Modelos para amurar, de sobreponer y con ranura buzón.'] },
-    { imageId: 'cash-registers', title: 'Cajas Registradoras', description: 'Control fiscal y de ventas para tu comercio.', details: ['Registradoras fiscales homologadas por AFIP.', 'Modelos alfanuméricos con control de stock y reportes Z.', 'Servicio de inicialización y programación.'] },
-    { imageId: 'calculator', title: 'Calculadoras Comerciales', description: 'Calculadoras con impresor y funciones comerciales.', details: ['Calculadoras comerciales y de escritorio para el día a día.', 'Modelos con rollo de papel para un registro físico de tus operaciones.', 'Funciones de cálculo de impuestos, costo, venta y margen.'] },
-    { imageId: 'scientific-calculator', title: 'Calculadoras Científicas', description: 'Funciones avanzadas para estudiantes y profesionales.', details: ['Calculadoras con cientos de funciones científicas y estadísticas.', 'Modelos programables y graficadores para carreras técnicas.', 'Las marcas líderes del mercado: Casio, HP y más.'] },
-    { imageId: 'webcams', title: 'Cámaras Web', description: 'Video en alta definición para streaming y videollamadas.', details: ['Cámaras HD, Full HD y 4K para una imagen nítida.', 'Ideales para teletrabajo, clases online, streaming y creación de contenido.', 'Modelos con micrófono incorporado y enfoque automático.'] },
-    { imageId: 'printer-toner', title: 'Cartuchos y Toners', description: 'Consumibles originales y alternativos para todas las marcas.', details: ['Amplio stock de cartuchos de tinta y toners para impresoras.', 'Trabajamos con todas las marcas: HP, Epson, Brother, Canon, etc.', 'Opciones originales y alternativas de alta calidad y rendimiento.'] },
-    { imageId: 'ticket-printer', title: 'Comanderas y Ticketeadoras', description: 'Impresoras térmicas para comandas, recibos y tickets no fiscales.', details: ['Impresoras térmicas de alta velocidad para puntos de venta y cocinas.', 'Ideales para emitir comandas, tickets no fiscales, recibos y resúmenes.', 'Fáciles de instalar y compatibles con los principales sistemas de gestión.'] },
-    { imageId: 'pc-components', title: 'Componentes de PC', description: 'Procesadores, motherboards, memorias, fuentes y más.', details: ['Procesadores Intel y AMD, placas madre, memorias RAM.', 'Discos SSD y HDD, placas de video, fuentes de alimentación.', 'Gabinetes, coolers y todo para armar o actualizar tu PC.'] },
-    { imageId: 'fiscal-printer', title: 'Impresoras Fiscales', description: 'Modelos homologados por AFIP para cumplir con todas las normativas vigentes.', details: ['Equipos fiscales de 1ra y 2da generación, para todo volumen de facturación.', 'Homologados por AFIP, garantizando cumplimiento y transacciones seguras.', 'Servicio técnico integral: inicialización, mantenimiento y reparaciones.'] },
-    { imageId: 'printers', title: 'Impresoras Multifunción', description: 'Imprime, escanea y copia con un solo equipo. Tinta y láser.', details: ['Equipos inkjet y láser, monocromáticos y a color.', 'Funciones de impresión, copiado y escaneo en un solo dispositivo.', 'Modelos con conectividad WiFi y sistemas de tinta continua.'] },
-    { imageId: 'office-supplies', title: 'Insumos para Oficina', description: 'Todo lo que necesitás para el día a día de tu oficina.', details: ['Artículos de librería, resmas de papel, carpetas y archivos.', 'Abrochadoras, perforadoras y todo para la organización de documentos.', 'Rollos de papel para ticketeadoras y calculadoras.'] },
-    { imageId: 'keyboards', title: 'Teclados', description: 'Mecánicos, de membrana, ergonómicos e inalámbricos.', details: ['Teclados para oficina, gaming y uso general.', 'Modelos mecánicos, de membrana, con y sin pad numérico.', 'Opciones con cable USB o inalámbricos por Bluetooth o radiofrecuencia.'] },
-    { imageId: 'barcode-scanner', title: 'Lectores de Códigos de Barra', description: 'Agilizá tus ventas y control de stock con lectores láser y 2D.', details: ['Lectores 1D y 2D (QR) para agilizar el cobro y la gestión de inventario.', 'Modelos de mano con cable, inalámbricos y fijos de mostrador.', 'Lectura rápida y precisa, incluso en códigos dañados o de baja calidad.'] },
-    { imageId: 'mice', title: 'Mouses', description: 'Ópticos, láser, gamers y ergonómicos para cada necesidad.', details: ['Mouses ópticos y láser para todo tipo de superficies.', 'Diseños ergonómicos para prevenir lesiones y mejorar la comodidad.', 'Modelos para gaming con alta precisión (DPI) y botones programables.'] },
-    { imageId: 'tech-backpacks', title: 'Mochilas para Notebooks', description: 'Transportá tus equipos de forma segura y con estilo.', details: ['Mochilas y maletines con compartimento acolchado para notebooks.', 'Disponibles en varios tamaños para distintos modelos de laptops.', 'Materiales resistentes y diseños ergonómicos para mayor comodidad.'] },
-    { imageId: 'monitors', title: 'Monitores', description: 'Pantallas Full HD y 4K para trabajo, diseño y gaming.', details: ['Monitores LED y IPS de diferentes tamaños y resoluciones (HD, FHD, 4K).', 'Modelos para gaming con alta tasa de refresco y bajo tiempo de respuesta.', 'Opciones con diferentes tipos de conexión: HDMI, DisplayPort, VGA.'] },
-    { imageId: 'mousepads', title: 'Mousepads', description: 'Superficies optimizadas para precisión y comodidad.', details: ['Mousepads de tela, rígidos y con reposamuñecas de gel.', 'Superficies diseñadas para un deslizamiento suave y preciso del mouse.', 'Modelos extendidos (XL y XXL) que cubren todo el escritorio.'] },
-    { imageId: 'notebook', title: 'Notebooks', description: 'Las mejores marcas y modelos para trabajar o estudiar desde donde quieras.', details: ['Amplia variedad de las mejores marcas: HP, Dell, Lenovo, Asus y más.', 'Modelos para trabajo, estudio, diseño o gaming, adaptados a tu movilidad.', 'Garantía oficial y nuestro respaldo técnico especializado.'] },
-    { imageId: 'usb-drives', title: 'Pendrives y Almacenamiento', description: 'Memorias USB y discos externos para tus archivos.', details: ['Pendrives de distintas capacidades y velocidades (USB 2.0, 3.0, 3.1).', 'Discos duros externos (HDD y SSD) para backups y almacenamiento masivo.', 'Tarjetas de memoria (SD y microSD) para cámaras y celulares.'] },
-    { imageId: 'network-cards', title: 'Placas de Red', description: 'Añade o mejora la conexión a internet de tu PC.', details: ['Placas de red PCI Express para conexión por cable Ethernet.', 'Placas de red WiFi para conectar tu PC de escritorio de forma inalámbrica.', 'Modelos con las últimas tecnologías para mayor velocidad y estabilidad.'] },
-    { imageId: 'routers', title: 'Routers y Repetidores', description: 'Mejora la cobertura y velocidad de tu señal WiFi.', details: ['Routers neutros para gestionar tu red y mejorar el rendimiento.', 'Repetidores y extensores de rango para eliminar zonas sin WiFi.', 'Sistemas Mesh para una cobertura total y sin interrupciones en casas grandes.'] },
-    { imageId: 'office-chairs', title: 'Sillas de Escritorio', description: 'Sillas ergonómicas para cuidar tu postura durante el trabajo.', details: ['Sillas gerenciales y operativas con múltiples ajustes.', 'Diseños ergonómicos con soporte lumbar, apoyabrazos y apoyacabeza.', 'Sillas gamer para largas sesiones de juego con máximo confort.'] },
-    { imageId: 'network-switch', title: 'Switches de Red', description: 'Expande tu red cableada de forma rápida y eficiente.', details: ['Switches de 5, 8, 16 y 24 puertos para redes domésticas y de oficina.', 'Multiplica los puntos de conexión de tu red cableada fácilmente.', 'Modelos no administrables (plug and play) y administrables.'] },
-    { imageId: 'usb-adapters', title: 'Adaptadores USB WiFi/Bluetooth', description: 'Conectividad inalámbrica para cualquier equipo.', details: ['Adaptadores USB para agregar conectividad WiFi a PCs de escritorio.', 'Dongles Bluetooth para conectar periféricos inalámbricos.', 'Fáciles de instalar y compatibles con todos los sistemas operativos.'] },
+    { imageId: 'stationery', title: 'Artículos de Librería', description: 'Resmas de papel, cuadernos, bolígrafos y más.', details: ['Cuadernos, blocks de notas y agendas de distintos tamaños y formatos.', 'Bolígrafos, lápices, marcadores y todo para la escritura.', 'Papelería comercial, resmas de papel y cartulinas.'], isNew: false, isFavorite: false },
+    { imageId: 'headphones', title: 'Auriculares y Micrófonos', description: 'Audio de alta calidad para música, gaming y llamadas.', details: ['Auriculares con y sin cable, in-ear, on-ear y over-ear.', 'Headsets para gaming con sonido envolvente y micrófono integrado.', 'Micrófonos de escritorio y de solapa para streaming y conferencias.'], isNew: true, isFavorite: false },
+    { imageId: 'electronic-scales', title: 'Balanzas Electrónicas', description: 'Balanzas comerciales homologadas para pesar con precisión.', details: ['Balanzas para comercios con cálculo de precio e importe.', 'Modelos con impresor de etiquetas de código de barras y QR.', 'Homologadas y certificadas para uso comercial.'], isNew: false, isFavorite: true },
+    { imageId: 'cables', title: 'Cables y Conectividad', description: 'HDMI, USB, VGA, red y todo tipo de cables que necesites.', details: ['Cables de video: HDMI, DisplayPort, VGA, DVI en todas las longitudes.', 'Cables USB de todo tipo: A, B, C, micro, mini, y extensiones.', 'Cables de alimentación, audio, y de red (patch cords).'], isNew: false, isFavorite: false },
+    { imageId: 'safes', title: 'Cajas Fuertes', description: 'Protege tu dinero y documentos importantes.', details: ['Cajas de seguridad con cerradura electrónica, a llave o combinadas.', 'Distintos tamaños y niveles de seguridad para hogar y comercio.', 'Modelos para amurar, de sobreponer y con ranura buzón.'], isNew: false, isFavorite: false },
+    { imageId: 'cash-registers', title: 'Cajas Registradoras', description: 'Control fiscal y de ventas para tu comercio.', details: ['Registradoras fiscales homologadas por AFIP.', 'Modelos alfanuméricos con control de stock y reportes Z.', 'Servicio de inicialización y programación.'], isNew: false, isFavorite: false },
+    { imageId: 'calculator', title: 'Calculadoras Comerciales', description: 'Calculadoras con impresor y funciones comerciales.', details: ['Calculadoras comerciales y de escritorio para el día a día.', 'Modelos con rollo de papel para un registro físico de tus operaciones.', 'Funciones de cálculo de impuestos, costo, venta y margen.'], isNew: false, isFavorite: false },
+    { imageId: 'scientific-calculator', title: 'Calculadoras Científicas', description: 'Funciones avanzadas para estudiantes y profesionales.', details: ['Calculadoras con cientos de funciones científicas y estadísticas.', 'Modelos programables y graficadores para carreras técnicas.', 'Las marcas líderes del mercado: Casio, HP y más.'], isNew: false, isFavorite: false },
+    { imageId: 'webcams', title: 'Cámaras Web', description: 'Video en alta definición para streaming y videollamadas.', details: ['Cámaras HD, Full HD y 4K para una imagen nítida.', 'Ideales para teletrabajo, clases online, streaming y creación de contenido.', 'Modelos con micrófono incorporado y enfoque automático.'], isNew: false, isFavorite: false },
+    { imageId: 'printer-toner', title: 'Cartuchos y Toners', description: 'Consumibles originales y alternativos para todas las marcas.', details: ['Amplio stock de cartuchos de tinta y toners para impresoras.', 'Trabajamos con todas las marcas: HP, Epson, Brother, Canon, etc.', 'Opciones originales y alternativas de alta calidad y rendimiento.'], isNew: false, isFavorite: false },
+    { imageId: 'ticket-printer', title: 'Comanderas y Ticketeadoras', description: 'Impresoras térmicas para comandas, recibos y tickets no fiscales.', details: ['Impresoras térmicas de alta velocidad para puntos de venta y cocinas.', 'Ideales para emitir comandas, tickets no fiscales, recibos y resúmenes.', 'Fáciles de instalar y compatibles con los principales sistemas de gestión.'], isNew: true, isFavorite: true },
+    { imageId: 'pc-components', title: 'Componentes de PC', description: 'Procesadores, motherboards, memorias, fuentes y más.', details: ['Procesadores Intel y AMD, placas madre, memorias RAM.', 'Discos SSD y HDD, placas de video, fuentes de alimentación.', 'Gabinetes, coolers y todo para armar o actualizar tu PC.'], isNew: false, isFavorite: false },
+    { imageId: 'fiscal-printer', title: 'Impresoras Fiscales', description: 'Modelos homologados por AFIP para cumplir con todas las normativas vigentes.', details: ['Equipos fiscales de 1ra y 2da generación, para todo volumen de facturación.', 'Homologados por AFIP, garantizando cumplimiento y transacciones seguras.', 'Servicio técnico integral: inicialización, mantenimiento y reparaciones.'], isNew: false, isFavorite: true },
+    { imageId: 'printers', title: 'Impresoras Multifunción', description: 'Imprime, escanea y copia con un solo equipo. Tinta y láser.', details: ['Equipos inkjet y láser, monocromáticos y a color.', 'Funciones de impresión, copiado y escaneo en un solo dispositivo.', 'Modelos con conectividad WiFi y sistemas de tinta continua.'], isNew: false, isFavorite: false },
+    { imageId: 'office-supplies', title: 'Insumos para Oficina', description: 'Todo lo que necesitás para el día a día de tu oficina.', details: ['Artículos de librería, resmas de papel, carpetas y archivos.', 'Abrochadoras, perforadoras y todo para la organización de documentos.', 'Rollos de papel para ticketeadoras y calculadoras.'], isNew: false, isFavorite: false },
+    { imageId: 'keyboards', title: 'Teclados', description: 'Mecánicos, de membrana, ergonómicos e inalámbricos.', details: ['Teclados para oficina, gaming y uso general.', 'Modelos mecánicos, de membrana, con y sin pad numérico.', 'Opciones con cable USB o inalámbricos por Bluetooth o radiofrecuencia.'], isNew: false, isFavorite: false },
+    { imageId: 'barcode-scanner', title: 'Lectores de Códigos de Barra', description: 'Agilizá tus ventas y control de stock con lectores láser y 2D.', details: ['Lectores 1D y 2D (QR) para agilizar el cobro y la gestión de inventario.', 'Modelos de mano con cable, inalámbricos y fijos de mostrador.', 'Lectura rápida y precisa, incluso en códigos dañados o de baja calidad.'], isNew: false, isFavorite: false },
+    { imageId: 'mice', title: 'Mouses', description: 'Ópticos, láser, gamers y ergonómicos para cada necesidad.', details: ['Mouses ópticos y láser para todo tipo de superficies.', 'Diseños ergonómicos para prevenir lesiones y mejorar la comodidad.', 'Modelos para gaming con alta precisión (DPI) y botones programables.'], isNew: false, isFavorite: false },
+    { imageId: 'tech-backpacks', title: 'Mochilas para Notebooks', description: 'Transportá tus equipos de forma segura y con estilo.', details: ['Mochilas y maletines con compartimento acolchado para notebooks.', 'Disponibles en varios tamaños para distintos modelos de laptops.', 'Materiales resistentes y diseños ergonómicos para mayor comodidad.'], isNew: false, isFavorite: false },
+    { imageId: 'monitors', title: 'Monitores', description: 'Pantallas Full HD y 4K para trabajo, diseño y gaming.', details: ['Monitores LED y IPS de diferentes tamaños y resoluciones (HD, FHD, 4K).', 'Modelos para gaming con alta tasa de refresco y bajo tiempo de respuesta.', 'Opciones con diferentes tipos de conexión: HDMI, DisplayPort, VGA.'], isNew: false, isFavorite: false },
+    { imageId: 'mousepads', title: 'Mousepads', description: 'Superficies optimizadas para precisión y comodidad.', details: ['Mousepads de tela, rígidos y con reposamuñecas de gel.', 'Superficies diseñadas para un deslizamiento suave y preciso del mouse.', 'Modelos extendidos (XL y XXL) que cubren todo el escritorio.'], isNew: false, isFavorite: false },
+    { imageId: 'notebook', title: 'Notebooks', description: 'Las mejores marcas y modelos para trabajar o estudiar desde donde quieras.', details: ['Amplia variedad de las mejores marcas: HP, Dell, Lenovo, Asus y más.', 'Modelos para trabajo, estudio, diseño o gaming, adaptados a tu movilidad.', 'Garantía oficial y nuestro respaldo técnico especializado.'], isNew: true, isFavorite: true },
+    { imageId: 'usb-drives', title: 'Pendrives y Almacenamiento', description: 'Memorias USB y discos externos para tus archivos.', details: ['Pendrives de distintas capacidades y velocidades (USB 2.0, 3.0, 3.1).', 'Discos duros externos (HDD y SSD) para backups y almacenamiento masivo.', 'Tarjetas de memoria (SD y microSD) para cámaras y celulares.'], isNew: false, isFavorite: false },
+    { imageId: 'network-cards', title: 'Placas de Red', description: 'Añade o mejora la conexión a internet de tu PC.', details: ['Placas de red PCI Express para conexión por cable Ethernet.', 'Placas de red WiFi para conectar tu PC de escritorio de forma inalámbrica.', 'Modelos con las últimas tecnologías para mayor velocidad y estabilidad.'], isNew: false, isFavorite: false },
+    { imageId: 'routers', title: 'Routers y Repetidores', description: 'Mejora la cobertura y velocidad de tu señal WiFi.', details: ['Routers neutros para gestionar tu red y mejorar el rendimiento.', 'Repetidores y extensores de rango para eliminar zonas sin WiFi.', 'Sistemas Mesh para una cobertura total y sin interrupciones en casas grandes.'], isNew: false, isFavorite: false },
+    { imageId: 'office-chairs', title: 'Sillas de Escritorio', description: 'Sillas ergonómicas para cuidar tu postura durante el trabajo.', details: ['Sillas gerenciales y operativas con múltiples ajustes.', 'Diseños ergonómicos con soporte lumbar, apoyabrazos y apoyacabeza.', 'Sillas gamer para largas sesiones de juego con máximo confort.'], isNew: false, isFavorite: false },
+    { imageId: 'network-switch', title: 'Switches de Red', description: 'Expande tu red cableada de forma rápida y eficiente.', details: ['Switches de 5, 8, 16 y 24 puertos para redes domésticas y de oficina.', 'Multiplica los puntos de conexión de tu red cableada fácilmente.', 'Modelos no administrables (plug and play) y administrables.'], isNew: false, isFavorite: false },
+    { imageId: 'usb-adapters', title: 'Adaptadores USB WiFi/Bluetooth', description: 'Conectividad inalámbrica para cualquier equipo.', details: ['Adaptadores USB para agregar conectividad WiFi a PCs de escritorio.', 'Dongles Bluetooth para conectar periféricos inalámbricos.', 'Fáciles de instalar y compatibles con todos los sistemas operativos.'], isNew: false, isFavorite: false },
 ];
 
 type FormValues = z.infer<typeof formSchema>;
@@ -221,23 +224,25 @@ export default function EditProductsPage() {
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
                                     return (
                                         <AccordionItem value={`product-${productIndex}`} key={productField.id} className="border rounded-lg bg-card shadow-sm">
-                                            <div className="flex items-center justify-between w-full">
-                                                <AccordionTrigger className="p-4 text-left hover:no-underline flex-grow">
+                                            <div className="flex items-center justify-between w-full p-4">
+                                                <AccordionTrigger className="p-0 text-left hover:no-underline flex-grow [&>svg]:hidden">
                                                     <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
                                                 </AccordionTrigger>
                                                 <div 
-                                                    className="flex items-center gap-1 pr-4"
+                                                    className="flex items-center gap-1 pl-4"
                                                 >
                                                     <Button
                                                         type="button"
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8"
-                                                        onClick={() => {
-                                                            toast({ title: "Funcionalidad no implementada", description: "Marcar como favorito no está implementado." });
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const current = form.getValues(`products.${productIndex}.isFavorite`);
+                                                            form.setValue(`products.${productIndex}.isFavorite`, !current, { shouldDirty: true });
                                                         }}
                                                     >
-                                                        <Star className="h-4 w-4" />
+                                                        <Star className={cn("h-4 w-4 text-muted-foreground", productField.isFavorite && "fill-yellow-400 text-yellow-500")} />
                                                         <span className="sr-only">Marcar como favorito</span>
                                                     </Button>
                                                     <Button
@@ -245,11 +250,13 @@ export default function EditProductsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8"
-                                                        onClick={() => {
-                                                            toast({ title: "Funcionalidad no implementada", description: "Marcar como nuevo no está implementado." });
+                                                         onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const current = form.getValues(`products.${productIndex}.isNew`);
+                                                            form.setValue(`products.${productIndex}.isNew`, !current, { shouldDirty: true });
                                                         }}
                                                     >
-                                                        <Sparkles className="h-4 w-4" />
+                                                        <Sparkles className={cn("h-4 w-4 text-muted-foreground", productField.isNew && "fill-accent/50 text-accent")} />
                                                         <span className="sr-only">Marcar como nuevo</span>
                                                     </Button>
                                                     <Button
@@ -257,7 +264,10 @@ export default function EditProductsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8 text-destructive hover:text-destructive"
-                                                        onClick={() => remove(productIndex)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            remove(productIndex);
+                                                        }}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                         <span className="sr-only">Eliminar producto</span>
@@ -266,6 +276,22 @@ export default function EditProductsPage() {
                                             </div>
                                             <AccordionContent>
                                                 <div className="p-4 pt-0 border-t space-y-6">
+                                                     {(productField.isFavorite || productField.isNew) && (
+                                                        <div className="flex items-center gap-2 flex-wrap pt-4">
+                                                            {productField.isFavorite && (
+                                                                <Badge variant="outline" className="font-semibold border-yellow-500/50 bg-yellow-500/10 text-yellow-700">
+                                                                    <Star className="h-3 w-3 mr-1.5" />
+                                                                    Favorito
+                                                                </Badge>
+                                                            )}
+                                                            {productField.isNew && (
+                                                                <Badge>
+                                                                    <Sparkles className="h-3 w-3 mr-1.5" />
+                                                                    Nuevo
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                      <FormField
                                                         control={form.control}
                                                         name={`products.${productIndex}.title`}
@@ -300,7 +326,7 @@ export default function EditProductsPage() {
                                 type="button"
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => append({ imageId: `new-product-${fields.length}`, title: "", description: "", details: [""] })}
+                                onClick={() => append({ imageId: `new-product-${fields.length}`, title: "", description: "", details: [""], isNew: true, isFavorite: false })}
                             >
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Agregar Producto
