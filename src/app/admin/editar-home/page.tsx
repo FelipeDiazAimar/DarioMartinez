@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -9,21 +10,34 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Home } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
+  carouselImage1: z.any().optional(),
+  carouselImage2: z.any().optional(),
+  carouselImage3: z.any().optional(),
+
   heroTitle: z.string().min(5, { message: "El título es muy corto." }),
   heroDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  heroSectionImage: z.any().optional(),
 
   servicesTitle: z.string().min(5, { message: "El título es muy corto." }),
   servicesDescription: z.string().min(10, { message: "La descripción es muy corta." }),
 
   productsTitle: z.string().min(5, { message: "El título es muy corto." }),
   productsDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  productImage1: z.any().optional(),
+  productImage2: z.any().optional(),
+  productImage3: z.any().optional(),
+  productImage4: z.any().optional(),
+  productImage5: z.any().optional(),
+  productImage6: z.any().optional(),
 
   aboutTitle: z.string().min(5, { message: "El título es muy corto." }),
   aboutDescription: z.string().min(10, { message: "La descripción es muy corta." }),
@@ -67,12 +81,42 @@ const defaultValues = {
     scheduleSat: "Sábados: Cerrado",
     contactTitle: "Contactanos sin compromiso",
     contactDescription: "¿Tenés alguna duda o necesitás un presupuesto? Completá el formulario o envianos un WhatsApp.",
+    carouselImage1: undefined,
+    carouselImage2: undefined,
+    carouselImage3: undefined,
+    heroSectionImage: undefined,
+    productImage1: undefined,
+    productImage2: undefined,
+    productImage3: undefined,
+    productImage4: undefined,
+    productImage5: undefined,
+    productImage6: undefined,
 };
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function EditHomePage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
+  const carouselImage1 = PlaceHolderImages.find(img => img.id === 'carousel-1');
+  const carouselImage2 = PlaceHolderImages.find(img => img.id === 'carousel-2');
+  const carouselImage3 = PlaceHolderImages.find(img => img.id === 'carousel-3');
+  const products = [
+    { imageId: 'fiscal-printer', title: 'Impresoras Fiscales' },
+    { imageId: 'desktop-pc', title: 'PC de Escritorio' },
+    { imageId: 'notebook', title: 'Notebooks' },
+    { imageId: 'ticket-printer', title: 'Comanderas y Ticketeadoras' },
+    { imageId: 'barcode-scanner', title: 'Lectores de Códigos de Barra' },
+    { imageId: 'calculator', title: 'Calculadoras' },
+  ];
+  const productImages = products.map(p => ({
+      ...p,
+      imageData: PlaceHolderImages.find(img => img.id === p.imageId)
+  }));
+
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -84,12 +128,12 @@ export default function EditHomePage() {
     }
   }, [router]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: FormValues) {
     toast({
       title: "Guardado (simulación)",
       description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
@@ -139,14 +183,22 @@ export default function EditHomePage() {
                 <CardHeader>
                     <CardTitle>Contenido de la Página Principal</CardTitle>
                     <CardDescription>
-                        Actualizá los textos de las distintas secciones de la página de inicio. Este es un editor de demostración.
+                        Actualizá los textos y las imágenes de las distintas secciones de la página de inicio. Este es un editor de demostración.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                             
-                            {/* Hero Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-semibold">Carrusel de Imágenes</h3>
+                                <ImageUploadField form={form} name="carouselImage1" label="Imagen 1 del Carrusel" currentImageUrl={carouselImage1?.imageUrl || ''} imageAlt={carouselImage1?.description || 'Carousel Image 1'} aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                <ImageUploadField form={form} name="carouselImage2" label="Imagen 2 del Carrusel" currentImageUrl={carouselImage2?.imageUrl || ''} imageAlt={carouselImage2?.description || 'Carousel Image 2'} aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                <ImageUploadField form={form} name="carouselImage3" label="Imagen 3 del Carrusel" currentImageUrl={carouselImage3?.imageUrl || ''} imageAlt={carouselImage3?.description || 'Carousel Image 3'} aspectRatio="aspect-[9/16] sm:aspect-video" />
+                            </div>
+
+                            <Separator />
+                            
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección Principal (Inicio)</h3>
                                 <FormField control={form.control} name="heroTitle" render={({ field }) => (
@@ -155,11 +207,11 @@ export default function EditHomePage() {
                                 <FormField control={form.control} name="heroDescription" render={({ field }) => (
                                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
+                                <ImageUploadField form={form} name="heroSectionImage" label="Imagen de la Sección" currentImageUrl={heroImage?.imageUrl || ''} imageAlt={heroImage?.description || 'Hero Image'} />
                             </div>
 
                             <Separator />
                             
-                            {/* Services Section */}
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección "Servicio Técnico"</h3>
                                 <FormField control={form.control} name="servicesTitle" render={({ field }) => (
@@ -172,7 +224,6 @@ export default function EditHomePage() {
 
                             <Separator />
 
-                            {/* Products Section */}
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección "Nuestros Productos"</h3>
                                 <FormField control={form.control} name="productsTitle" render={({ field }) => (
@@ -181,11 +232,22 @@ export default function EditHomePage() {
                                 <FormField control={form.control} name="productsDescription" render={({ field }) => (
                                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                                    {productImages.map((p, index) => (
+                                        <ImageUploadField
+                                            key={p.imageId}
+                                            form={form}
+                                            name={`productImage${index + 1}`}
+                                            label={`Imagen para "${p.title}"`}
+                                            currentImageUrl={p.imageData?.imageUrl || ''}
+                                            imageAlt={p.imageData?.description || p.title}
+                                        />
+                                    ))}
+                                </div>
                             </div>
 
                             <Separator />
 
-                            {/* About Section */}
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección "Sobre Nosotros"</h3>
                                 <FormField control={form.control} name="aboutTitle" render={({ field }) => (
@@ -212,7 +274,6 @@ export default function EditHomePage() {
                             
                             <Separator />
 
-                            {/* Schedule Section */}
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección "Nuestros Horarios"</h3>
                                 <FormField control={form.control} name="scheduleTitle" render={({ field }) => ( <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
@@ -223,7 +284,6 @@ export default function EditHomePage() {
 
                             <Separator />
 
-                            {/* Contact Section */}
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección "Contacto"</h3>
                                 <FormField control={form.control} name="contactTitle" render={({ field }) => (
@@ -244,5 +304,72 @@ export default function EditHomePage() {
             </Card>
         </main>
     </div>
+  );
+}
+
+function ImageUploadField({
+  form,
+  name,
+  label,
+  currentImageUrl,
+  imageAlt,
+  aspectRatio = "aspect-video",
+}: {
+  form: any;
+  name: string;
+  label: string;
+  currentImageUrl: string;
+  imageAlt: string;
+  aspectRatio?: string;
+}) {
+  const [preview, setPreview] = useState(currentImageUrl);
+  const watchedFile = form.watch(name);
+
+  useEffect(() => {
+    if (watchedFile && watchedFile instanceof File) {
+      const fileUrl = URL.createObjectURL(watchedFile);
+      setPreview(fileUrl);
+      return () => URL.revokeObjectURL(fileUrl);
+    } else if (!watchedFile) {
+        setPreview(currentImageUrl);
+    }
+  }, [watchedFile, currentImageUrl]);
+
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field: { onChange, value, ...rest } }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <div className="flex items-start gap-6">
+            <Image
+              src={preview}
+              alt={imageAlt}
+              width={160}
+              height={90}
+              className={cn("rounded-lg object-cover border", aspectRatio)}
+            />
+            <div className="flex-1 space-y-2">
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    onChange(file);
+                  }}
+                  {...rest}
+                />
+              </FormControl>
+              <FormDescription>
+                Seleccioná una nueva imagen. Sin límite de tamaño.
+              </FormDescription>
+            </div>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
