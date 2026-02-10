@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, Control } from "react-hook-form";
@@ -13,10 +13,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, PlusCircle, Trash2 } from 'lucide-react';
+import { Package, PlusCircle, Trash2, Search } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const productDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });
 
@@ -69,6 +76,8 @@ export default function EditProductsPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('a-z');
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -91,6 +100,35 @@ export default function EditProductsPage() {
     control: form.control,
     name: "products",
   });
+
+  const watchedProducts = form.watch('products');
+  const displayProductFields = useMemo(() => {
+    let productsWithIndex = fields.map((field, index) => ({
+      ...field,
+      ...(watchedProducts[index] || {}),
+      originalIndex: index,
+    }));
+
+    if (searchTerm) {
+      productsWithIndex = productsWithIndex.filter(p => 
+        (p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (p.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    productsWithIndex.sort((a, b) => {
+      const titleA = a.title || '';
+      const titleB = b.title || '';
+      if (sortOrder === 'a-z') {
+        return titleA.localeCompare(titleB);
+      } else {
+        return titleB.localeCompare(titleA);
+      }
+    });
+
+    return productsWithIndex;
+  }, [fields, watchedProducts, searchTerm, sortOrder]);
+
 
   function onSubmit(values: FormValues) {
     toast({
@@ -146,10 +184,33 @@ export default function EditProductsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Buscar por título o descripción..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+                        <Select value={sortOrder} onValueChange={setSortOrder}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Ordenar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
+                            <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                             <div className="space-y-6">
-                                {fields.map((productField, productIndex) => {
+                                {displayProductFields.map((productInfo) => {
+                                    const productIndex = productInfo.originalIndex;
+                                    const productField = productInfo;
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
                                     return (
                                         <div key={productField.id} className="p-4 border rounded-lg relative space-y-4">
