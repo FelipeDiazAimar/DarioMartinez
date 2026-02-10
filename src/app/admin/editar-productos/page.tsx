@@ -24,6 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 
 const productDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });
 
@@ -207,65 +214,59 @@ export default function EditProductsPage() {
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="space-y-6">
+                            <Accordion type="single" collapsible className="w-full space-y-4">
                                 {displayProductFields.map((productInfo) => {
                                     const productIndex = productInfo.originalIndex;
                                     const productField = productInfo;
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
                                     return (
-                                        <div key={productField.id} className="p-4 border rounded-lg relative space-y-4">
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="icon"
-                                                className="absolute top-2 right-2 h-7 w-7"
-                                                onClick={() => remove(productIndex)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-
-                                            <h3 className="font-semibold text-lg">Producto #{productIndex + 1}</h3>
-
-                                            <FormField
-                                                control={form.control}
-                                                name={`products.${productIndex}.title`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                    <FormLabel>Título del Producto</FormLabel>
-                                                    <FormControl>
-                                                        <Input {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name={`products.${productIndex}.description`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                    <FormLabel>Descripción Corta</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea rows={2} {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            
-                                            <ImageUploadField 
-                                                form={form} 
-                                                name={`products.${productIndex}.image`}
-                                                label="Imagen del Producto"
-                                                currentImageUrl={productImage?.imageUrl || ''}
-                                                imageAlt={productImage?.description || ''}
-                                            />
-
-                                            <ProductDetailsArray control={form.control} productIndex={productIndex} />
-                                        </div>
+                                        <AccordionItem value={`product-${productIndex}`} key={productField.id} className="border rounded-lg bg-card shadow-sm">
+                                            <AccordionTrigger className="p-4 text-left hover:no-underline">
+                                                <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="p-4 pt-0 border-t space-y-6">
+                                                     <div className="flex justify-end pt-4">
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => remove(productIndex)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            Eliminar Producto
+                                                        </Button>
+                                                    </div>
+                                                     <FormField
+                                                        control={form.control}
+                                                        name={`products.${productIndex}.title`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                            <FormLabel>Título del Producto</FormLabel>
+                                                            <FormControl><Input {...field} /></FormControl>
+                                                            <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`products.${productIndex}.description`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                            <FormLabel>Descripción Corta</FormLabel>
+                                                            <FormControl><Textarea rows={2} {...field} /></FormControl>
+                                                            <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
+                                                    <ProductDetailsArray control={form.control} productIndex={productIndex} />
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
                                     )
                                 })}
-                            </div>
+                            </Accordion>
                             <Button
                                 type="button"
                                 variant="outline"
