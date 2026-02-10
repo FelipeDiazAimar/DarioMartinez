@@ -122,7 +122,7 @@ export default function EditProductsPage() {
       if (sortOrder === 'a-z') {
         return titleA.localeCompare(titleB);
       } else {
-        return titleB.localeCompare(titleA);
+        return titleB.localeCompare(a.title);
       }
     });
 
@@ -176,6 +176,27 @@ export default function EditProductsPage() {
                 </h1>
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-grow">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Buscar por título o descripción..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Ordenar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
+                    <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Gestor de Productos</CardTitle>
@@ -184,27 +205,6 @@ export default function EditProductsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                        <div className="relative flex-grow">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar por título o descripción..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                        <Select value={sortOrder} onValueChange={setSortOrder}>
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue placeholder="Ordenar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
-                            <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                             <div className="space-y-6">
