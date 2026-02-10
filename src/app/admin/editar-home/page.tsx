@@ -32,12 +32,6 @@ const formSchema = z.object({
 
   productsTitle: z.string().min(5, { message: "El título es muy corto." }),
   productsDescription: z.string().min(10, { message: "La descripción es muy corta." }),
-  productImage1: z.any().optional(),
-  productImage2: z.any().optional(),
-  productImage3: z.any().optional(),
-  productImage4: z.any().optional(),
-  productImage5: z.any().optional(),
-  productImage6: z.any().optional(),
 
   aboutTitle: z.string().min(5, { message: "El título es muy corto." }),
   aboutDescription: z.string().min(10, { message: "La descripción es muy corta." }),
@@ -85,12 +79,6 @@ const defaultValues = {
     carouselImage2: undefined,
     carouselImage3: undefined,
     heroSectionImage: undefined,
-    productImage1: undefined,
-    productImage2: undefined,
-    productImage3: undefined,
-    productImage4: undefined,
-    productImage5: undefined,
-    productImage6: undefined,
 };
 
 type FormValues = z.infer<typeof formSchema>;
@@ -104,20 +92,7 @@ export default function EditHomePage() {
   const carouselImage1 = PlaceHolderImages.find(img => img.id === 'carousel-1');
   const carouselImage2 = PlaceHolderImages.find(img => img.id === 'carousel-2');
   const carouselImage3 = PlaceHolderImages.find(img => img.id === 'carousel-3');
-  const products = [
-    { imageId: 'fiscal-printer', title: 'Impresoras Fiscales' },
-    { imageId: 'desktop-pc', title: 'PC de Escritorio' },
-    { imageId: 'notebook', title: 'Notebooks' },
-    { imageId: 'ticket-printer', title: 'Comanderas y Ticketeadoras' },
-    { imageId: 'barcode-scanner', title: 'Lectores de Códigos de Barra' },
-    { imageId: 'calculator', title: 'Calculadoras' },
-  ];
-  const productImages = products.map(p => ({
-      ...p,
-      imageData: PlaceHolderImages.find(img => img.id === p.imageId)
-  }));
-
-
+  
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
     const localAuth = localStorage.getItem('isAdminAuthenticated');
@@ -232,18 +207,6 @@ export default function EditHomePage() {
                                 <FormField control={form.control} name="productsDescription" render={({ field }) => (
                                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                                    {productImages.map((p, index) => (
-                                        <ImageUploadField
-                                            key={p.imageId}
-                                            form={form}
-                                            name={`productImage${index + 1}`}
-                                            label={`Imagen para "${p.title}"`}
-                                            currentImageUrl={p.imageData?.imageUrl || ''}
-                                            imageAlt={p.imageData?.description || p.title}
-                                        />
-                                    ))}
-                                </div>
                             </div>
 
                             <Separator />
