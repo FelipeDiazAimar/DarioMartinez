@@ -221,50 +221,49 @@ export default function EditProductsPage() {
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
                                     return (
                                         <AccordionItem value={`product-${productIndex}`} key={productField.id} className="border rounded-lg bg-card shadow-sm">
-                                            <AccordionTrigger className="p-4 text-left hover:no-underline w-full flex justify-between items-center">
-                                                <div className="flex items-center justify-between w-full">
+                                            <div className="flex items-center justify-between w-full">
+                                                <AccordionTrigger className="p-4 text-left hover:no-underline flex-grow">
                                                     <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
-                                                    <div 
-                                                        className="flex items-center gap-1"
-                                                        onClick={(e) => e.stopPropagation()} 
+                                                </AccordionTrigger>
+                                                <div 
+                                                    className="flex items-center gap-1 pr-4"
+                                                >
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                        onClick={() => {
+                                                            toast({ title: "Funcionalidad no implementada", description: "Marcar como favorito no está implementado." });
+                                                        }}
                                                     >
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={() => {
-                                                                toast({ title: "Funcionalidad no implementada", description: "Marcar como favorito no está implementado." });
-                                                            }}
-                                                        >
-                                                            <Star className="h-4 w-4" />
-                                                            <span className="sr-only">Marcar como favorito</span>
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={() => {
-                                                                toast({ title: "Funcionalidad no implementada", description: "Marcar como nuevo no está implementado." });
-                                                            }}
-                                                        >
-                                                            <Sparkles className="h-4 w-4" />
-                                                            <span className="sr-only">Marcar como nuevo</span>
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-destructive hover:text-destructive"
-                                                            onClick={() => remove(productIndex)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                            <span className="sr-only">Eliminar producto</span>
-                                                        </Button>
-                                                    </div>
+                                                        <Star className="h-4 w-4" />
+                                                        <span className="sr-only">Marcar como favorito</span>
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                        onClick={() => {
+                                                            toast({ title: "Funcionalidad no implementada", description: "Marcar como nuevo no está implementado." });
+                                                        }}
+                                                    >
+                                                        <Sparkles className="h-4 w-4" />
+                                                        <span className="sr-only">Marcar como nuevo</span>
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-destructive hover:text-destructive"
+                                                        onClick={() => remove(productIndex)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        <span className="sr-only">Eliminar producto</span>
+                                                    </Button>
                                                 </div>
-                                            </AccordionTrigger>
+                                            </div>
                                             <AccordionContent>
                                                 <div className="p-4 pt-0 border-t space-y-6">
                                                      <FormField
