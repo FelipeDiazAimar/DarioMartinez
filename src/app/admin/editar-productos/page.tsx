@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, PlusCircle, Trash2, Search, Check, Undo2 } from 'lucide-react';
+import { Package, PlusCircle, Trash2, Search, Check, Undo2, Star, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
@@ -221,8 +221,49 @@ export default function EditProductsPage() {
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
                                     return (
                                         <AccordionItem value={`product-${productIndex}`} key={productField.id} className="border rounded-lg bg-card shadow-sm">
-                                            <AccordionTrigger className="p-4 text-left hover:no-underline">
-                                                <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
+                                            <AccordionTrigger className="p-4 text-left hover:no-underline w-full flex justify-between items-center">
+                                                <div className="flex items-center justify-between w-full">
+                                                    <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
+                                                    <div 
+                                                        className="flex items-center gap-1"
+                                                        onClick={(e) => e.stopPropagation()} 
+                                                    >
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={() => {
+                                                                toast({ title: "Funcionalidad no implementada", description: "Marcar como favorito no está implementado." });
+                                                            }}
+                                                        >
+                                                            <Star className="h-4 w-4" />
+                                                            <span className="sr-only">Marcar como favorito</span>
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={() => {
+                                                                toast({ title: "Funcionalidad no implementada", description: "Marcar como nuevo no está implementado." });
+                                                            }}
+                                                        >
+                                                            <Sparkles className="h-4 w-4" />
+                                                            <span className="sr-only">Marcar como nuevo</span>
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-destructive hover:text-destructive"
+                                                            onClick={() => remove(productIndex)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">Eliminar producto</span>
+                                                        </Button>
+                                                    </div>
+                                                </div>
                                             </AccordionTrigger>
                                             <AccordionContent>
                                                 <div className="p-4 pt-0 border-t space-y-6">
@@ -250,17 +291,6 @@ export default function EditProductsPage() {
                                                     />
                                                     <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
                                                     <ProductDetailsArray control={form.control} productIndex={productIndex} />
-                                                     <div className="flex justify-end pt-4">
-                                                        <Button
-                                                            type="button"
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => remove(productIndex)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 mr-2" />
-                                                            Eliminar Producto
-                                                        </Button>
-                                                    </div>
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>
