@@ -226,17 +226,6 @@ export default function EditProductsPage() {
                                             </AccordionTrigger>
                                             <AccordionContent>
                                                 <div className="p-4 pt-0 border-t space-y-6">
-                                                     <div className="flex justify-end pt-4">
-                                                        <Button
-                                                            type="button"
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => remove(productIndex)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 mr-2" />
-                                                            Eliminar Producto
-                                                        </Button>
-                                                    </div>
                                                      <FormField
                                                         control={form.control}
                                                         name={`products.${productIndex}.title`}
@@ -261,6 +250,17 @@ export default function EditProductsPage() {
                                                     />
                                                     <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
                                                     <ProductDetailsArray control={form.control} productIndex={productIndex} />
+                                                     <div className="flex justify-end pt-4">
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => remove(productIndex)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            Eliminar Producto
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>
