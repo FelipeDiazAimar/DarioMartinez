@@ -35,9 +35,9 @@ const faqs = [
 export function Footer() {
   return (
     <footer className="w-full border-t bg-muted/40 text-foreground">
-      <div className="container mx-auto grid grid-cols-1 gap-12 px-4 py-12 md:grid-cols-2 md:px-6 lg:grid-cols-4 lg:gap-8">
+      <div className="container mx-auto grid grid-cols-1 gap-12 px-4 py-12 md:grid-cols-2 md:px-6 lg:grid-cols-3 lg:gap-8">
         {/* Logo and Socials */}
-        <div className="flex flex-col items-start gap-4">
+        <div className="flex flex-col items-start gap-4 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-[72px] w-[72px]">
               <Image
@@ -111,27 +111,29 @@ export function Footer() {
             </Button>
           </div>
         </div>
-
-        {/* Map */}
-        <div>
+      </div>
+      
+      {/* Map Section */}
+      <div className="w-full pt-6">
+        <div className="container mx-auto px-4 md:px-6">
           <h3 className="mb-4 text-lg font-semibold">Encontranos</h3>
-          <div className="overflow-hidden rounded-md border">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.562307297089!2d-62.08365612436735!3d-31.42616239707323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee145b20b%3A0xc3b53f6194c25bd!2sLibertador%20Nte.%20163%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1sen!2sar!4v1721759868770!5m2!1sen!2sar"
-              width="100%"
-              height="200"
-              style={{ border: 0 }}
-              allowFullScreen={false}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Ubicación en Libertador Norte 163"
-            ></iframe>
-          </div>
-           <Link
+        </div>
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.562307297089!2d-62.08365612436735!3d-31.42616239707323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee145b20b%3A0xc3b53f6194c25bd!2sLibertador%20Nte.%20163%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1sen!2sar!4v1721759868770!5m2!1sen!2sar"
+          width="100%"
+          height="350"
+          style={{ border: 0, display: 'block' }}
+          allowFullScreen={false}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Ubicación en Libertador Norte 163"
+        ></iframe>
+        <div className="container mx-auto px-4 md:px-6 py-4">
+          <Link
             href="https://share.google/WFdtCtDtE7RPHKL5o"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-2 text-sm text-foreground/80 transition-colors hover:text-primary"
+            className="inline-flex items-center gap-2 text-sm text-foreground/80 transition-colors hover:text-primary"
           >
             <MapsIcon className="h-4 w-4 flex-shrink-0" />
             <span>Libertador Norte 163</span>

@@ -4,8 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import * as React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
   Calculator,
@@ -910,8 +908,8 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        <div className="mt-12 relative">
-            <aside className="hidden lg:block absolute top-0 left-0 w-56">
+        <div className="mt-12 lg:grid lg:grid-cols-[14rem_1fr] lg:gap-x-8">
+            <aside className="hidden lg:block">
                 <div className="sticky top-24">
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
                     <ScrollArea className="h-[calc(100vh-12rem)]" dir="rtl">
@@ -935,7 +933,7 @@ export default function ProductosPage() {
                     </ScrollArea>
                 </div>
             </aside>
-            <div className="lg:max-w-5xl lg:mx-auto">
+            <main>
                 <div className="mb-8 flex justify-center">
                     <div ref={searchContainerRef} className="relative w-full max-w-md">
                         <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
@@ -1000,13 +998,12 @@ export default function ProductosPage() {
                 <Accordion
                 type="single"
                 collapsible
-                className="mx-auto hidden sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
+                className="hidden sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
                 value={openItemId || ''}
                 onValueChange={(value) => setOpenItemId(value || null)}
                 >
                 {currentProducts.map((product) => {
                     const isExpanded = openItemId === product.imageId;
-                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                     <AccordionItem
                         value={product.imageId}
@@ -1025,8 +1022,8 @@ export default function ProductosPage() {
                             )}
                             >
                             <Image
-                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
-                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
+                                src={`https://picsum.photos/seed/${product.imageId}/600/400`}
+                                data-ai-hint={product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 width={600}
                                 height={400}
@@ -1080,7 +1077,6 @@ export default function ProductosPage() {
                 >
                     {mobileProducts.map((product) => {
                     const isExpanded = openItemId === product.imageId;
-                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                         <AccordionItem
                         value={product.imageId}
@@ -1095,8 +1091,8 @@ export default function ProductosPage() {
                         >
                             <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
                             <Image
-                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
-                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
+                                src={`https://picsum.photos/seed/${product.imageId}/600/400`}
+                                data-ai-hint={product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 fill
                                 className="object-cover"
@@ -1150,7 +1146,7 @@ export default function ProductosPage() {
                     onPageChange={handlePageChange}
                 />
                 )}
-            </div>
+            </main>
 
         </div>
       </div>
