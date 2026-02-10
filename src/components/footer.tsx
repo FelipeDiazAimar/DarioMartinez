@@ -39,12 +39,12 @@ export function Footer() {
         {/* Logo and Socials */}
         <div className="flex flex-col items-start gap-4 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-[72px] w-[72px]">
+            <div className="h-[108px] w-[108px]">
               <Image
                 src="/LOGO1.png"
                 alt="Darío Martínez Computación"
-                width={72}
-                height={72}
+                width={108}
+                height={108}
               />
             </div>
           </Link>
