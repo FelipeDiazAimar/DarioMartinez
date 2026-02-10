@@ -106,7 +106,7 @@ export default function EditProductsPage() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "products",
   });
@@ -238,8 +238,7 @@ export default function EditProductsPage() {
                                                         className="h-8 w-8"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            const current = form.getValues(`products.${productIndex}.isFavorite`);
-                                                            form.setValue(`products.${productIndex}.isFavorite`, !current, { shouldDirty: true });
+                                                            update(productIndex, { ...productField, isFavorite: !productField.isFavorite });
                                                         }}
                                                     >
                                                         <Star className={cn("h-4 w-4 text-muted-foreground", productField.isFavorite && "fill-yellow-400 text-yellow-500")} />
@@ -252,8 +251,7 @@ export default function EditProductsPage() {
                                                         className="h-8 w-8"
                                                          onClick={(e) => {
                                                             e.stopPropagation();
-                                                            const current = form.getValues(`products.${productIndex}.isNew`);
-                                                            form.setValue(`products.${productIndex}.isNew`, !current, { shouldDirty: true });
+                                                            update(productIndex, { ...productField, isNew: !productField.isNew });
                                                         }}
                                                     >
                                                         <Sparkles className={cn("h-4 w-4 text-muted-foreground", productField.isNew && "fill-accent/50 text-accent")} />
@@ -316,6 +314,16 @@ export default function EditProductsPage() {
                                                     />
                                                     <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
                                                     <ProductDetailsArray control={form.control} productIndex={productIndex} />
+                                                    <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      size="sm"
+                                                      className="mt-4"
+                                                      onClick={() => remove(productIndex)}
+                                                  >
+                                                      <Trash2 className="mr-2 h-4 w-4" />
+                                                      Eliminar Producto
+                                                  </Button>
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>
