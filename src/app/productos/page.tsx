@@ -911,6 +911,30 @@ export default function ProductosPage() {
         </div>
 
         <div className="mt-12 relative">
+            <aside className="hidden lg:block absolute top-0 left-0 w-64">
+                <div className="sticky top-24">
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
+                    <ScrollArea className="h-[calc(100vh-12rem)]">
+                        <ul className="space-y-1 pr-4 pt-2">
+                             {sortedCategories.map((product) => (
+                              <li key={product.imageId}>
+                                <button
+                                  onClick={() => handleCategoryClick(product.title)}
+                                  className={cn(
+                                    "w-full rounded-md p-2 text-left text-sm transition-colors",
+                                    searchTerm.toLowerCase() === product.title.toLowerCase()
+                                      ? "bg-primary/10 font-semibold text-primary"
+                                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                  )}
+                                >
+                                  {product.title}
+                                </button>
+                              </li>
+                            ))}
+                        </ul>
+                    </ScrollArea>
+                </div>
+            </aside>
             <div className="lg:max-w-4xl lg:mx-auto">
                 <div className="mb-8 flex justify-center">
                     <div ref={searchContainerRef} className="relative w-full max-w-md">
@@ -1128,30 +1152,6 @@ export default function ProductosPage() {
                 )}
             </div>
 
-             <aside className="hidden lg:block absolute top-0 right-0 w-64">
-                <div className="sticky top-24">
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
-                    <ScrollArea className="h-[calc(100vh-12rem)]">
-                        <ul className="space-y-1 pr-4 pt-2">
-                             {sortedCategories.map((product) => (
-                              <li key={product.imageId}>
-                                <button
-                                  onClick={() => handleCategoryClick(product.title)}
-                                  className={cn(
-                                    "w-full rounded-md p-2 text-left text-sm transition-colors",
-                                    searchTerm.toLowerCase() === product.title.toLowerCase()
-                                      ? "bg-primary/10 font-semibold text-primary"
-                                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                                  )}
-                                >
-                                  {product.title}
-                                </button>
-                              </li>
-                            ))}
-                        </ul>
-                    </ScrollArea>
-                </div>
-            </aside>
         </div>
       </div>
     </section>
