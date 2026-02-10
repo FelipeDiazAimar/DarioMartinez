@@ -238,7 +238,8 @@ export default function EditProductsPage() {
                                                         className="h-8 w-8"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            update(productIndex, { ...productField, isFavorite: !productField.isFavorite });
+                                                            const currentProduct = form.getValues(`products.${productIndex}`);
+                                                            update(productIndex, { ...currentProduct, isFavorite: !currentProduct.isFavorite });
                                                         }}
                                                     >
                                                         <Star className={cn("h-4 w-4 text-muted-foreground", productField.isFavorite && "fill-yellow-400 text-yellow-500")} />
@@ -251,7 +252,8 @@ export default function EditProductsPage() {
                                                         className="h-8 w-8"
                                                          onClick={(e) => {
                                                             e.stopPropagation();
-                                                            update(productIndex, { ...productField, isNew: !productField.isNew });
+                                                            const currentProduct = form.getValues(`products.${productIndex}`);
+                                                            update(productIndex, { ...currentProduct, isNew: !currentProduct.isNew });
                                                         }}
                                                     >
                                                         <Sparkles className={cn("h-4 w-4 text-muted-foreground", productField.isNew && "fill-accent/50 text-accent")} />
@@ -273,9 +275,9 @@ export default function EditProductsPage() {
                                                 </div>
                                             </div>
                                             <AccordionContent>
-                                                <div className="p-4 pt-0 border-t space-y-6">
+                                                <div className="p-4 border-t space-y-6">
                                                      {(productField.isFavorite || productField.isNew) && (
-                                                        <div className="flex items-center gap-2 flex-wrap pt-4">
+                                                        <div className="flex items-center gap-2 flex-wrap">
                                                             {productField.isFavorite && (
                                                                 <Badge variant="outline" className="font-semibold border-yellow-500/50 bg-yellow-500/10 text-yellow-700">
                                                                     <Star className="h-3 w-3 mr-1.5" />
