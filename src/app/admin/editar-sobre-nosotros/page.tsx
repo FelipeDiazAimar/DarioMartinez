@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
@@ -18,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 const formSchema = z.object({
   mainTitle: z.string().min(5, { message: "El título es muy corto." }),
   mainDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  aboutImage: z.any().optional(),
   workProcessTitle: z.string().min(5, { message: "El título es muy corto." }),
   workProcessDescription: z.string().min(10, { message: "La descripción es muy corta." }),
   diagnosisTitle: z.string().min(5, { message: "El título es muy corto." }),
@@ -40,6 +42,7 @@ export default function EditAboutPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const [imagePreview, setImagePreview] = useState<string>("/FOTOFRENTE.jpeg");
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -56,6 +59,7 @@ export default function EditAboutPage() {
     defaultValues: {
         mainTitle: "Casi 50 Años de Confianza y Tecnología",
         mainDescription: "Darío Martínez Computación nace en San Francisco con un objetivo claro: brindar soluciones reales y confiables. Hemos acompañado la evolución tecnológica desde sus inicios, consolidándonos como un referente de seriedad y conocimiento técnico en la región.",
+        aboutImage: undefined,
         workProcessTitle: "Nuestra Forma de Trabajar",
         workProcessDescription: "Cada cliente y cada equipo es único. Por eso, nuestro proceso se basa en la escucha, el análisis detallado y la búsqueda de la solución más eficiente y duradera. No aplicamos recetas, resolvemos problemas.",
         diagnosisTitle: "Diagnóstico Preciso",
@@ -74,6 +78,16 @@ export default function EditAboutPage() {
         pillar4: "Confianza",
     },
   });
+
+  const watchedImage = form.watch("aboutImage");
+
+  useEffect(() => {
+    if (watchedImage && watchedImage instanceof File) {
+      const fileUrl = URL.createObjectURL(watchedImage);
+      setImagePreview(fileUrl);
+      return () => URL.revokeObjectURL(fileUrl);
+    }
+  }, [watchedImage]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
@@ -96,7 +110,7 @@ export default function EditAboutPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Array.from({ length: 15 }).map((_, i) => (
+                {Array.from({ length: 16 }).map((_, i) => (
                   <div key={i} className="space-y-2">
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" />
@@ -148,6 +162,41 @@ export default function EditAboutPage() {
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
+                                <FormField
+                                  control={form.control}
+                                  name="aboutImage"
+                                  render={({ field: { onChange, value, ...rest } }) => (
+                                    <FormItem>
+                                      <FormLabel>Imagen Principal</FormLabel>
+                                       <div className="flex items-start gap-6">
+                                            <Image
+                                                src={imagePreview}
+                                                alt="Vista previa de la imagen"
+                                                width={120}
+                                                height={150}
+                                                className="aspect-[4/5] rounded-lg object-cover border"
+                                            />
+                                            <div className="flex-1 space-y-2">
+                                                <FormControl>
+                                                    <Input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            onChange(file);
+                                                        }}
+                                                        {...rest}
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Seleccioná una nueva imagen para reemplazar la actual. No hay límite de tamaño.
+                                                </FormDescription>
+                                            </div>
+                                       </div>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
                             </div>
 
                             <Separator />
