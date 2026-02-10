@@ -910,8 +910,8 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 mt-12">
-            <div className="lg:col-span-3">
+        <div className="mt-12 relative">
+            <div className="lg:max-w-4xl lg:mx-auto">
                 <div className="mb-8 flex justify-center">
                     <div ref={searchContainerRef} className="relative w-full max-w-md">
                         <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
@@ -982,6 +982,7 @@ export default function ProductosPage() {
                 >
                 {currentProducts.map((product) => {
                     const isExpanded = openItemId === product.imageId;
+                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                     <AccordionItem
                         value={product.imageId}
@@ -1000,12 +1001,8 @@ export default function ProductosPage() {
                             )}
                             >
                             <Image
-                                src={
-                                `https://picsum.photos/seed/${product.imageId}/600/400`
-                                }
-                                data-ai-hint={
-                                product.imageId.replace('-', ' ')
-                                }
+                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 width={600}
                                 height={400}
@@ -1059,6 +1056,7 @@ export default function ProductosPage() {
                 >
                     {mobileProducts.map((product) => {
                     const isExpanded = openItemId === product.imageId;
+                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                         <AccordionItem
                         value={product.imageId}
@@ -1073,12 +1071,8 @@ export default function ProductosPage() {
                         >
                             <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
                             <Image
-                                src={
-                                    `https://picsum.photos/seed/${product.imageId}/600/400`
-                                }
-                                data-ai-hint={
-                                    product.imageId.replace('-', ' ')
-                                }
+                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 fill
                                 className="object-cover"
@@ -1134,7 +1128,7 @@ export default function ProductosPage() {
                 )}
             </div>
 
-             <aside className="hidden lg:block lg:col-span-1">
+             <aside className="hidden lg:block absolute top-0 right-0 w-64">
                 <div className="sticky top-24">
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
                     <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -1158,7 +1152,6 @@ export default function ProductosPage() {
                     </ScrollArea>
                 </div>
             </aside>
-
         </div>
       </div>
     </section>
