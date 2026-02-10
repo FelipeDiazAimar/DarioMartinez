@@ -96,6 +96,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 
 const allProducts = [
   {
@@ -908,12 +909,12 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        <div className="mt-12 lg:grid lg:grid-cols-[14rem_1fr] lg:gap-x-8">
+        <div className="mt-12 grid lg:grid-cols-[14rem_1fr] lg:gap-x-8">
             <aside className="hidden lg:block">
                 <div className="sticky top-24">
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
-                    <ScrollArea className="h-[calc(100vh-12rem)]" dir="rtl">
-                        <ul className="space-y-1 pl-4 pt-2" dir="ltr">
+                    <ScrollArea className="h-[calc(100vh-12rem)] pr-4" dir="rtl">
+                        <ul className="space-y-1 pt-2" dir="ltr">
                              {sortedCategories.map((product) => (
                               <li key={product.imageId}>
                                 <button
