@@ -13,10 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home } from 'lucide-react';
+import { Home, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase-client';
 
 const formSchema = z.object({
   carouselImage1: z.any().optional(),
@@ -86,12 +87,22 @@ type FormValues = z.infer<typeof formSchema>;
 export default function EditHomePage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
   const carouselImage1 = PlaceHolderImages.find(img => img.id === 'carousel-1');
   const carouselImage2 = PlaceHolderImages.find(img => img.id === 'carousel-2');
   const carouselImage3 = PlaceHolderImages.find(img => img.id === 'carousel-3');
+  const fallbackImage = 'https://placehold.co/600x400?text=Sin+imagen';
+
+  const [currentImages, setCurrentImages] = useState({
+    hero: heroImage?.imageUrl || fallbackImage,
+    carousel1: carouselImage1?.imageUrl || fallbackImage,
+    carousel2: carouselImage2?.imageUrl || fallbackImage,
+    carousel3: carouselImage3?.imageUrl || fallbackImage,
+  });
   
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -108,14 +119,174 @@ export default function EditHomePage() {
     defaultValues: defaultValues,
   });
 
-  function onSubmit(values: FormValues) {
-    toast({
-      title: "Guardado (simulación)",
-      description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadHomeContent = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('home_content')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) {
+        toast({
+          title: 'Error al cargar',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
+        form.reset({
+          heroTitle: data.hero_title ?? defaultValues.heroTitle,
+          heroDescription: data.hero_description ?? defaultValues.heroDescription,
+          servicesTitle: data.services_title ?? defaultValues.servicesTitle,
+          servicesDescription: data.services_description ?? defaultValues.servicesDescription,
+          productsTitle: data.products_title ?? defaultValues.productsTitle,
+          productsDescription: data.products_description ?? defaultValues.productsDescription,
+          aboutTitle: data.about_title ?? defaultValues.aboutTitle,
+          aboutDescription: data.about_description ?? defaultValues.aboutDescription,
+          missionTitle: data.mission_title ?? defaultValues.missionTitle,
+          missionDescription: data.mission_description ?? defaultValues.missionDescription,
+          visionTitle: data.vision_title ?? defaultValues.visionTitle,
+          visionDescription: data.vision_description ?? defaultValues.visionDescription,
+          valuesTitle: data.values_title ?? defaultValues.valuesTitle,
+          valuesDescription: data.values_description ?? defaultValues.valuesDescription,
+          scheduleTitle: data.schedule_title ?? defaultValues.scheduleTitle,
+          scheduleMonThu: data.schedule_mon_thu ?? defaultValues.scheduleMonThu,
+          scheduleFri: data.schedule_fri ?? defaultValues.scheduleFri,
+          scheduleSat: data.schedule_sat ?? defaultValues.scheduleSat,
+          contactTitle: data.contact_title ?? defaultValues.contactTitle,
+          contactDescription: data.contact_description ?? defaultValues.contactDescription,
+          carouselImage1: undefined,
+          carouselImage2: undefined,
+          carouselImage3: undefined,
+          heroSectionImage: undefined,
+        });
+
+        setCurrentImages({
+          hero: data.hero_image_url || heroImage?.imageUrl || fallbackImage,
+          carousel1: data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
+          carousel2: data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
+          carousel3: data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
+        });
+      }
+
+      setIsLoading(false);
+    };
+
+    loadHomeContent();
+  }, [isAuthenticated, form, toast, heroImage, carouselImage1, carouselImage2, carouselImage3]);
+
+  const uploadImage = async (file: File, name: string) => {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filePath = `home/${name}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    await supabase.from('imagenes').insert({
+      bucket: 'images',
+      path: filePath,
+      public_url: publicUrl,
+      seccion: 'home',
+      etiqueta: name,
     });
+
+    return publicUrl;
+  };
+
+  async function onSubmit(values: FormValues) {
+    setIsSaving(true);
+    try {
+      const heroUrl = values.heroSectionImage instanceof File
+        ? await uploadImage(values.heroSectionImage, 'hero')
+        : currentImages.hero;
+
+      const carousel1Url = values.carouselImage1 instanceof File
+        ? await uploadImage(values.carouselImage1, 'carousel-1')
+        : currentImages.carousel1;
+
+      const carousel2Url = values.carouselImage2 instanceof File
+        ? await uploadImage(values.carouselImage2, 'carousel-2')
+        : currentImages.carousel2;
+
+      const carousel3Url = values.carouselImage3 instanceof File
+        ? await uploadImage(values.carouselImage3, 'carousel-3')
+        : currentImages.carousel3;
+
+      const { error } = await supabase.from('home_content').upsert({
+        id: 1,
+        hero_title: values.heroTitle,
+        hero_description: values.heroDescription,
+        hero_image_url: heroUrl,
+        services_title: values.servicesTitle,
+        services_description: values.servicesDescription,
+        products_title: values.productsTitle,
+        products_description: values.productsDescription,
+        about_title: values.aboutTitle,
+        about_description: values.aboutDescription,
+        mission_title: values.missionTitle,
+        mission_description: values.missionDescription,
+        vision_title: values.visionTitle,
+        vision_description: values.visionDescription,
+        values_title: values.valuesTitle,
+        values_description: values.valuesDescription,
+        schedule_title: values.scheduleTitle,
+        schedule_mon_thu: values.scheduleMonThu,
+        schedule_fri: values.scheduleFri,
+        schedule_sat: values.scheduleSat,
+        contact_title: values.contactTitle,
+        contact_description: values.contactDescription,
+        carousel_image1_url: carousel1Url,
+        carousel_image2_url: carousel2Url,
+        carousel_image3_url: carousel3Url,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setCurrentImages({
+        hero: heroUrl,
+        carousel1: carousel1Url,
+        carousel2: carousel2Url,
+        carousel3: carousel3Url,
+      });
+
+      toast({
+        title: 'Cambios guardados',
+        description: 'La página Home se actualizó correctamente.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error al guardar',
+        description: err?.message || 'Ocurrió un error inesperado.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -158,18 +329,18 @@ export default function EditHomePage() {
                 <CardHeader>
                     <CardTitle>Contenido de la Página Principal</CardTitle>
                     <CardDescription>
-                        Actualizá los textos y las imágenes de las distintas secciones de la página de inicio. Este es un editor de demostración.
+                        Actualizá los textos y las imágenes de las distintas secciones de la página de inicio.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-24">
                             
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Carrusel de Imágenes</h3>
-                                <ImageUploadField form={form} name="carouselImage1" label="Imagen 1 del Carrusel" currentImageUrl={carouselImage1?.imageUrl || ''} imageAlt={carouselImage1?.description || 'Carousel Image 1'} aspectRatio="aspect-[9/16] sm:aspect-video" />
-                                <ImageUploadField form={form} name="carouselImage2" label="Imagen 2 del Carrusel" currentImageUrl={carouselImage2?.imageUrl || ''} imageAlt={carouselImage2?.description || 'Carousel Image 2'} aspectRatio="aspect-[9/16] sm:aspect-video" />
-                                <ImageUploadField form={form} name="carouselImage3" label="Imagen 3 del Carrusel" currentImageUrl={carouselImage3?.imageUrl || ''} imageAlt={carouselImage3?.description || 'Carousel Image 3'} aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                <ImageUploadField form={form} name="carouselImage1" label="Imagen 1 del Carrusel" currentImageUrl={currentImages.carousel1} imageAlt="Imagen 1 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                <ImageUploadField form={form} name="carouselImage2" label="Imagen 2 del Carrusel" currentImageUrl={currentImages.carousel2} imageAlt="Imagen 2 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                <ImageUploadField form={form} name="carouselImage3" label="Imagen 3 del Carrusel" currentImageUrl={currentImages.carousel3} imageAlt="Imagen 3 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
                             </div>
 
                             <Separator />
@@ -182,7 +353,7 @@ export default function EditHomePage() {
                                 <FormField control={form.control} name="heroDescription" render={({ field }) => (
                                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
-                                <ImageUploadField form={form} name="heroSectionImage" label="Imagen de la Sección" currentImageUrl={heroImage?.imageUrl || ''} imageAlt={heroImage?.description || 'Hero Image'} />
+                                <ImageUploadField form={form} name="heroSectionImage" label="Imagen de la Sección" currentImageUrl={currentImages.hero} imageAlt="Imagen principal" />
                             </div>
 
                             <Separator />
@@ -257,9 +428,30 @@ export default function EditHomePage() {
                                 )}/>
                             </div>
 
-                            <div className="flex items-center gap-2 pt-4">
-                                <Button type="submit">Guardar Cambios</Button>
-                                <Button type="button" variant="outline" onClick={() => form.reset()}>Deshacer Cambios</Button>
+                            {/* Floating Action Buttons */}
+                            <div className="fixed bottom-6 right-6 z-50">
+                              {/* Desktop buttons */}
+                              <div className="hidden md:flex items-center gap-4">
+                                <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset()} disabled={isSaving}>
+                                  <Undo2 className="mr-2 h-5 w-5" />
+                                  Deshacer Cambios
+                                </Button>
+                                <Button type="submit" size="lg" className="shadow-lg" disabled={isSaving}>
+                                  <Check className="mr-2 h-5 w-5" />
+                                  Guardar Cambios
+                                </Button>
+                              </div>
+                              {/* Mobile buttons */}
+                              <div className="md:hidden flex flex-col gap-3">
+                                <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset()} disabled={isSaving}>
+                                  <Undo2 className="h-6 w-6" />
+                                  <span className="sr-only">Deshacer Cambios</span>
+                                </Button>
+                                <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg" disabled={isSaving}>
+                                  <Check className="h-6 w-6" />
+                                  <span className="sr-only">Guardar Cambios</span>
+                                </Button>
+                              </div>
                             </div>
                         </form>
                     </Form>
@@ -294,7 +486,7 @@ function ImageUploadField({
       setPreview(fileUrl);
       return () => URL.revokeObjectURL(fileUrl);
     } else if (!watchedFile) {
-        setPreview(currentImageUrl);
+        setPreview(currentImageUrl || 'https://placehold.co/600x400?text=Sin+imagen');
     }
   }, [watchedFile, currentImageUrl]);
 

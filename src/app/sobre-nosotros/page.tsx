@@ -1,4 +1,7 @@
 
+'use client';
+
+import * as React from 'react';
 import Image from 'next/image';
 import {
   Award,
@@ -13,9 +16,39 @@ import {
   ArrowRight,
   Clock,
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase-client';
+
+const defaultAboutContent = {
+  titulo: 'Casi 50 Años de Confianza y Tecnología',
+  descripcion: 'Darío Martínez Computación nace en San Francisco con un objetivo claro: brindar soluciones reales y confiables. Hemos acompañado la evolución tecnológica desde sus inicios, consolidándonos como un referente de seriedad y conocimiento técnico en la región.',
+  historia: 'Cada cliente y cada equipo es único. Por eso, nuestro proceso se basa en la escucha, el análisis detallado y la búsqueda de la solución más eficiente y duradera. No aplicamos recetas, resolvemos problemas.',
+};
 
 
 export default function SobreNosotrosPage() {
+    const [aboutContent, setAboutContent] = React.useState(defaultAboutContent);
+
+    React.useEffect(() => {
+        const loadAboutContent = async () => {
+            const { data } = await supabase
+                .from('sobre_nosotros')
+                .select('*')
+                .eq('id', 1)
+                .maybeSingle();
+
+            if (data) {
+                setAboutContent({
+                    ...defaultAboutContent,
+                    titulo: data.titulo || defaultAboutContent.titulo,
+                    descripcion: data.descripcion || defaultAboutContent.descripcion,
+                    historia: data.historia || defaultAboutContent.historia,
+                });
+            }
+        };
+
+        loadAboutContent();
+    }, []);
+
     return (
         <section
             id="sobre-nosotros"
@@ -26,10 +59,10 @@ export default function SobreNosotrosPage() {
                     <div className="space-y-3">
                         <div className="inline-block rounded-full bg-muted px-3 py-1 text-sm">Nuestra Historia</div>
                         <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                            Casi 50 Años de Confianza y Tecnología
+                            {aboutContent.titulo}
                         </h1>
                         <p className="mx-auto max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                            Darío Martínez Computación nace en San Francisco con un objetivo claro: brindar soluciones reales y confiables. Hemos acompañado la evolución tecnológica desde sus inicios, consolidándonos como un referente de seriedad y conocimiento técnico en la región.
+                            {aboutContent.descripcion}
                         </p>
                     </div>
                 </div>
@@ -42,7 +75,7 @@ export default function SobreNosotrosPage() {
                                 Nuestra Forma de Trabajar
                             </h3>
                             <p className="text-foreground/80 mb-6">
-                                Cada cliente y cada equipo es único. Por eso, nuestro proceso se basa en la escucha, el análisis detallado y la búsqueda de la solución más eficiente y duradera. No aplicamos recetas, resolvemos problemas.
+                                {aboutContent.historia}
                             </p>
                             <ul className="grid gap-4">
                                 <li className="flex items-start gap-4">

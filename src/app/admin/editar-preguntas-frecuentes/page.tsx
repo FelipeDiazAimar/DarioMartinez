@@ -12,8 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { HelpCircle, PlusCircle, Trash2 } from 'lucide-react';
+import { HelpCircle, PlusCircle, Trash2, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/lib/supabase-client';
 
 const faqSchema = z.object({
   question: z.string().min(5, { message: "La pregunta es muy corta." }),
@@ -63,6 +64,8 @@ const defaultFaqs = [
 export default function EditFaqPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -87,14 +90,83 @@ export default function EditFaqPage() {
     name: "faqs",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Guardado (simulación)",
-      description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
-    });
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadFaqs = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('preguntas_frecuentes')
+        .select('*')
+        .order('orden', { ascending: true });
+
+      if (error) {
+        toast({
+          title: 'Error al cargar',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        form.reset({
+          faqs: data.map((item: any) => ({
+            question: item.pregunta || '',
+            answer: item.respuesta || '',
+          })),
+        });
+      }
+
+      setIsLoading(false);
+    };
+
+    loadFaqs();
+  }, [isAuthenticated, form, toast]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSaving(true);
+    try {
+      const { error: deleteError } = await supabase
+        .from('preguntas_frecuentes')
+        .delete()
+        .not('id', 'is', null);
+
+      if (deleteError) {
+        throw new Error(deleteError.message);
+      }
+
+      const rows = values.faqs.map((faq, index) => ({
+        pregunta: faq.question,
+        respuesta: faq.answer,
+        orden: index,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('preguntas_frecuentes')
+        .insert(rows);
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+
+      toast({
+        title: 'Cambios guardados',
+        description: 'Las preguntas frecuentes se actualizaron correctamente.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error al guardar',
+        description: err?.message || 'Ocurrió un error inesperado.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -144,7 +216,7 @@ export default function EditFaqPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-24">
                             <div className="space-y-6">
                                 {fields.map((field, index) => (
                                     <div key={field.id} className="p-4 border rounded-lg relative">
@@ -200,9 +272,30 @@ export default function EditFaqPage() {
 
                             <Separator />
 
-                            <div className="flex items-center gap-2 pt-4">
-                                <Button type="submit">Guardar Cambios</Button>
-                                <Button type="button" variant="outline" onClick={() => form.reset({ faqs: defaultFaqs })}>Deshacer Cambios</Button>
+                            {/* Floating Action Buttons */}
+                            <div className="fixed bottom-6 right-6 z-50">
+                              {/* Desktop buttons */}
+                              <div className="hidden md:flex items-center gap-4">
+                                <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset({ faqs: defaultFaqs })} disabled={isSaving}>
+                                  <Undo2 className="mr-2 h-5 w-5" />
+                                  Deshacer Cambios
+                                </Button>
+                                <Button type="submit" size="lg" className="shadow-lg" disabled={isSaving}>
+                                  <Check className="mr-2 h-5 w-5" />
+                                  {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                </Button>
+                              </div>
+                              {/* Mobile buttons */}
+                              <div className="md:hidden flex flex-col gap-3">
+                                <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset({ faqs: defaultFaqs })} disabled={isSaving}>
+                                  <Undo2 className="h-6 w-6" />
+                                  <span className="sr-only">Deshacer Cambios</span>
+                                </Button>
+                                <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg" disabled={isSaving}>
+                                  <Check className="h-6 w-6" />
+                                  <span className="sr-only">Guardar Cambios</span>
+                                </Button>
+                              </div>
                             </div>
                         </form>
                     </Form>

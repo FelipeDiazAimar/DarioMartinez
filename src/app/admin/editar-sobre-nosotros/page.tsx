@@ -13,8 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users } from 'lucide-react';
+import { Users, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/lib/supabase-client';
 
 const formSchema = z.object({
   mainTitle: z.string().min(5, { message: "El título es muy corto." }),
@@ -43,6 +44,8 @@ export default function EditAboutPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string>("/FOTOFRENTE.jpeg");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -89,14 +92,144 @@ export default function EditAboutPage() {
     }
   }, [watchedImage]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Guardado (simulación)",
-      description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadAbout = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('sobre_nosotros')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) {
+        toast({
+          title: 'Error al cargar',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
+        form.reset({
+          mainTitle: data.titulo ?? "Casi 50 Años de Confianza y Tecnología",
+          mainDescription: data.descripcion ?? "Darío Martínez Computación nace en San Francisco con un objetivo claro: brindar soluciones reales y confiables. Hemos acompañado la evolución tecnológica desde sus inicios, consolidándonos como un referente de seriedad y conocimiento técnico en la región.",
+          aboutImage: undefined,
+          workProcessTitle: data.work_process_title ?? "Nuestra Forma de Trabajar",
+          workProcessDescription: data.work_process_description ?? "Cada cliente y cada equipo es único. Por eso, nuestro proceso se basa en la escucha, el análisis detallado y la búsqueda de la solución más eficiente y duradera. No aplicamos recetas, resolvemos problemas.",
+          diagnosisTitle: data.diagnosis_title ?? "Diagnóstico Preciso",
+          diagnosisDescription: data.diagnosis_description ?? "Nos tomamos el tiempo para entender el problema a fondo, realizando todas las pruebas necesarias para dar con la causa raíz de la falla.",
+          solutionsTitle: data.solutions_title ?? "Soluciones a Medida",
+          solutionsDescription: data.solutions_description ?? "Te explicamos las opciones disponibles y te recomendamos la mejor alternativa en función de tu necesidad y presupuesto, ya sea una reparación, actualización o un equipo nuevo.",
+          transparencyTitle: data.transparency_title ?? "Transparencia Total",
+          transparencyDescription: data.transparency_description ?? "Hablamos en un lenguaje claro, sin tecnicismos innecesarios. Siempre sabrás qué se va a hacer, por qué y cuál es el costo, sin sorpresas.",
+          postSaleTitle: data.post_sale_title ?? "Compromiso Post-Venta",
+          postSaleDescription: data.post_sale_description ?? "Nuestro trabajo no termina con la entrega. Ofrecemos garantía y estamos a tu disposición para resolver cualquier duda o inconveniente posterior.",
+          evolutionTitle: data.evolution_title ?? "Nuestra Evolución",
+          evolutionDescription: data.evolution_description ?? "Adaptándonos a los nuevos tiempos, sin perder la esencia.",
+          pillar1: data.pillar1 ?? "Experiencia",
+          pillar2: data.pillar2 ?? "Conocimiento",
+          pillar3: data.pillar3 ?? "Atención Cercana",
+          pillar4: data.pillar4 ?? "Confianza",
+        });
+
+        if (data.about_image_url) {
+          setImagePreview(data.about_image_url);
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    loadAbout();
+  }, [isAuthenticated, form, toast]);
+
+  const uploadImage = async (file: File) => {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filePath = `sobre-nosotros/about-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    await supabase.from('imagenes').insert({
+      bucket: 'images',
+      path: filePath,
+      public_url: publicUrl,
+      seccion: 'sobre-nosotros',
+      etiqueta: 'about-image',
     });
+
+    return publicUrl;
+  };
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSaving(true);
+    try {
+      const imageUrl = values.aboutImage instanceof File
+        ? await uploadImage(values.aboutImage)
+        : imagePreview;
+
+      const { error } = await supabase.from('sobre_nosotros').upsert({
+        id: 1,
+        titulo: values.mainTitle,
+        descripcion: values.mainDescription,
+        about_image_url: imageUrl,
+        work_process_title: values.workProcessTitle,
+        work_process_description: values.workProcessDescription,
+        diagnosis_title: values.diagnosisTitle,
+        diagnosis_description: values.diagnosisDescription,
+        solutions_title: values.solutionsTitle,
+        solutions_description: values.solutionsDescription,
+        transparency_title: values.transparencyTitle,
+        transparency_description: values.transparencyDescription,
+        post_sale_title: values.postSaleTitle,
+        post_sale_description: values.postSaleDescription,
+        evolution_title: values.evolutionTitle,
+        evolution_description: values.evolutionDescription,
+        pillar1: values.pillar1,
+        pillar2: values.pillar2,
+        pillar3: values.pillar3,
+        pillar4: values.pillar4,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setImagePreview(imageUrl);
+
+      toast({
+        title: 'Cambios guardados',
+        description: 'La sección Sobre Nosotros se actualizó correctamente.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error al guardar',
+        description: err?.message || 'Ocurrió un error inesperado.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -144,7 +277,7 @@ export default function EditAboutPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-24">
                             
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Sección Principal</h3>
@@ -269,9 +402,30 @@ export default function EditAboutPage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 pt-4">
-                                <Button type="submit">Guardar Cambios</Button>
-                                <Button type="button" variant="outline" onClick={() => form.reset()}>Deshacer Cambios</Button>
+                            {/* Floating Action Buttons */}
+                            <div className="fixed bottom-6 right-6 z-50">
+                              {/* Desktop buttons */}
+                              <div className="hidden md:flex items-center gap-4">
+                                <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset()} disabled={isSaving}>
+                                  <Undo2 className="mr-2 h-5 w-5" />
+                                  Deshacer Cambios
+                                </Button>
+                                <Button type="submit" size="lg" className="shadow-lg" disabled={isSaving}>
+                                  <Check className="mr-2 h-5 w-5" />
+                                  {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                </Button>
+                              </div>
+                              {/* Mobile buttons */}
+                              <div className="md:hidden flex flex-col gap-3">
+                                <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset()} disabled={isSaving}>
+                                  <Undo2 className="h-6 w-6" />
+                                  <span className="sr-only">Deshacer Cambios</span>
+                                </Button>
+                                <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg" disabled={isSaving}>
+                                  <Check className="h-6 w-6" />
+                                  <span className="sr-only">Guardar Cambios</span>
+                                </Button>
+                              </div>
                             </div>
                         </form>
                     </Form>

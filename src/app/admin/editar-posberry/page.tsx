@@ -12,8 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBasket } from 'lucide-react';
+import { ShoppingBasket, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/lib/supabase-client';
 
 const featureSchema = z.object({
   title: z.string().min(3, "El título es muy corto."),
@@ -75,6 +76,8 @@ const defaultValues = {
 export default function EditPosberryPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,14 +95,88 @@ export default function EditPosberryPage() {
     defaultValues: defaultValues,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Guardado (simulación)",
-      description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
-    });
-  }
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const loadPosberry = async () => {
+            setIsLoading(true);
+            const { data, error } = await supabase
+                .from('posberry_content')
+                .select('*')
+                .eq('id', 1)
+                .maybeSingle();
+
+            if (error) {
+                toast({
+                    title: 'Error al cargar',
+                    description: error.message,
+                    variant: 'destructive',
+                });
+                setIsLoading(false);
+                return;
+            }
+
+            if (data) {
+                form.reset({
+                    heroTitle: data.hero_title ?? defaultValues.heroTitle,
+                    heroDescription: data.hero_description ?? defaultValues.heroDescription,
+                    whyChooseTitle: data.why_choose_title ?? defaultValues.whyChooseTitle,
+                    whyChooseDescription: data.why_choose_description ?? defaultValues.whyChooseDescription,
+                    whyChooseFeatures: data.why_choose_features ?? defaultValues.whyChooseFeatures,
+                    coreFeaturesTitle: data.core_features_title ?? defaultValues.coreFeaturesTitle,
+                    coreFeaturesDescription: data.core_features_description ?? defaultValues.coreFeaturesDescription,
+                    coreFeatures: data.core_features ?? defaultValues.coreFeatures,
+                    advancedFeaturesTitle: data.advanced_features_title ?? defaultValues.advancedFeaturesTitle,
+                    advancedFeaturesDescription: data.advanced_features_description ?? defaultValues.advancedFeaturesDescription,
+                    advancedFeatures: data.advanced_features ?? defaultValues.advancedFeatures,
+                });
+            }
+
+            setIsLoading(false);
+        };
+
+        loadPosberry();
+    }, [isAuthenticated, form, toast]);
+
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        setIsSaving(true);
+        try {
+            const { error } = await supabase.from('posberry_content').upsert({
+                id: 1,
+                hero_title: values.heroTitle,
+                hero_description: values.heroDescription,
+                why_choose_title: values.whyChooseTitle,
+                why_choose_description: values.whyChooseDescription,
+                why_choose_features: values.whyChooseFeatures,
+                core_features_title: values.coreFeaturesTitle,
+                core_features_description: values.coreFeaturesDescription,
+                core_features: values.coreFeatures,
+                advanced_features_title: values.advancedFeaturesTitle,
+                advanced_features_description: values.advancedFeaturesDescription,
+                advanced_features: values.advancedFeatures,
+                updated_at: new Date().toISOString(),
+            });
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            toast({
+                title: 'Cambios guardados',
+                description: 'La página Posberry se actualizó correctamente.',
+            });
+        } catch (err: any) {
+            toast({
+                title: 'Error al guardar',
+                description: err?.message || 'Ocurrió un error inesperado.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    }
   
-  if (!isAuthenticated) {
+    if (!isAuthenticated || isLoading) {
     // Skeleton loading state
     return (
         <div className="flex min-h-screen w-full flex-col">
@@ -155,7 +232,7 @@ export default function EditPosberryPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-24">
                             
                             {/* Hero Section */}
                             <div className="space-y-4">
@@ -233,9 +310,30 @@ export default function EditPosberryPage() {
 
                             <Separator />
 
-                            <div className="flex items-center gap-2 pt-4">
-                                <Button type="submit">Guardar Cambios</Button>
-                                <Button type="button" variant="outline" onClick={() => form.reset()}>Deshacer Cambios</Button>
+                            {/* Floating Action Buttons */}
+                            <div className="fixed bottom-6 right-6 z-50">
+                                {/* Desktop buttons */}
+                                <div className="hidden md:flex items-center gap-4">
+                                    <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset()} disabled={isSaving}>
+                                        <Undo2 className="mr-2 h-5 w-5" />
+                                        Deshacer Cambios
+                                    </Button>
+                                    <Button type="submit" size="lg" className="shadow-lg" disabled={isSaving}>
+                                        <Check className="mr-2 h-5 w-5" />
+                                        {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                    </Button>
+                                </div>
+                                {/* Mobile buttons */}
+                                <div className="md:hidden flex flex-col gap-3">
+                                    <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset()} disabled={isSaving}>
+                                        <Undo2 className="h-6 w-6" />
+                                        <span className="sr-only">Deshacer Cambios</span>
+                                    </Button>
+                                    <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg" disabled={isSaving}>
+                                        <Check className="h-6 w-6" />
+                                        <span className="sr-only">Guardar Cambios</span>
+                                    </Button>
+                                </div>
                             </div>
                         </form>
                     </Form>

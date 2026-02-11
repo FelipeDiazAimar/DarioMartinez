@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -5,6 +8,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { CreditCard, Truck, Clock, ShieldQuestion, Wrench, Package, Laptop, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/lib/supabase-client';
 
 const allFaqs = [
   {
@@ -49,7 +53,40 @@ const allFaqs = [
   },
 ];
 
+const faqIcons = [
+  <CreditCard className="h-6 w-6 text-primary" />,
+  <Truck className="h-6 w-6 text-primary" />,
+  <Clock className="h-6 w-6 text-primary" />,
+  <ShieldQuestion className="h-6 w-6 text-primary" />,
+  <Wrench className="h-6 w-6 text-primary" />,
+  <Package className="h-6 w-6 text-primary" />,
+  <Laptop className="h-6 w-6 text-primary" />,
+  <AlertTriangle className="h-6 w-6 text-primary" />,
+];
+
 export default function FaqPage() {
+  const [faqs, setFaqs] = React.useState(allFaqs);
+
+  React.useEffect(() => {
+    const loadFaqs = async () => {
+      const { data } = await supabase
+        .from('preguntas_frecuentes')
+        .select('*')
+        .order('orden', { ascending: true });
+
+      if (data && data.length > 0) {
+        const mapped = data.map((item: any, index: number) => ({
+          question: item.pregunta,
+          answer: item.respuesta,
+          icon: faqIcons[index % faqIcons.length],
+        }));
+        setFaqs(mapped);
+      }
+    };
+
+    loadFaqs();
+  }, []);
+
   return (
     <section className="w-full bg-white py-12 md:py-24 lg:py-32">
       <div className="container mx-auto max-w-4xl px-4 md:px-6">
@@ -64,7 +101,7 @@ export default function FaqPage() {
         </div>
 
         <Accordion type="single" collapsible className="mt-12 w-full space-y-4">
-          {allFaqs.map((faq, index) => (
+          {faqs.map((faq, index) => (
             <AccordionItem value={`item-${index}`} key={index} className="rounded-lg border bg-card transition-all hover:shadow-md">
               <AccordionTrigger className="flex w-full items-center gap-4 p-6 text-left text-lg font-semibold hover:no-underline">
                  <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary/10">

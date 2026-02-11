@@ -98,6 +98,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/lib/supabase-client';
 
 const allProducts = [
   {
@@ -731,6 +732,7 @@ function ProductosPageContent() {
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [openItemId, setOpenItemId] = React.useState<string | null>(null);
+  const [productsData, setProductsData] = React.useState(allProducts);
 
   const searchTerm = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'a-z';
@@ -749,6 +751,41 @@ function ProductosPageContent() {
     } catch (error) {
       console.error('Failed to parse search history from localStorage', error);
     }
+  }, []);
+
+  React.useEffect(() => {
+    const loadProducts = async () => {
+      const { data } = await supabase
+        .from('productos')
+        .select('*')
+        .order('orden', { ascending: true });
+
+      if (data && data.length > 0) {
+        const mapped = data.map((item: any) => {
+          const detalles = Array.isArray(item.detalles) ? item.detalles : [];
+          const normalizedDetails = detalles.length > 0
+            ? detalles.map((detail: any) => ({
+                icon: <Check className="h-5 w-5 text-primary" />,
+                text: typeof detail === 'string' ? detail : detail?.texto || detail?.text || '',
+              })).filter((detail: any) => detail.text)
+            : [];
+
+          return {
+            imageId: item.slug || item.id,
+            title: item.titulo || 'Producto',
+            description: item.descripcion || '',
+            details: normalizedDetails.length > 0 ? normalizedDetails : [
+              { icon: <Check className="h-5 w-5 text-primary" />, text: 'Consultanos por disponibilidad y precio.' },
+            ],
+            imageUrl: item.imagen_url || '',
+          };
+        });
+
+        setProductsData(mapped);
+      }
+    };
+
+    loadProducts();
   }, []);
 
   const updateSearchHistory = React.useCallback((term: string) => {
@@ -852,7 +889,7 @@ function ProductosPageContent() {
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
-    return allProducts
+    return productsData
       .filter(
         (product) =>
           product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -867,7 +904,7 @@ function ProductosPageContent() {
       });
   }, [searchTerm, sortOrder]);
 
-  const sortedCategories = React.useMemo(() => [...allProducts].sort((a,b) => a.title.localeCompare(b.title)), []);
+  const sortedCategories = React.useMemo(() => [...productsData].sort((a,b) => a.title.localeCompare(b.title)), [productsData]);
 
 
   const totalPages = Math.ceil(
@@ -1025,7 +1062,7 @@ function ProductosPageContent() {
                             )}
                             >
                             <Image
-                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                              src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
                                 data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 width={600}
@@ -1095,7 +1132,7 @@ function ProductosPageContent() {
                         >
                             <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
                             <Image
-                                src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                              src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
                                 data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 fill

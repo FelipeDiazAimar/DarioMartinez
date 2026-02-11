@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -30,6 +31,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { supabase } from '@/lib/supabase-client';
 
 const services = [
     {
@@ -114,7 +116,52 @@ const services = [
     },
 ];
 
+const iconMap: Record<string, React.ReactNode> = {
+    wrench: <Wrench className="h-10 w-10" />,
+    harddrive: <HardDrive className="h-10 w-10" />,
+    cpu: <Cpu className="h-10 w-10" />,
+    shieldcheck: <ShieldCheck className="h-10 w-10" />,
+    wifi: <Wifi className="h-10 w-10" />,
+    users: <Users className="h-10 w-10" />,
+};
+
+const normalizeDetails = (detalles: any, fallback: string[]) => {
+    if (Array.isArray(detalles) && detalles.length > 0) {
+        return detalles.map((item) => (typeof item === 'string' ? item : item?.texto || item?.text || '')).filter(Boolean);
+    }
+    return fallback;
+};
+
 export default function ServiciosPage() {
+    const [servicesData, setServicesData] = React.useState(services);
+
+    React.useEffect(() => {
+        const loadServices = async () => {
+            const { data } = await supabase
+                .from('servicios')
+                .select('*')
+                .order('orden', { ascending: true });
+
+            if (data && data.length > 0) {
+                const mapped = data.map((item: any, index: number) => {
+                    const fallback = services[index] || services[0];
+                    return {
+                        icon: iconMap[(item.icono || '').toLowerCase()] || fallback?.icon || <Wrench className="h-10 w-10" />,
+                        title: item.titulo || fallback?.title || 'Servicio técnico',
+                        description: item.descripcion || fallback?.description || '',
+                        imageId: item.slug || fallback?.imageId || `servicio-${index + 1}`,
+                        imageUrl: item.imagen_url || '',
+                        details: normalizeDetails(item.detalles, fallback?.details || []),
+                    };
+                });
+
+                setServicesData(mapped);
+            }
+        };
+
+        loadServices();
+    }, []);
+
   return (
     <section
       id="servicios"
@@ -133,7 +180,7 @@ export default function ServiciosPage() {
           </div>
         </div>
         <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 pt-12">
-          {services.map((service, index) => {
+                    {servicesData.map((service, index) => {
             const serviceImage = PlaceHolderImages.find(img => img.id === service.imageId);
             return(
                 <AccordionItem value={`item-${index}`} key={service.title} className="border-b-0">
@@ -157,7 +204,7 @@ export default function ServiciosPage() {
                                 <div className="grid gap-6 md:grid-cols-3">
                                     <div className="md:col-span-1">
                                         <Image
-                                        src={serviceImage?.imageUrl || `https://picsum.photos/seed/${service.imageId}/600/400`}
+                                        src={service.imageUrl || serviceImage?.imageUrl || `https://picsum.photos/seed/${service.imageId}/600/400`}
                                         alt={service.title}
                                         width={600}
                                         height={400}

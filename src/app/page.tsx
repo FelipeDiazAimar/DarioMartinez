@@ -43,6 +43,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { useInView } from '@/hooks/use-in-view';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase-client';
 
 const services = [
   {
@@ -112,7 +113,35 @@ const products = [
     },
   ];
 
+const defaultHomeContent = {
+  hero_title: 'Tu Aliado en Soluciones Tecnológicas',
+  hero_description: 'Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.',
+  services_title: 'Servicio Técnico',
+  services_description: 'Ofrecemos una amplia gama de servicios para mantener tus equipos en perfecto estado y optimizar tu entorno tecnológico.',
+  products_title: 'Nuestros Productos',
+  products_description: 'Equipamiento tecnológico para potenciar tu hogar o empresa.',
+  about_title: 'Sobre Nosotros',
+  about_description: 'Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.',
+  mission_title: 'Misión',
+  mission_description: 'Facilitar el acceso a la tecnología, ofreciendo productos y servicios de vanguardia que impulsen el desarrollo de nuestros clientes.',
+  vision_title: 'Visión',
+  vision_description: 'Ser la empresa líder en soluciones tecnológicas en la región, reconocida por nuestra innovación, confiabilidad y compromiso con el cliente.',
+  values_title: 'Valores',
+  values_description: 'Confianza, Experiencia, Innovación y Atención Personalizada.',
+  schedule_title: 'Nuestros Horarios',
+  schedule_mon_thu: 'Lunes a Jueves: 7:30 a 12:30 y 15:30 a 19:30 hs.',
+  schedule_fri: 'Viernes: 8:00 a 12:00 y de 15:30 a 19:30 hs.',
+  schedule_sat: 'Sábados: Cerrado',
+  contact_title: 'Contactanos sin compromiso',
+  contact_description: '¿Tenés alguna duda o necesitás un presupuesto? Completá el formulario o envianos un WhatsApp.',
+  hero_image_url: '',
+  carousel_image1_url: '',
+  carousel_image2_url: '',
+  carousel_image3_url: '',
+};
+
 export default function Home() {
+  const [homeContent, setHomeContent] = React.useState(defaultHomeContent);
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
   const carouselImages = PlaceHolderImages.filter(img => img.id.startsWith('carousel-'));
   const plugin = React.useRef(
@@ -124,6 +153,40 @@ export default function Home() {
   const [productosRef, productosInView] = useInView({ threshold: 0.1 });
   const [sobreNosotrosRef, sobreNosotrosInView] = useInView({ threshold: 0.2 });
   const [contactoRef, contactoInView] = useInView({ threshold: 0.1 });
+
+  React.useEffect(() => {
+    const loadHomeContent = async () => {
+      const { data } = await supabase
+        .from('home_content')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (data) {
+        setHomeContent({
+          ...defaultHomeContent,
+          ...data,
+        });
+      }
+    };
+
+    loadHomeContent();
+  }, []);
+
+  const savedCarouselImages = [
+    homeContent.carousel_image1_url,
+    homeContent.carousel_image2_url,
+    homeContent.carousel_image3_url,
+  ].filter(Boolean);
+
+  const carouselImagesToRender = savedCarouselImages.length > 0
+    ? savedCarouselImages.map((url, index) => ({
+        id: `carousel-${index + 1}`,
+        imageUrl: url,
+        description: `Imagen ${index + 1} del carrusel`,
+        imageHint: 'home carousel',
+      }))
+    : carouselImages;
 
   return (
     <>
@@ -138,7 +201,7 @@ export default function Home() {
           }}
         >
           <CarouselContent>
-            {carouselImages.map((image, index) => (
+            {carouselImagesToRender.map((image, index) => (
               <CarouselItem key={image.id}>
                 <div className="relative w-full aspect-[9/16] md:aspect-auto md:h-[500px] lg:h-[600px]">
                   <Image
@@ -169,7 +232,7 @@ export default function Home() {
           <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12">
             <div className={cn("w-full max-w-md mx-auto sm:max-w-none opacity-0", inicioInView && "animate-slide-in-from-left")}>
                 <Image
-                src={heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
+                src={homeContent.hero_image_url || heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
                 data-ai-hint={heroImage?.imageHint || "computer repair"}
                 alt="Hero"
                 width={600}
@@ -180,10 +243,10 @@ export default function Home() {
             <div className={cn("flex flex-col justify-center space-y-4 lg:order-first opacity-0", inicioInView && "animate-slide-in-from-right")}>
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                  Tu Aliado en Soluciones Tecnológicas
+                  {homeContent.hero_title}
                 </h1>
                 <p className="max-w-[600px] text-foreground/80 md:text-xl">
-                  Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.
+                  {homeContent.hero_description}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -211,11 +274,10 @@ export default function Home() {
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", serviciosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                Servicio Técnico
+                {homeContent.services_title}
               </h2>
               <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Ofrecemos una amplia gama de servicios para mantener tus equipos
-                en perfecto estado y optimizar tu entorno tecnológico.
+                {homeContent.services_description}
               </p>
             </div>
           </div>
@@ -254,10 +316,10 @@ export default function Home() {
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", productosInView && 'animate-fade-in')}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                Nuestros Productos
+                {homeContent.products_title}
               </h2>
               <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Equipamiento tecnológico para potenciar tu hogar o empresa.
+                {homeContent.products_description}
               </p>
             </div>
           </div>
@@ -306,10 +368,10 @@ export default function Home() {
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", sobreNosotrosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                Sobre Nosotros
+                {homeContent.about_title}
               </h2>
               <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.
+                {homeContent.about_description}
               </p>
             </div>
           </div>
@@ -329,10 +391,10 @@ export default function Home() {
                   <div className="grid gap-2">
                     <h3 className="text-xl font-bold flex items-center gap-3">
                       <Target className="h-6 w-6 text-primary" />
-                      Misión
+                      {homeContent.mission_title}
                     </h3>
                     <p className="text-foreground/80 pl-[36px]">
-                      Facilitar el acceso a la tecnología, ofreciendo productos y servicios de vanguardia que impulsen el desarrollo de nuestros clientes.
+                      {homeContent.mission_description}
                     </p>
                   </div>
                 </li>
@@ -340,10 +402,10 @@ export default function Home() {
                   <div className="grid gap-2">
                     <h3 className="text-xl font-bold flex items-center gap-3">
                       <Eye className="h-6 w-6 text-primary" />
-                      Visión
+                      {homeContent.vision_title}
                     </h3>
                     <p className="text-foreground/80 pl-[36px]">
-                      Ser la empresa líder en soluciones tecnológicas en la región, reconocida por nuestra innovación, confiabilidad y compromiso con el cliente.
+                      {homeContent.vision_description}
                     </p>
                   </div>
                 </li>
@@ -351,10 +413,10 @@ export default function Home() {
                   <div className="grid gap-2">
                     <h3 className="text-xl font-bold flex items-center gap-3">
                       <Gem className="h-6 w-6 text-primary" />
-                      Valores
+                      {homeContent.values_title}
                     </h3>
                     <p className="text-foreground/80 pl-[36px]">
-                      Confianza, Experiencia, Innovación y Atención Personalizada.
+                      {homeContent.values_description}
                     </p>
                   </div>
                 </li>
@@ -362,13 +424,13 @@ export default function Home() {
               <div className="mt-6 rounded-lg border bg-muted/50 p-6">
                   <h3 className="text-xl font-bold mb-4 flex items-center gap-3">
                       <Clock className="h-6 w-6 text-primary" />
-                      Nuestros Horarios
+                      {homeContent.schedule_title}
                   </h3>
-                  <div className="space-y-2 text-muted-foreground">
-                      <p><span className="font-semibold text-foreground">Lunes a Jueves:</span><br/> 7:30 a 12:30 y 15:30 a 19:30 hs.</p>
-                      <p><span className="font-semibold text-foreground">Viernes:</span><br/> 8:00 a 12:00 y de 15:30 a 19:30 hs.</p>
-                      <p><span className="font-semibold text-foreground">Sábados:</span> Cerrado</p>
-                  </div>
+                    <div className="space-y-2 text-muted-foreground">
+                      <p>{homeContent.schedule_mon_thu}</p>
+                      <p>{homeContent.schedule_fri}</p>
+                      <p>{homeContent.schedule_sat}</p>
+                    </div>
               </div>
             </div>
           </div>
@@ -390,11 +452,10 @@ export default function Home() {
                 className="mx-auto"
             />
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">
-              Contactanos sin compromiso
+              {homeContent.contact_title}
             </h2>
             <p className="mx-auto max-w-[600px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              ¿Tenés alguna duda o necesitás un presupuesto? Completá el
-              formulario o envianos un WhatsApp.
+              {homeContent.contact_description}
             </p>
           </div>
           <div className="mx-auto w-full max-w-sm space-y-2">
