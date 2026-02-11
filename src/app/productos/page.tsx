@@ -724,7 +724,7 @@ function Pagination({
   );
 }
 
-export default function ProductosPage() {
+function ProductosPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1155,5 +1155,19 @@ export default function ProductosPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ProductosPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center text-muted-foreground">
+          Cargando productos...
+        </div>
+      }
+    >
+      <ProductosPageContent />
+    </React.Suspense>
   );
 }

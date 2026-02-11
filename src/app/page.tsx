@@ -18,6 +18,7 @@ import {
   Gem,
   Cog,
   Clock,
+  ChevronDown,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -126,7 +127,7 @@ export default function Home() {
 
   return (
     <>
-      <section className="w-full">
+      <section className="w-full relative">
         <Carousel
           plugins={[plugin.current]}
           className="w-full"
@@ -156,6 +157,11 @@ export default function Home() {
           <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
           <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
         </Carousel>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <Link href="#inicio" aria-label="Bajar a la siguiente sección">
+            <ChevronDown className="h-12 w-12 text-primary animate-bounce rounded-full bg-background/70 p-2 backdrop-blur-sm" />
+          </Link>
+        </div>
       </section>
 
       <section ref={inicioRef} id="inicio" className="w-full py-12 md:py-20 lg:py-28">
@@ -180,7 +186,7 @@ export default function Home() {
                   Ofrecemos servicio técnico y una amplia gama de productos tecnológicos para satisfacer todas tus necesidades.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button asChild size="lg" className="rounded-full">
                   <Link href="https://wa.me/5493564504977" target="_blank">
                     <WhatsAppIcon className="mr-2 h-5 w-5" />
