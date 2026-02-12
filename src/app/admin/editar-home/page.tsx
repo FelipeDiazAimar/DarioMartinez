@@ -23,6 +23,9 @@ const formSchema = z.object({
   carouselImage1: z.any().optional(),
   carouselImage2: z.any().optional(),
   carouselImage3: z.any().optional(),
+  carouselMobileImage1: z.any().optional(),
+  carouselMobileImage2: z.any().optional(),
+  carouselMobileImage3: z.any().optional(),
 
   heroTitle: z.string().min(5, { message: "El título es muy corto." }),
   heroDescription: z.string().min(10, { message: "La descripción es muy corta." }),
@@ -79,6 +82,9 @@ const defaultValues = {
     carouselImage1: undefined,
     carouselImage2: undefined,
     carouselImage3: undefined,
+    carouselMobileImage1: undefined,
+    carouselMobileImage2: undefined,
+    carouselMobileImage3: undefined,
     heroSectionImage: undefined,
 };
 
@@ -102,6 +108,9 @@ export default function EditHomePage() {
     carousel1: carouselImage1?.imageUrl || fallbackImage,
     carousel2: carouselImage2?.imageUrl || fallbackImage,
     carousel3: carouselImage3?.imageUrl || fallbackImage,
+    carouselMobile1: carouselImage1?.imageUrl || fallbackImage,
+    carouselMobile2: carouselImage2?.imageUrl || fallbackImage,
+    carouselMobile3: carouselImage3?.imageUrl || fallbackImage,
   });
   
   useEffect(() => {
@@ -165,6 +174,9 @@ export default function EditHomePage() {
           carouselImage1: undefined,
           carouselImage2: undefined,
           carouselImage3: undefined,
+          carouselMobileImage1: undefined,
+          carouselMobileImage2: undefined,
+          carouselMobileImage3: undefined,
           heroSectionImage: undefined,
         });
 
@@ -173,6 +185,9 @@ export default function EditHomePage() {
           carousel1: data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
           carousel2: data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
           carousel3: data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
+          carouselMobile1: data.carousel_mobile_image1_url || data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
+          carouselMobile2: data.carousel_mobile_image2_url || data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
+          carouselMobile3: data.carousel_mobile_image3_url || data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
         });
       }
 
@@ -231,6 +246,18 @@ export default function EditHomePage() {
         ? await uploadImage(values.carouselImage3, 'carousel-3')
         : currentImages.carousel3;
 
+      const carouselMobile1Url = values.carouselMobileImage1 instanceof File
+        ? await uploadImage(values.carouselMobileImage1, 'carousel-mobile-1')
+        : currentImages.carouselMobile1;
+
+      const carouselMobile2Url = values.carouselMobileImage2 instanceof File
+        ? await uploadImage(values.carouselMobileImage2, 'carousel-mobile-2')
+        : currentImages.carouselMobile2;
+
+      const carouselMobile3Url = values.carouselMobileImage3 instanceof File
+        ? await uploadImage(values.carouselMobileImage3, 'carousel-mobile-3')
+        : currentImages.carouselMobile3;
+
       const { error } = await supabase.from('home_content').upsert({
         id: 1,
         hero_title: values.heroTitle,
@@ -257,6 +284,9 @@ export default function EditHomePage() {
         carousel_image1_url: carousel1Url,
         carousel_image2_url: carousel2Url,
         carousel_image3_url: carousel3Url,
+        carousel_mobile_image1_url: carouselMobile1Url,
+        carousel_mobile_image2_url: carouselMobile2Url,
+        carousel_mobile_image3_url: carouselMobile3Url,
         updated_at: new Date().toISOString(),
       });
 
@@ -269,6 +299,9 @@ export default function EditHomePage() {
         carousel1: carousel1Url,
         carousel2: carousel2Url,
         carousel3: carousel3Url,
+        carouselMobile1: carouselMobile1Url,
+        carouselMobile2: carouselMobile2Url,
+        carouselMobile3: carouselMobile3Url,
       });
 
       toast({
@@ -341,6 +374,13 @@ export default function EditHomePage() {
                                 <ImageUploadField form={form} name="carouselImage1" label="Imagen 1 del Carrusel" currentImageUrl={currentImages.carousel1} imageAlt="Imagen 1 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
                                 <ImageUploadField form={form} name="carouselImage2" label="Imagen 2 del Carrusel" currentImageUrl={currentImages.carousel2} imageAlt="Imagen 2 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
                                 <ImageUploadField form={form} name="carouselImage3" label="Imagen 3 del Carrusel" currentImageUrl={currentImages.carousel3} imageAlt="Imagen 3 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
+                            </div>
+
+                            <div className="space-y-4">
+                              <h3 className="text-xl font-semibold">Carrusel de Imágenes (Vista Móvil)</h3>
+                              <ImageUploadField form={form} name="carouselMobileImage1" label="Imagen 1 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile1} imageAlt="Imagen 1 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
+                              <ImageUploadField form={form} name="carouselMobileImage2" label="Imagen 2 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile2} imageAlt="Imagen 2 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
+                              <ImageUploadField form={form} name="carouselMobileImage3" label="Imagen 3 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile3} imageAlt="Imagen 3 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
                             </div>
 
                             <Separator />

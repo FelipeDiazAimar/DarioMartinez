@@ -80,7 +80,14 @@ const services = [
   },
 ];
 
-const products = [
+type HomeProduct = {
+  imageId: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+};
+
+const products: HomeProduct[] = [
     {
       imageId: 'fiscal-printer',
       title: 'Impresoras Fiscales',
@@ -138,13 +145,20 @@ const defaultHomeContent = {
   carousel_image1_url: '',
   carousel_image2_url: '',
   carousel_image3_url: '',
+  carousel_mobile_image1_url: '',
+  carousel_mobile_image2_url: '',
+  carousel_mobile_image3_url: '',
 };
 
 export default function Home() {
   const [homeContent, setHomeContent] = React.useState(defaultHomeContent);
+  const [homeProducts, setHomeProducts] = React.useState<HomeProduct[]>(products);
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
   const carouselImages = PlaceHolderImages.filter(img => img.id.startsWith('carousel-'));
-  const plugin = React.useRef(
+  const desktopPlugin = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
+  const mobilePlugin = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
 
@@ -168,6 +182,23 @@ export default function Home() {
           ...data,
         });
       }
+
+      const { data: productsData } = await supabase
+        .from('productos')
+        .select('slug, titulo, descripcion, imagen_url, orden')
+        .order('orden', { ascending: true })
+        .limit(6);
+
+      if (productsData && productsData.length > 0) {
+        setHomeProducts(
+          productsData.map((item: any, index: number) => ({
+            imageId: item.slug || `product-${index + 1}`,
+            title: item.titulo || '',
+            description: item.descripcion || '',
+            imageUrl: item.imagen_url || undefined,
+          }))
+        );
+      }
     };
 
     loadHomeContent();
@@ -188,14 +219,29 @@ export default function Home() {
       }))
     : carouselImages;
 
+  const savedMobileCarouselImages = [
+    homeContent.carousel_mobile_image1_url,
+    homeContent.carousel_mobile_image2_url,
+    homeContent.carousel_mobile_image3_url,
+  ].filter(Boolean);
+
+  const mobileCarouselImagesToRender = savedMobileCarouselImages.length > 0
+    ? savedMobileCarouselImages.map((url, index) => ({
+        id: `carousel-mobile-${index + 1}`,
+        imageUrl: url,
+        description: `Imagen ${index + 1} del carrusel móvil`,
+        imageHint: 'home carousel mobile',
+      }))
+    : carouselImagesToRender;
+
   return (
     <>
       <section className="w-full relative">
         <Carousel
-          plugins={[plugin.current]}
-          className="w-full"
-          onMouseEnter={plugin.current.stop}
-          onMouseLeave={plugin.current.reset}
+          plugins={[desktopPlugin.current]}
+          className="hidden md:block w-full"
+          onMouseEnter={desktopPlugin.current.stop}
+          onMouseLeave={desktopPlugin.current.reset}
           opts={{
             loop: true,
           }}
@@ -203,7 +249,7 @@ export default function Home() {
           <CarouselContent>
             {carouselImagesToRender.map((image, index) => (
               <CarouselItem key={image.id}>
-                <div className="relative w-full aspect-[9/16] md:aspect-auto md:h-[500px] lg:h-[600px]">
+                <div className="relative w-full h-[500px] lg:h-[600px]">
                   <Image
                     src={image.imageUrl}
                     alt={image.description}
@@ -219,6 +265,36 @@ export default function Home() {
           </CarouselContent>
           <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
           <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
+        </Carousel>
+
+        <Carousel
+          plugins={[mobilePlugin.current]}
+          className="block md:hidden w-full"
+          onMouseEnter={mobilePlugin.current.stop}
+          onMouseLeave={mobilePlugin.current.reset}
+          opts={{
+            loop: true,
+          }}
+        >
+          <CarouselContent>
+            {mobileCarouselImagesToRender.map((image, index) => (
+              <CarouselItem key={image.id}>
+                <div className="relative w-full aspect-[9/16]">
+                  <Image
+                    src={image.imageUrl}
+                    alt={image.description}
+                    data-ai-hint={image.imageHint}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                    sizes="100vw"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
+          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
         </Carousel>
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
           <Link href="#inicio" aria-label="Bajar a la siguiente sección">
@@ -324,13 +400,13 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid grid-cols-2 gap-4 py-12 sm:gap-8 lg:grid-cols-3">
-            {products.map((product, index) => {
+            {homeProducts.map((product, index) => {
                const productImage = PlaceHolderImages.find(img => img.id === product.imageId);
                return (
                   <div key={product.title} className={cn("opacity-0", productosInView && 'animate-slide-in-from-bottom')} style={{animationDelay: `${index * 150}ms`}}>
                     <Card className="flex flex-col h-full overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
                       <Image
-                        src={productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                        src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
                         data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                         alt={product.title}
                         width={600}
