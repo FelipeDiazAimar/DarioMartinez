@@ -136,8 +136,8 @@ export default function EditAboutPage() {
           pillar4: data.pillar4 ?? "Confianza",
         });
 
-        if (data.about_image_url) {
-          setImagePreview(data.about_image_url);
+        if (data.imagen_url) {
+          setImagePreview(data.imagen_url);
         }
       }
 
@@ -188,7 +188,7 @@ export default function EditAboutPage() {
         id: 1,
         titulo: values.mainTitle,
         descripcion: values.mainDescription,
-        about_image_url: imageUrl,
+        imagen_url: imageUrl,
         work_process_title: values.workProcessTitle,
         work_process_description: values.workProcessDescription,
         diagnosis_title: values.diagnosisTitle,

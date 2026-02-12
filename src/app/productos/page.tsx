@@ -100,6 +100,54 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/lib/supabase-client';
 
+const getLevenshteinDistance = (a: string, b: string) => {
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    new Array(b.length + 1).fill(0)
+  );
+
+  for (let i = 0; i <= a.length; i += 1) {
+    matrix[i][0] = i;
+  }
+  for (let j = 0; j <= b.length; j += 1) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+};
+
+const getClosestSuggestion = (term: string, candidates: string[]) => {
+  if (!term.trim() || candidates.length === 0) return null;
+
+  const normalizedTerm = term.toLowerCase();
+  let best: { candidate: string; distance: number } | null = null;
+
+  for (const candidate of candidates) {
+    const normalizedCandidate = candidate.toLowerCase();
+    const distance = getLevenshteinDistance(normalizedTerm, normalizedCandidate);
+    if (!best || distance < best.distance) {
+      best = { candidate, distance };
+    }
+  }
+
+  if (!best) return null;
+
+  const maxLength = Math.max(normalizedTerm.length, best.candidate.length);
+  const similarity = maxLength === 0 ? 0 : 1 - best.distance / maxLength;
+
+  return similarity >= 0.5 ? best.candidate : null;
+};
+
 const allProducts = [
   {
     imageId: 'stationery',
@@ -732,7 +780,12 @@ function ProductosPageContent() {
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [openItemId, setOpenItemId] = React.useState<string | null>(null);
-  const [productsData, setProductsData] = React.useState(allProducts);
+  const getProductKey = React.useCallback((product: any, index: number) => {
+    return `${product.id || product.imageId || 'producto'}-${index}`;
+  }, []);
+  const [productsData, setProductsData] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   const searchTerm = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'a-z';
@@ -755,34 +808,51 @@ function ProductosPageContent() {
 
   React.useEffect(() => {
     const loadProducts = async () => {
-      const { data } = await supabase
+      setIsLoading(true);
+      setLoadError(null);
+
+      console.log('[productos] Iniciando carga de productos desde Supabase');
+
+      const { data, error } = await supabase
         .from('productos')
-        .select('*')
+        .select('id, slug, titulo, descripcion, detalles, imagen_url, orden')
         .order('orden', { ascending: true });
 
-      if (data && data.length > 0) {
-        const mapped = data.map((item: any) => {
-          const detalles = Array.isArray(item.detalles) ? item.detalles : [];
-          const normalizedDetails = detalles.length > 0
-            ? detalles.map((detail: any) => ({
-                icon: <Check className="h-5 w-5 text-primary" />,
-                text: typeof detail === 'string' ? detail : detail?.texto || detail?.text || '',
-              })).filter((detail: any) => detail.text)
-            : [];
+      console.log('[productos] Respuesta Supabase', { error, dataCount: data?.length });
 
-          return {
-            imageId: item.slug || item.id,
-            title: item.titulo || 'Producto',
-            description: item.descripcion || '',
-            details: normalizedDetails.length > 0 ? normalizedDetails : [
-              { icon: <Check className="h-5 w-5 text-primary" />, text: 'Consultanos por disponibilidad y precio.' },
-            ],
-            imageUrl: item.imagen_url || '',
-          };
-        });
-
-        setProductsData(mapped);
+      if (error) {
+        console.error('[productos] Error al cargar productos', error);
+        setLoadError(error.message);
+        setProductsData([]);
+        setIsLoading(false);
+        return;
       }
+
+      const mapped = (data || []).map((item: any) => {
+        const detalles = Array.isArray(item.detalles) ? item.detalles : [];
+        const normalizedDetails = detalles.length > 0
+          ? detalles.map((detail: any) => ({
+              icon: <Check className="h-5 w-5 text-primary" />,
+              text: typeof detail === 'string' ? detail : detail?.texto || detail?.text || '',
+            })).filter((detail: any) => detail.text)
+          : [];
+
+        return {
+          id: item.id,
+          imageId: item.slug || item.id,
+          title: item.titulo || 'Producto',
+          description: item.descripcion || '',
+          details: normalizedDetails.length > 0 ? normalizedDetails : [
+            { icon: <Check className="h-5 w-5 text-primary" />, text: 'Consultanos por disponibilidad y precio.' },
+          ],
+          imageUrl: item.imagen_url || '',
+        };
+      });
+
+      console.log('[productos] Productos mapeados', mapped);
+
+      setProductsData(mapped);
+      setIsLoading(false);
     };
 
     loadProducts();
@@ -889,6 +959,7 @@ function ProductosPageContent() {
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
+    console.log('[productos] Filtrado', { searchTerm, sortOrder, total: productsData.length });
     return productsData
       .filter(
         (product) =>
@@ -902,7 +973,15 @@ function ProductosPageContent() {
           return b.title.localeCompare(a.title);
         }
       });
-  }, [searchTerm, sortOrder]);
+  }, [searchTerm, sortOrder, productsData]);
+
+  const suggestion = React.useMemo(() => {
+    if (!searchTerm.trim() || filteredAndSortedProducts.length > 0) {
+      return null;
+    }
+    const titles = productsData.map((product) => product.title).filter(Boolean);
+    return getClosestSuggestion(searchTerm, titles);
+  }, [searchTerm, filteredAndSortedProducts.length, productsData]);
 
   const sortedCategories = React.useMemo(() => [...productsData].sort((a,b) => a.title.localeCompare(b.title)), [productsData]);
 
@@ -913,25 +992,27 @@ function ProductosPageContent() {
 
   const currentProducts = React.useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAndSortedProducts.slice(
+    const slice = filteredAndSortedProducts.slice(
       startIndex,
       startIndex + ITEMS_PER_PAGE
     );
+    console.log('[productos] Página actual', { currentPage, totalPages, items: slice.length });
+    return slice;
   }, [filteredAndSortedProducts, currentPage]);
 
   const mobileProducts = React.useMemo(() => {
     if (!openItemId) {
       return currentProducts;
     }
-    const openItem = currentProducts.find((p) => p.imageId === openItemId);
+    const openItem = currentProducts.find((p, index) => getProductKey(p, index) === openItemId);
     if (!openItem) {
       return currentProducts;
     }
     return [
       openItem,
-      ...currentProducts.filter((p) => p.imageId !== openItemId),
+      ...currentProducts.filter((p, index) => getProductKey(p, index) !== openItemId),
     ];
-  }, [openItemId, currentProducts]);
+  }, [openItemId, currentProducts, getProductKey]);
 
   return (
     <section id="productos" className="w-full py-12 md:py-24 lg:py-32">
@@ -948,13 +1029,36 @@ function ProductosPageContent() {
         </div>
 
         <div className="mt-12 relative">
+            {isLoading && (
+              <div className="mb-6 text-center text-muted-foreground">Cargando productos...</div>
+            )}
+            {!isLoading && loadError && (
+              <div className="mb-6 text-center text-destructive">Error al cargar productos: {loadError}</div>
+            )}
+            {!isLoading && !loadError && productsData.length === 0 && (
+              <div className="mb-6 text-center text-muted-foreground">No hay productos cargados en la base de datos.</div>
+            )}
+            {!isLoading && !loadError && productsData.length > 0 && filteredAndSortedProducts.length === 0 && searchTerm && (
+              <div className="mb-6 text-center text-muted-foreground">
+                No encontramos resultados para “{searchTerm}”.
+                {suggestion && (
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryClick(suggestion)}
+                    className="ml-2 text-primary hover:underline"
+                  >
+                    ¿Quisiste decir “{suggestion}”?
+                  </button>
+                )}
+              </div>
+            )}
             <aside className="hidden lg:block absolute top-0 left-0 w-56">
                 <div className="sticky top-24">
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
                     <ScrollArea className="h-[calc(100vh-12rem)]" dir="rtl">
                         <ul className="space-y-1 pl-4 pt-2" dir="ltr">
-                             {sortedCategories.map((product) => (
-                              <li key={product.imageId}>
+                             {sortedCategories.map((product, index) => (
+                              <li key={getProductKey(product, index)}>
                                 <button
                                   onClick={() => handleCategoryClick(product.title)}
                                   className={cn(
@@ -1041,13 +1145,14 @@ function ProductosPageContent() {
                 value={openItemId || ''}
                 onValueChange={(value) => setOpenItemId(value || null)}
                 >
-                {currentProducts.map((product) => {
-                    const isExpanded = openItemId === product.imageId;
+                {currentProducts.map((product, index) => {
+                  const productKey = getProductKey(product, index);
+                  const isExpanded = openItemId === productKey;
                     const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                     <AccordionItem
-                        value={product.imageId}
-                        key={product.imageId + '-desktop'}
+                    value={productKey}
+                    key={`${productKey}-desktop`}
                         className={cn(
                         'group/item mb-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
                         isExpanded && 'shadow-xl'
@@ -1115,13 +1220,14 @@ function ProductosPageContent() {
                     value={openItemId || ''}
                     onValueChange={(value) => setOpenItemId(value || null)}
                 >
-                    {mobileProducts.map((product) => {
-                    const isExpanded = openItemId === product.imageId;
+                    {mobileProducts.map((product, index) => {
+                    const productKey = getProductKey(product, index);
+                    const isExpanded = openItemId === productKey;
                     const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
                     return (
                         <AccordionItem
-                        value={product.imageId}
-                        key={product.imageId}
+                      value={productKey}
+                      key={productKey}
                         className={cn('group border-none', isExpanded && 'col-span-2')}
                         >
                         <div

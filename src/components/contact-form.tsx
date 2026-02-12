@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/lib/supabase-client";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -50,6 +51,22 @@ export function ContactForm() {
     const text = `¡Hola! Soy ${name} ${lastname}.\nMi email es: ${email}.\n\nConsulta: ${message}`;
     const encodedText = encodeURIComponent(text);
     const url = `https://wa.me/${whatsAppNumber}?text=${encodedText}`;
+
+    try {
+      const { error } = await supabase.from("consultas").insert({
+        nombre: name,
+        apellido: lastname,
+        email,
+        mensaje: message,
+        created_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        console.error("Error guardando consulta", error);
+      }
+    } catch (error) {
+      console.error("Error guardando consulta", error);
+    }
 
     window.open(url, "_blank");
     

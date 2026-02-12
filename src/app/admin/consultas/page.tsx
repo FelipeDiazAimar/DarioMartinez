@@ -14,24 +14,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Inbox } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const allSubmissions = [
-    { id: 1, date: '2024-07-28', name: 'Carlos', lastname: 'Rodriguez', email: 'carlos.r@email.com', message: 'Hola, necesito saber si tienen stock de la impresora fiscal X.' },
-    { id: 2, date: '2024-07-27', name: 'Ana', lastname: 'Martínez', email: 'ana.m@email.com', message: 'Mi PC se reinicia sola. ¿Pueden darme un diagnóstico?' },
-    { id: 3, date: '2024-07-27', name: 'Luis', lastname: 'Hernández', email: 'luis.h@email.com', message: 'Quisiera saber el precio de una notebook para la universidad.' },
-    { id: 4, date: '2024-07-26', name: 'Laura', lastname: 'Gómez', email: 'laura.g@email.com', message: '¿Hacen mantenimiento preventivo para una pequeña oficina? Somos 5 equipos.' },
-    { id: 5, date: '2024-07-25', name: 'José', lastname: 'González', email: 'jose.g@email.com', message: 'Necesito instalar Windows 11 en mi computadora nueva.' },
-    { id: 6, date: '2024-07-25', name: 'Sofía', lastname: 'López', email: 'sofia.l@email.com', message: 'El WiFi no llega bien a la planta alta de mi casa, ¿qué solución proponen?' },
-    { id: 7, date: '2024-07-24', name: 'Miguel', lastname: 'Sánchez', email: 'miguel.s@email.com', message: 'Busco un lector de código de barras para mi local, ¿me asesoran?' },
-    { id: 8, date: '2024-07-23', name: 'Elena', lastname: 'Ramírez', email: 'elena.r@email.com', message: '¿Cuánto cuesta cambiarle el disco a una notebook por un SSD?' },
-    { id: 9, date: '2024-07-22', name: 'Javier', lastname: 'Torres', email: 'javier.t@email.com', message: 'Venden calculadoras con impresor?' },
-    { id: 10, date: '2024-07-21', name: 'Lucía', lastname: 'Díaz', email: 'lucia.d@email.com', message: 'Consulta por el software POSBerry, quisiera una demostración.' },
-    { id: 11, date: '2024-07-20', name: 'Marcos', lastname: 'Flores', email: 'marcos.f@email.com', message: 'El ventilador de mi laptop hace mucho ruido, ¿tiene arreglo?' },
-    { id: 12, date: '2024-07-19', name: 'Valeria', lastname: 'Romero', email: 'valeria.r@email.com', message: 'Quisiera presupuesto para armar una PC para diseño gráfico.' },
-    { id: 13, date: '2024-07-18', name: 'Fernando', lastname: 'Alvarez', email: 'fernando.a@email.com', message: '¿Reparan impresoras de otras marcas? Tengo una Epson.' },
-    { id: 14, date: '2024-07-17', name: 'Gabriela', lastname: 'Benitez', email: 'gabriela.b@email.com', message: 'Necesito ayuda para configurar una red en mi casa.' },
-    { id: 15, date: '2024-07-16', name: 'Diego', lastname: 'Sosa', email: 'diego.s@email.com', message: 'Hola, ¿venden teclados y mouses inalámbricos?' }
-];
+import { supabase } from '@/lib/supabase-client';
+type ConsultaRow = {
+  id: number;
+  nombre: string | null;
+  apellido: string | null;
+  email: string | null;
+  mensaje: string | null;
+  created_at: string | null;
+  leida?: boolean | null;
+};
 
 const ITEMS_PER_PAGE = 10;
 
@@ -39,6 +31,9 @@ export default function ConsultasPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submissions, setSubmissions] = useState<ConsultaRow[]>([]);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -50,11 +45,37 @@ export default function ConsultasPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-  const totalPages = Math.ceil(allSubmissions.length / ITEMS_PER_PAGE);
+    const loadConsultas = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      const { data, error } = await supabase
+        .from('consultas')
+        .select('id, nombre, apellido, email, mensaje, created_at, leida')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        setLoadError(error.message);
+        setSubmissions([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setSubmissions((data || []) as ConsultaRow[]);
+      setIsLoading(false);
+    };
+
+    loadConsultas();
+  }, [isAuthenticated]);
+
+
+  const totalPages = Math.ceil(submissions.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentSubmissions = allSubmissions.slice(startIndex, endIndex);
+  const currentSubmissions = submissions.slice(startIndex, endIndex);
 
   const goToNextPage = () => {
     setCurrentPage((page) => Math.min(page + 1, totalPages));
@@ -63,8 +84,34 @@ export default function ConsultasPage() {
   const goToPreviousPage = () => {
     setCurrentPage((page) => Math.max(page - 1, 1));
   };
+
+  const toggleReadStatus = async (id: number, currentValue?: boolean | null) => {
+    const { error } = await supabase
+      .from('consultas')
+      .update({ leida: !currentValue })
+      .eq('id', id);
+
+    if (!error) {
+      setSubmissions((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, leida: !currentValue } : item
+        )
+      );
+    }
+  };
+
+  const deleteConsulta = async (id: number) => {
+    const { error } = await supabase
+      .from('consultas')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setSubmissions((prev) => prev.filter((item) => item.id !== id));
+    }
+  };
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -117,23 +164,68 @@ export default function ConsultasPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
+                {loadError && (
+                  <div className="mb-4 text-sm text-destructive">
+                    Error al cargar consultas: {loadError}
+                  </div>
+                )}
+                {!loadError && submissions.length === 0 && (
+                  <div className="mb-4 text-sm text-muted-foreground">
+                    No hay consultas registradas todavía.
+                  </div>
+                )}
                  <div className="border rounded-lg">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="hidden sm:table-cell">Fecha</TableHead>
+                              <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                                 <TableHead>Nombre</TableHead>
                                 <TableHead className="hidden md:table-cell">Email</TableHead>
                                 <TableHead>Mensaje</TableHead>
+                              <TableHead className="hidden lg:table-cell">Estado</TableHead>
+                              <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {currentSubmissions.map((submission) => (
                                 <TableRow key={submission.id}>
-                                    <TableCell className="hidden sm:table-cell font-medium whitespace-nowrap">{submission.date}</TableCell>
-                                    <TableCell>{`${submission.name} ${submission.lastname}`}</TableCell>
-                                    <TableCell className="hidden md:table-cell">{submission.email}</TableCell>
-                                    <TableCell className="max-w-[200px] sm:max-w-xs truncate">{submission.message}</TableCell>
+                                <TableCell className="hidden sm:table-cell font-medium whitespace-nowrap">
+                                  {submission.created_at
+                                  ? new Date(submission.created_at).toLocaleDateString('es-AR')
+                                  : '-'}
+                                </TableCell>
+                                <TableCell>{`${submission.nombre ?? ''} ${submission.apellido ?? ''}`.trim() || '-'}</TableCell>
+                                <TableCell className="hidden md:table-cell">{submission.email ?? '-'}</TableCell>
+                                    <TableCell className="max-w-[200px] sm:max-w-xs truncate">{submission.mensaje ?? '-'}</TableCell>
+                                    <TableCell className="hidden lg:table-cell">
+                                      <span
+                                        className={
+                                          submission.leida
+                                            ? 'text-xs rounded-full bg-primary/10 text-primary px-2 py-1'
+                                            : 'text-xs rounded-full bg-amber-500/10 text-amber-600 px-2 py-1'
+                                        }
+                                      >
+                                        {submission.leida ? 'Leída' : 'No leída'}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => toggleReadStatus(submission.id, submission.leida)}
+                                        >
+                                          {submission.leida ? 'Marcar no leída' : 'Marcar leída'}
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          onClick={() => deleteConsulta(submission.id)}
+                                        >
+                                          Eliminar
+                                        </Button>
+                                      </div>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -143,14 +235,18 @@ export default function ConsultasPage() {
             <CardFooter>
                 <div className="flex items-center justify-between w-full">
                     <div className="text-xs text-muted-foreground">
-                        Mostrando <strong>{startIndex + 1}-{Math.min(endIndex, allSubmissions.length)}</strong> de <strong>{allSubmissions.length}</strong> consultas
+                          {submissions.length > 0 ? (
+                            <>Mostrando <strong>{startIndex + 1}-{Math.min(endIndex, submissions.length)}</strong> de <strong>{submissions.length}</strong> consultas</>
+                          ) : (
+                            <>Mostrando <strong>0</strong> consultas</>
+                          )}
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={goToPreviousPage}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 1 || submissions.length === 0}
                         >
                             Anterior
                         </Button>
@@ -158,7 +254,7 @@ export default function ConsultasPage() {
                             variant="outline"
                             size="sm"
                             onClick={goToNextPage}
-                            disabled={currentPage === totalPages}
+                            disabled={currentPage === totalPages || submissions.length === 0}
                         >
                             Siguiente
                         </Button>

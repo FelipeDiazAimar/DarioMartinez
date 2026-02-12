@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray, Control } from "react-hook-form";
+import { useForm, useFieldArray, Control, FieldErrors } from "react-hook-form";
 import * as z from "zod";
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, PlusCircle, Trash2, Search, Check, Undo2, Star, Sparkles } from 'lucide-react';
+import { Package, PlusCircle, Trash2, Search, Check, Undo2, Star, Sparkles, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
@@ -31,16 +31,19 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/lib/supabase-client';
 
 
 const productDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });
 
 const productSchema = z.object({
+  id: z.union([z.number(), z.string()]).optional(),
   imageId: z.string(),
   title: z.string().min(5, { message: "El título es muy corto." }),
   description: z.string().min(10, { message: "La descripción es muy corta." }),
   details: z.array(productDetailSchema),
   image: z.any().optional(),
+  imageUrl: z.string().optional(),
   isNew: z.boolean().optional(),
   isFavorite: z.boolean().optional(),
 });
@@ -85,9 +88,12 @@ type FormValues = z.infer<typeof formSchema>;
 export default function EditProductsPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('a-z');
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -140,14 +146,324 @@ export default function EditProductsPage() {
   }, [fields, watchedProducts, searchTerm, sortOrder]);
 
 
-  function onSubmit(values: FormValues) {
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadProducts = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('productos')
+        .select('*')
+        .order('orden', { ascending: true });
+
+      if (error) {
+        toast({
+          title: 'Error al cargar',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        form.reset({
+          products: data.map((item: any, index: number) => ({
+            id: item.id,
+            imageId: item.slug || item.id || `product-${index + 1}`,
+            title: item.titulo || '',
+            description: item.descripcion || '',
+            details: Array.isArray(item.detalles) ? item.detalles : [''],
+            image: undefined,
+            imageUrl: item.imagen_url || undefined,
+            isNew: item.is_new ?? false,
+            isFavorite: item.is_favorite ?? false,
+          })),
+        });
+      }
+
+      setIsLoading(false);
+    };
+
+    loadProducts();
+  }, [isAuthenticated, form, toast]);
+
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '')
+      .trim();
+
+  const uploadImage = async (file: File, slug: string) => {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filePath = `productos/${slug}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    await supabase.from('imagenes').insert({
+      bucket: 'images',
+      path: filePath,
+      public_url: publicUrl,
+      seccion: 'productos',
+      etiqueta: slug,
+    });
+
+    return publicUrl;
+  };
+
+  async function onSubmit(values: FormValues) {
+    setIsSaving(true);
+    try {
+      console.log('[admin/editar-productos] Iniciando guardado', {
+        totalProducts: values.products.length,
+      });
+
+      const submittedIds = new Set<string>();
+      const submittedSlugs = new Set<string>();
+
+      for (let i = 0; i < values.products.length; i += 1) {
+        const product = values.products[i];
+        const normalizedId =
+          product.id === undefined || product.id === null || product.id === ''
+            ? null
+            : typeof product.id === 'number'
+              ? (Number.isFinite(product.id) ? product.id : null)
+              : String(product.id).trim();
+        const slug = slugify(product.title || `producto-${i + 1}`);
+        submittedSlugs.add(slug);
+        if (normalizedId !== null && normalizedId !== '') {
+          submittedIds.add(String(normalizedId));
+        }
+
+        const imageUrl = product.image instanceof File
+          ? await uploadImage(product.image, slug)
+          : product.imageUrl || '';
+
+        const rowPayload = {
+          titulo: product.title,
+          descripcion: product.description,
+          detalles: product.details,
+          imagen_url: imageUrl || null,
+          orden: i,
+          slug,
+          is_new: product.isNew ?? false,
+          is_favorite: product.isFavorite ?? false,
+        };
+
+        console.log('[admin/editar-productos] Procesando producto', {
+          index: i,
+          id: normalizedId,
+          title: product.title,
+          slug,
+          hasNewImageFile: product.image instanceof File,
+        });
+
+        if (normalizedId !== null && normalizedId !== '') {
+          console.log('[admin/editar-productos] UPDATE', {
+            index: i,
+            id: normalizedId,
+            slug,
+          });
+
+          const { data: updatedById, error: updateError } = await supabase
+            .from('productos')
+            .update(rowPayload)
+            .eq('id', normalizedId)
+            .select('id');
+
+          if (updateError) {
+            console.error('[admin/editar-productos] Error en UPDATE', {
+              index: i,
+              id: normalizedId,
+              slug,
+              message: updateError.message,
+              details: updateError.details,
+              hint: updateError.hint,
+              code: updateError.code,
+            });
+            throw new Error(updateError.message);
+          }
+
+          if (!updatedById || updatedById.length === 0) {
+            throw new Error(`No se pudo actualizar el producto (id: ${normalizedId}). Verificá políticas RLS de UPDATE.`);
+          }
+
+          submittedIds.add(String(updatedById[0].id));
+
+          console.log('[admin/editar-productos] UPDATE OK', {
+            index: i,
+            id: normalizedId,
+          });
+        } else {
+          console.log('[admin/editar-productos] UPDATE por slug (sin id)', {
+            index: i,
+            slug,
+          });
+
+          const { data: updatedBySlug, error: updateBySlugError } = await supabase
+            .from('productos')
+            .update(rowPayload)
+            .eq('slug', slug)
+            .select('id');
+
+          if (updateBySlugError) {
+            console.error('[admin/editar-productos] Error en UPDATE por slug', {
+              index: i,
+              slug,
+              message: updateBySlugError.message,
+              details: updateBySlugError.details,
+              hint: updateBySlugError.hint,
+              code: updateBySlugError.code,
+            });
+            throw new Error(updateBySlugError.message);
+          }
+
+          if ((updatedBySlug?.length || 0) > 0) {
+            console.log('[admin/editar-productos] UPDATE por slug OK', {
+              index: i,
+              slug,
+              updatedRows: updatedBySlug?.length || 0,
+            });
+            continue;
+          }
+
+          console.log('[admin/editar-productos] INSERT (no existe slug)', {
+            index: i,
+            slug,
+          });
+
+          const { data: insertedRow, error: insertError } = await supabase
+            .from('productos')
+            .insert(rowPayload)
+            .select('id')
+            .single();
+
+          if (insertError) {
+            console.error('[admin/editar-productos] Error en INSERT', {
+              index: i,
+              slug,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint,
+              code: insertError.code,
+            });
+            throw new Error(insertError.message);
+          }
+
+          if (insertedRow?.id) {
+            submittedIds.add(String(insertedRow.id));
+          }
+
+          console.log('[admin/editar-productos] INSERT OK', {
+            index: i,
+            slug,
+          });
+        }
+      }
+
+      const { data: existingRows, error: existingRowsError } = await supabase
+        .from('productos')
+        .select('id, slug');
+
+      if (existingRowsError) {
+        console.error('[admin/editar-productos] Error consultando productos para depurar borrados', {
+          message: existingRowsError.message,
+          details: existingRowsError.details,
+          hint: existingRowsError.hint,
+          code: existingRowsError.code,
+        });
+        throw new Error(existingRowsError.message);
+      }
+
+      const idsToDelete = (existingRows || [])
+        .filter((row: any) => !submittedIds.has(String(row.id || '')))
+        .map((row: any) => String(row.id));
+
+      if (idsToDelete.length > 0) {
+        console.log('[admin/editar-productos] Eliminando productos quitados del formulario', {
+          totalToDelete: idsToDelete.length,
+          idsToDelete,
+        });
+
+        const { data: deletedRows, error: deleteError } = await supabase
+          .from('productos')
+          .delete()
+          .in('id', idsToDelete)
+          .select('id');
+
+        if (deleteError) {
+          console.error('[admin/editar-productos] Error eliminando productos', {
+            message: deleteError.message,
+            details: deleteError.details,
+            hint: deleteError.hint,
+            code: deleteError.code,
+          });
+          throw new Error(deleteError.message);
+        }
+
+        if ((deletedRows?.length || 0) !== idsToDelete.length) {
+          throw new Error('No se pudieron eliminar todos los productos. Revisá políticas RLS de DELETE en Supabase.');
+        }
+
+        console.log('[admin/editar-productos] Eliminación completada', {
+          totalDeleted: deletedRows?.length || 0,
+        });
+      }
+
+      console.log('[admin/editar-productos] Guardado finalizado correctamente');
+
+      toast({
+        title: 'Cambios guardados',
+        description: 'La página de productos se actualizó correctamente.',
+      });
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    } catch (err: any) {
+      console.error('[admin/editar-productos] Error general al guardar', err);
+      toast({
+        title: 'Error al guardar',
+        description: err?.message || 'Ocurrió un error inesperado.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function onInvalidSubmit(errors: FieldErrors<FormValues>) {
+    console.error('[admin/editar-productos] Formulario inválido', errors);
+
+    const firstInvalidIndex = errors.products?.findIndex((item) => !!item);
+    if (typeof firstInvalidIndex === 'number' && firstInvalidIndex >= 0) {
+      setOpenItemId(`product-${firstInvalidIndex}`);
+    }
+
     toast({
-      title: "Guardado (simulación)",
-      description: "Los cambios no se guardarán. Para aplicar los cambios, pedímelo directamente.",
+      title: 'Hay campos inválidos',
+      description: 'Revisá los productos marcados en rojo antes de guardar.',
+      variant: 'destructive',
     });
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -216,14 +532,21 @@ export default function EditProductsPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-24">
-                            <Accordion type="single" collapsible className="w-full space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-8 pb-24">
+                            <Accordion
+                              type="single"
+                              collapsible
+                              className="w-full space-y-4"
+                              value={openItemId || ''}
+                              onValueChange={(value) => setOpenItemId(value || null)}
+                            >
                                 {displayProductFields.map((productInfo) => {
                                     const productIndex = productInfo.originalIndex;
                                     const productField = productInfo;
                                     const productImage = PlaceHolderImages.find(p => p.id === productField.imageId);
+                                const accordionValue = `product-${productIndex}`;
                                     return (
-                                        <AccordionItem value={`product-${productIndex}`} key={productField.id} className="border rounded-lg bg-card shadow-sm">
+                                  <AccordionItem value={accordionValue} key={productField.id} className="border rounded-lg bg-card shadow-sm">
                                             <div className="flex items-center justify-between w-full p-4">
                                                 <AccordionTrigger className="p-0 text-left hover:no-underline flex-grow [&>svg]:hidden">
                                                     <h3 className="font-semibold text-lg">{productField.title || `Producto (sin título)`}</h3>
@@ -231,6 +554,19 @@ export default function EditProductsPage() {
                                                 <div 
                                                     className="flex items-center gap-1 pl-4"
                                                 >
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenItemId((prev) => (prev === accordionValue ? null : accordionValue));
+                                          }}
+                                        >
+                                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                                          <span className="sr-only">Editar producto</span>
+                                        </Button>
                                                     <Button
                                                         type="button"
                                                         variant="ghost"
@@ -314,7 +650,7 @@ export default function EditProductsPage() {
                                                             </FormItem>
                                                         )}
                                                     />
-                                                    <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
+                                                    <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productField.imageUrl || productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
                                                     <ProductDetailsArray control={form.control} productIndex={productIndex} />
                                                     <Button
                                                       type="button"
@@ -346,22 +682,22 @@ export default function EditProductsPage() {
                             <div className="fixed bottom-6 right-6 z-50">
                                 {/* Desktop buttons */}
                                 <div className="hidden md:flex items-center gap-4">
-                                    <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset({ products: defaultProducts })}>
+                                    <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset({ products: defaultProducts })} disabled={isSaving}>
                                         <Undo2 className="mr-2 h-5 w-5" />
                                         Deshacer Cambios
                                     </Button>
-                                    <Button type="submit" size="lg" className="shadow-lg">
+                                    <Button type="submit" size="lg" className="shadow-lg" disabled={isSaving}>
                                         <Check className="mr-2 h-5 w-5" />
-                                        Guardar Cambios
+                                      {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                                     </Button>
                                 </div>
                                 {/* Mobile buttons */}
                                 <div className="md:hidden flex flex-col gap-3">
-                                    <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset({ products: defaultProducts })}>
+                                    <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset({ products: defaultProducts })} disabled={isSaving}>
                                         <Undo2 className="h-6 w-6" />
                                         <span className="sr-only">Deshacer Cambios</span>
                                     </Button>
-                                    <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg">
+                                    <Button type="submit" size="icon" className="h-14 w-14 rounded-full shadow-lg" disabled={isSaving}>
                                         <Check className="h-6 w-6" />
                                         <span className="sr-only">Guardar Cambios</span>
                                     </Button>

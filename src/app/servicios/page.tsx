@@ -180,10 +180,11 @@ export default function ServiciosPage() {
           </div>
         </div>
         <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 pt-12">
-                    {servicesData.map((service, index) => {
+                {servicesData.map((service, index) => {
             const serviceImage = PlaceHolderImages.find(img => img.id === service.imageId);
+            const serviceKey = `${service.imageId || service.title || 'servicio'}-${index}`;
             return(
-                <AccordionItem value={`item-${index}`} key={service.title} className="border-b-0">
+            <AccordionItem value={serviceKey} key={serviceKey} className="border-b-0">
                     <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl">
                         <AccordionTrigger className="group w-full p-6 text-left hover:no-underline [&>svg]:hidden">
                             <div className="flex w-full items-center justify-between">

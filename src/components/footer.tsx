@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, ArrowRight, Clock, Phone } from "lucide-react";
+import { Instagram, ArrowRight, Clock, Phone, Mail } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import {
   Accordion,
@@ -12,6 +16,22 @@ import { WhatsAppIcon } from "./icons/whatsapp-icon";
 import { FacebookIcon } from "./icons/facebook-icon";
 import { MapsIcon } from "./icons/maps-icon";
 import { Button } from "./ui/button";
+import { supabase } from "@/lib/supabase-client";
+
+const defaultContactInfo = {
+  whatsapp: "5493564504977",
+  instagram: "https://www.instagram.com/dariomartinezcomputacion/",
+  facebook: "https://www.facebook.com/profile.php?id=61585160335205",
+  email: "dario.martinez.comp@email.com",
+  phone: "03564 15-504977",
+  address: "Libertador Norte 163",
+  google_maps: "https://share.google/WFdtCtDtE7RPHKL5o",
+  hours_mon_thu: "Lunes a Jueves de 7:30 a 12:30 y de 15:30 a 19:30",
+  hours_fri: "Viernes de 8:00 a 12:00 y de 15:30 a 19:30",
+};
+
+const defaultMapEmbedUrl =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.562307297089!2d-62.08365612436735!3d-31.42616239707323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee145b20b%3A0xc3b53f6194c25bd!2sLibertador%20Nte.%20163%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1sen!2sar!4v1721759868770!5m2!1sen!2sar";
 
 const faqs = [
   {
@@ -41,6 +61,46 @@ const faqs = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith('/admin');
+
+  const [contactInfo, setContactInfo] = useState(defaultContactInfo);
+
+  useEffect(() => {
+    const loadContactInfo = async () => {
+      const { data } = await supabase
+        .from("contacto_info")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (data) {
+        setContactInfo({
+          ...defaultContactInfo,
+          ...data,
+        });
+      }
+    };
+
+    loadContactInfo();
+  }, []);
+
+  const whatsappLink = useMemo(
+    () => `https://wa.me/${(contactInfo.whatsapp || "").replace(/\D/g, "")}`,
+    [contactInfo.whatsapp]
+  );
+
+  const mapEmbedUrl = useMemo(() => {
+    if (contactInfo.google_maps?.includes("google.com/maps/embed")) {
+      return contactInfo.google_maps;
+    }
+    return defaultMapEmbedUrl;
+  }, [contactInfo.google_maps]);
+
+  if (isAdmin) {
+    return null;
+  }
+
   return (
     <footer className="w-full border-t bg-muted/40 text-foreground">
       <div className="container mx-auto grid grid-cols-1 gap-12 px-4 py-12 md:grid-cols-2 md:px-6 lg:grid-cols-3 lg:gap-8">
@@ -61,32 +121,55 @@ export function Footer() {
           </p>
           <div className="text-sm text-foreground/70 space-y-1">
             <h4 className="font-semibold flex items-center gap-2 text-foreground/90"><Clock className="h-4 w-4" /> Horarios de atención</h4>
-            <p>Lunes a Jueves: 7:30-12:30 y 15:30-19:30 hs.</p>
-            <p>Viernes: 8:00-12:00 y de 15:30 a 19:30 hs.</p>
+            <p>{contactInfo.hours_mon_thu}</p>
+            <p>{contactInfo.hours_fri}</p>
             <p>Sábados: Cerrado</p>
           </div>
           <div className="text-sm text-foreground/70 space-y-1">
             <h4 className="font-semibold flex items-center gap-2 text-foreground/90"><Phone className="h-4 w-4" /> Teléfonos</h4>
-            <p><a href="tel:+5493564560790" className="hover:text-primary transition-colors">Natalia: +54 9 3564 56-0790</a></p>
-            <p><a href="tel:+5493564504977" className="hover:text-primary transition-colors">Nidia: +54 9 3564 50-4977</a></p>
-            <p><a href="tel:03564422664" className="hover:text-primary transition-colors">Fijo: 03564 422664</a></p>
+            <p>
+              <a
+                href={`tel:${(contactInfo.phone || "").replace(/\s/g, "")}`}
+                className="hover:text-primary transition-colors"
+              >
+                Teléfono: {contactInfo.phone}
+              </a>
+            </p>
+            <p>
+              <a
+                href={`tel:${(contactInfo.whatsapp || "").replace(/\D/g, "")}`}
+                className="hover:text-primary transition-colors"
+              >
+                WhatsApp: {contactInfo.whatsapp}
+              </a>
+            </p>
+            <p>
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="hover:text-primary transition-colors"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> {contactInfo.email}
+                </span>
+              </a>
+            </p>
           </div>
           <div className="flex gap-4 pt-2">
-            <Link href="https://wa.me/5493564504977" target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href={whatsappLink} target="_blank" aria-label="WhatsApp" className="text-foreground/80 hover:text-primary transition-colors">
               <WhatsAppIcon className="h-6 w-6" />
             </Link>
-            <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank" aria-label="Instagram" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href={contactInfo.instagram} target="_blank" aria-label="Instagram" className="text-foreground/80 hover:text-primary transition-colors">
               <Instagram className="h-6 w-6" />
             </Link>
-            <Link href="https://www.facebook.com/profile.php?id=61585160335205" target="_blank" aria-label="Facebook" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href={contactInfo.facebook} target="_blank" aria-label="Facebook" className="text-foreground/80 hover:text-primary transition-colors">
               <FacebookIcon className="h-6 w-6" />
             </Link>
-            <Link href="https://share.google/WFdtCtDtE7RPHKL5o" target="_blank" aria-label="Google Maps" className="text-foreground/80 hover:text-primary transition-colors">
+            <Link href={contactInfo.google_maps} target="_blank" aria-label="Google Maps" className="text-foreground/80 hover:text-primary transition-colors">
               <MapsIcon className="h-6 w-6" />
             </Link>
           </div>
           <Button asChild className="rounded-full px-8">
-            <Link href="https://wa.me/5493564504977" target="_blank">
+            <Link href={whatsappLink} target="_blank">
                 <WhatsAppIcon className="mr-2 h-5 w-5" />
                 Enviar Mensaje
             </Link>
@@ -127,7 +210,7 @@ export function Footer() {
           <h3 className="mb-4 text-lg font-semibold">Encontranos</h3>
         </div>
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3381.562307297089!2d-62.08365612436735!3d-31.42616239707323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95cb281ee145b20b%3A0xc3b53f6194c25bd!2sLibertador%20Nte.%20163%2C%20San%20Francisco%2C%20C%C3%B3rdoba!5e0!3m2!1sen!2sar!4v1721759868770!5m2!1sen!2sar"
+          src={mapEmbedUrl}
           width="100%"
           height="350"
           style={{ border: 0, display: 'block' }}
@@ -138,13 +221,13 @@ export function Footer() {
         ></iframe>
         <div className="container mx-auto px-4 md:px-6 py-4">
           <Link
-            href="https://share.google/WFdtCtDtE7RPHKL5o"
+            href={contactInfo.google_maps}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-foreground/80 transition-colors hover:text-primary"
           >
             <MapsIcon className="h-4 w-4 flex-shrink-0" />
-            <span>Libertador Norte 163</span>
+            <span>{contactInfo.address}</span>
           </Link>
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -22,93 +23,163 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { supabase } from '@/lib/supabase-client';
 
-const whyChooseFeatures = [
-  {
-    icon: <WifiOff className="h-10 w-10 text-primary" />,
-    title: 'Siempre Operativo',
-    description: 'Tu negocio nunca se detiene. POSBerry funciona perfectamente con o sin conexión a internet, garantizando 100% de disponibilidad para tus ventas.',
-  },
-  {
-    icon: <Smile className="h-10 w-10 text-primary" />,
-    title: 'Fácil de Usar',
-    description: 'Interfaz intuitiva que tu equipo aprende en minutos. Sin complicaciones, solo resultados. Empezá a vender desde el primer día.',
-  },
-  {
-    icon: <DollarSign className="h-10 w-10 text-primary" />,
-    title: 'Precio Transparente',
-    description: 'Un único precio mensual que incluye todo: actualizaciones, soporte y nuevas funcionalidades. Sin sorpresas, sin costos adicionales.',
-  },
-];
-
-const coreFeatures = [
-  {
-    icon: <Zap className="h-8 w-8" />,
-    title: 'Ventas Rápidas',
-    description: 'Procesá ventas en segundos. Múltiples medios de pago, descuentos automáticos y gestión de devoluciones.',
-    link: 'Ver integraciones de pago',
-  },
-  {
-    icon: <ShoppingBag className="h-8 w-8" />,
-    title: 'Control de Stock',
-    description: 'Inventario en tiempo real. Alertas de stock bajo, múltiples depósitos y trazabilidad completa.',
-  },
-  {
-    icon: <LineChart className="h-8 w-8" />,
-    title: 'Reportes Inteligentes',
-    description: 'Dashboards en tiempo real. Análisis de ventas, productos más vendidos y proyecciones para tomar decisiones basadas en datos.',
-  },
-  {
-    icon: <Users className="h-8 w-8" />,
-    title: 'Gestión de Clientes',
-    description: 'CRM integrado. Historial de compras, cuentas corrientes y programa de fidelización para fidelizar a tus clientes.',
-  },
-  {
-    icon: <Printer className="h-8 w-8" />,
-    title: 'Facturación Electrónica ARCA',
-    description: 'Totalmente integrado con ARCA. Facturas A, B, C, Notas de Crédito/Débito. Homologado y siempre actualizado.',
-  },
-  {
-    icon: <Globe className="h-8 w-8" />,
-    title: 'Multi-Sucursal',
-    description: 'Gestión centralizada para escalar sin límites. Sincronización automática, reportes consolidados y control total.',
-  },
-];
-
-const advancedFeatures = [
+const defaultPosberryContent = {
+  heroTitle: 'Simple, flexible y confiable',
+  heroDescription: 'Formá parte de una comunidad de más de 9,000 comercios exitosos. Funciona sin internet y se adapta a cualquier rubro.',
+  whyChooseTitle: '¿Por qué los comercios eligen POSBerry?',
+  whyChooseDescription: 'Las ventajas que impulsan tu negocio todos los días',
+  whyChooseFeatures: [
     {
-      icon: <Cloud className="h-8 w-8 text-primary" />,
+      title: 'Siempre Operativo',
+      description: 'Tu negocio nunca se detiene. POSBerry funciona perfectamente con o sin conexión a internet, garantizando 100% de disponibilidad para tus ventas.',
+    },
+    {
+      title: 'Fácil de Usar',
+      description: 'Interfaz intuitiva que tu equipo aprende en minutos. Sin complicaciones, solo resultados. Empezá a vender desde el primer día.',
+    },
+    {
+      title: 'Precio Transparente',
+      description: 'Un único precio mensual que incluye todo: actualizaciones, soporte y nuevas funcionalidades. Sin sorpresas, sin costos adicionales.',
+    },
+  ],
+  coreFeaturesTitle: 'Todo lo que necesitás para vender más',
+  coreFeaturesDescription: 'Un sistema completo que se adapta a tu negocio',
+  coreFeatures: [
+    {
+      title: 'Ventas Rápidas',
+      description: 'Procesá ventas en segundos. Múltiples medios de pago, descuentos automáticos y gestión de devoluciones.',
+    },
+    {
+      title: 'Control de Stock',
+      description: 'Inventario en tiempo real. Alertas de stock bajo, múltiples depósitos y trazabilidad completa.',
+    },
+    {
+      title: 'Reportes Inteligentes',
+      description: 'Dashboards en tiempo real. Análisis de ventas, productos más vendidos y proyecciones para tomar decisiones basadas en datos.',
+    },
+    {
+      title: 'Gestión de Clientes',
+      description: 'CRM integrado. Historial de compras, cuentas corrientes y programa de fidelización para fidelizar a tus clientes.',
+    },
+    {
+      title: 'Facturación Electrónica ARCA',
+      description: 'Totalmente integrado con ARCA. Facturas A, B, C, Notas de Crédito/Débito. Homologado y siempre actualizado.',
+    },
+    {
+      title: 'Multi-Sucursal',
+      description: 'Gestión centralizada para escalar sin límites. Sincronización automática, reportes consolidados y control total.',
+    },
+  ],
+  advancedFeaturesTitle: 'Potenciá tu Negocio',
+  advancedFeaturesDescription: 'Características avanzadas que marcan la diferencia',
+  advancedFeatures: [
+    {
       title: 'Respaldo Automático',
       description: 'Cambiá de PC sin perder nada. Instalá POSBerry en cualquier equipo y tus datos se descargan automáticamente desde la nube.',
     },
     {
-      icon: <CreditCard className="h-8 w-8 text-primary" />,
       title: 'Integraciones de Pago',
       description: 'Conectado con los principales procesadores: Mercado Pago QR y Point, Fiserv, Clover, Payway, PVS-SuperPOS, y QR Bind.',
     },
     {
-      icon: <Gift className="h-8 w-8 text-primary" />,
       title: 'Promociones Inteligentes',
       description: 'Creá esquemas de descuentos y recargos automáticos. Happy hours, descuentos por cantidad, promociones por día de la semana.',
     },
     {
-      icon: <Printer className="h-8 w-8 text-primary" />,
       title: 'Impresiones Completas',
       description: 'Soporte total para tu negocio: Fiscales 1ra y 2da generación, códigos de barra, etiquetas de precios y comandas de cocina.',
     },
     {
-        icon: <Lock className="h-8 w-8 text-primary" />,
-        title: 'Seguridad Total',
-        description: 'Tus datos siempre protegidos con backups periódicos automáticos, encriptación y sincronización segura en la nube.',
+      title: 'Seguridad Total',
+      description: 'Tus datos siempre protegidos con backups periódicos automáticos, encriptación y sincronización segura en la nube.',
     },
     {
-        icon: <Cpu className="h-8 w-8 text-primary" />,
-        title: 'Gestión Avanzada',
-        description: 'Control total de tu negocio con cierres de turno, control de cajas múltiples, y reportes detallados por vendedor.',
+      title: 'Gestión Avanzada',
+      description: 'Control total de tu negocio con cierres de turno, control de cajas múltiples, y reportes detallados por vendedor.',
     },
-  ];
+  ],
+};
 
 export default function PosberryPage() {
+  const [content, setContent] = useState(defaultPosberryContent);
+
+  useEffect(() => {
+    const loadPosberry = async () => {
+      const { data } = await supabase
+        .from('posberry_content')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (data) {
+        setContent({
+          ...defaultPosberryContent,
+          heroTitle: data.hero_title ?? defaultPosberryContent.heroTitle,
+          heroDescription: data.hero_description ?? defaultPosberryContent.heroDescription,
+          whyChooseTitle: data.why_choose_title ?? defaultPosberryContent.whyChooseTitle,
+          whyChooseDescription: data.why_choose_description ?? defaultPosberryContent.whyChooseDescription,
+          whyChooseFeatures: data.why_choose_features ?? defaultPosberryContent.whyChooseFeatures,
+          coreFeaturesTitle: data.core_features_title ?? defaultPosberryContent.coreFeaturesTitle,
+          coreFeaturesDescription: data.core_features_description ?? defaultPosberryContent.coreFeaturesDescription,
+          coreFeatures: data.core_features ?? defaultPosberryContent.coreFeatures,
+          advancedFeaturesTitle: data.advanced_features_title ?? defaultPosberryContent.advancedFeaturesTitle,
+          advancedFeaturesDescription: data.advanced_features_description ?? defaultPosberryContent.advancedFeaturesDescription,
+          advancedFeatures: data.advanced_features ?? defaultPosberryContent.advancedFeatures,
+        });
+      }
+    };
+
+    loadPosberry();
+  }, []);
+
+  const whyChooseIcons = [
+    <WifiOff className="h-10 w-10 text-primary" />,
+    <Smile className="h-10 w-10 text-primary" />,
+    <DollarSign className="h-10 w-10 text-primary" />,
+  ];
+
+  const coreIcons = [
+    <Zap className="h-8 w-8" />,
+    <ShoppingBag className="h-8 w-8" />,
+    <LineChart className="h-8 w-8" />,
+    <Users className="h-8 w-8" />,
+    <Printer className="h-8 w-8" />,
+    <Globe className="h-8 w-8" />,
+  ];
+
+  const advancedIcons = [
+    <Cloud className="h-8 w-8 text-primary" />,
+    <CreditCard className="h-8 w-8 text-primary" />,
+    <Gift className="h-8 w-8 text-primary" />,
+    <Printer className="h-8 w-8 text-primary" />,
+    <Lock className="h-8 w-8 text-primary" />,
+    <Cpu className="h-8 w-8 text-primary" />,
+  ];
+
+  const whyChooseFeatures = (content.whyChooseFeatures?.length ? content.whyChooseFeatures : defaultPosberryContent.whyChooseFeatures)
+    .map((feature: any, index: number) => ({
+      icon: whyChooseIcons[index] ?? whyChooseIcons[0],
+      title: feature?.title ?? defaultPosberryContent.whyChooseFeatures[index]?.title,
+      description: feature?.description ?? defaultPosberryContent.whyChooseFeatures[index]?.description,
+    }));
+
+  const coreFeatures = (content.coreFeatures?.length ? content.coreFeatures : defaultPosberryContent.coreFeatures)
+    .map((feature: any, index: number) => ({
+      icon: coreIcons[index] ?? coreIcons[0],
+      title: feature?.title ?? defaultPosberryContent.coreFeatures[index]?.title,
+      description: feature?.description ?? defaultPosberryContent.coreFeatures[index]?.description,
+      link: index === 0 ? 'Ver integraciones de pago' : undefined,
+    }));
+
+  const advancedFeatures = (content.advancedFeatures?.length ? content.advancedFeatures : defaultPosberryContent.advancedFeatures)
+    .map((feature: any, index: number) => ({
+      icon: advancedIcons[index] ?? advancedIcons[0],
+      title: feature?.title ?? defaultPosberryContent.advancedFeatures[index]?.title,
+      description: feature?.description ?? defaultPosberryContent.advancedFeatures[index]?.description,
+    }));
+
   return (
     <div className="bg-white text-foreground">
       {/* Hero Section */}
@@ -116,12 +187,18 @@ export default function PosberryPage() {
         <div className="container relative z-10 mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="space-y-6 text-center lg:text-left">
-              <Image src="/LOGOBOSBERRY3.png" alt="POSBerry Logo" width={200} height={50} className="mx-auto lg:mx-0"/>
+              <Image
+                src="/LOGOBOSBERRY3.png"
+                alt="POSBerry Logo"
+                width={200}
+                height={50}
+                className="mx-auto lg:mx-0 h-auto w-auto"
+              />
               <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl font-headline">
-                Simple, flexible y confiable
+                {content.heroTitle}
               </h1>
               <p className="max-w-2xl text-lg text-foreground/80 md:text-xl mx-auto lg:mx-0">
-                Formá parte de una comunidad de más de 9,000 comercios exitosos. Funciona sin internet y se adapta a cualquier rubro.
+                {content.heroDescription}
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
                 <Button asChild size="lg" variant="secondary" className="rounded-full">
@@ -142,7 +219,8 @@ export default function PosberryPage() {
                 alt="POSBerry en una computadora"
                 width={512}
                 height={384}
-                className="w-full h-auto max-w-lg mx-auto"
+                className="w-full max-w-lg mx-auto"
+                style={{ width: '100%', height: 'auto' }}
               />
             </div>
           </div>
@@ -154,10 +232,10 @@ export default function PosberryPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
-              ¿Por qué los comercios eligen POSBerry?
+              {content.whyChooseTitle}
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-lg text-foreground/70">
-              Las ventajas que impulsan tu negocio todos los días
+              {content.whyChooseDescription}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -179,10 +257,10 @@ export default function PosberryPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
-              Todo lo que necesitás para vender más
+              {content.coreFeaturesTitle}
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-lg text-foreground/70">
-              Un sistema completo que se adapta a tu negocio
+              {content.coreFeaturesDescription}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -213,10 +291,10 @@ export default function PosberryPage() {
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mb-12 text-center">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
-                    Potenciá tu Negocio
+                    {content.advancedFeaturesTitle}
                     </h2>
                     <p className="mx-auto mt-4 max-w-3xl text-lg text-foreground/70">
-                    Características avanzadas que marcan la diferencia
+                    {content.advancedFeaturesDescription}
                     </p>
                 </div>
                 <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
