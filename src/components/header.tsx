@@ -199,6 +199,13 @@ export function Header() {
                 />
                 Posberry
               </Link>
+
+              <Link
+                href="/controladores-fiscales"
+                className="transition-colors hover:text-primary"
+              >
+                Controladores Fiscales
+              </Link>
               
               <Link
                 href="/sobre-nosotros"
@@ -385,6 +392,13 @@ export function Header() {
                           style={{ marginRight: '-2px' }}
                         />
                         Posberry
+                      </Link>
+                      <Link
+                        href="/controladores-fiscales"
+                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                        onClick={closeSheet}
+                      >
+                        Controladores Fiscales
                       </Link>
                       <Link
                         href="/sobre-nosotros"

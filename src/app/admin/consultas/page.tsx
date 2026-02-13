@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Inbox } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase-client';
 type ConsultaRow = {
   id: number;
@@ -23,6 +24,7 @@ type ConsultaRow = {
   mensaje: string | null;
   created_at: string | null;
   leida?: boolean | null;
+  leido_por?: string | null;
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -34,6 +36,8 @@ export default function ConsultasPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<ConsultaRow[]>([]);
+  const [markingId, setMarkingId] = useState<number | null>(null);
+  const [leidoPor, setLeidoPor] = useState('');
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -54,7 +58,7 @@ export default function ConsultasPage() {
 
       const { data, error } = await supabase
         .from('consultas')
-        .select('id, nombre, apellido, email, mensaje, created_at, leida')
+        .select('id, nombre, apellido, email, mensaje, created_at, leida, leido_por')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -86,29 +90,44 @@ export default function ConsultasPage() {
   };
 
   const toggleReadStatus = async (id: number, currentValue?: boolean | null) => {
+    if (!currentValue) {
+      // Marcar como leída, pedir nombre
+      setMarkingId(id);
+      setLeidoPor('');
+    } else {
+      // Marcar como no leída, quitar leido_por
+      const { error } = await supabase
+        .from('consultas')
+        .update({ leida: false, leido_por: null })
+        .eq('id', id);
+
+      if (!error) {
+        setSubmissions((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, leida: false, leido_por: null } : item
+          )
+        );
+      }
+    }
+  };
+
+  const confirmMarkAsRead = async () => {
+    if (!markingId || !leidoPor.trim()) return;
+
     const { error } = await supabase
       .from('consultas')
-      .update({ leida: !currentValue })
-      .eq('id', id);
+      .update({ leida: true, leido_por: leidoPor.trim() })
+      .eq('id', markingId);
 
     if (!error) {
       setSubmissions((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, leida: !currentValue } : item
+          item.id === markingId ? { ...item, leida: true, leido_por: leidoPor.trim() } : item
         )
       );
     }
-  };
-
-  const deleteConsulta = async (id: number) => {
-    const { error } = await supabase
-      .from('consultas')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      setSubmissions((prev) => prev.filter((item) => item.id !== id));
-    }
+    setMarkingId(null);
+    setLeidoPor('');
   };
   
   if (!isAuthenticated || isLoading) {
@@ -164,6 +183,25 @@ export default function ConsultasPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
+                {markingId && (
+                  <div className="mb-4 p-4 border rounded-lg bg-muted/50">
+                    <p className="text-sm mb-2">Ingresa tu nombre para marcar como leída:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={leidoPor}
+                        onChange={(e) => setLeidoPor(e.target.value)}
+                        placeholder="Tu nombre"
+                        className="flex-1"
+                      />
+                      <Button onClick={confirmMarkAsRead} disabled={!leidoPor.trim()}>
+                        Confirmar
+                      </Button>
+                      <Button variant="outline" onClick={() => setMarkingId(null)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {loadError && (
                   <div className="mb-4 text-sm text-destructive">
                     Error al cargar consultas: {loadError}
@@ -205,7 +243,7 @@ export default function ConsultasPage() {
                                             : 'text-xs rounded-full bg-amber-500/10 text-amber-600 px-2 py-1'
                                         }
                                       >
-                                        {submission.leida ? 'Leída' : 'No leída'}
+                                        {submission.leida ? `Leída por ${submission.leido_por || 'Desconocido'}` : 'No leída'}
                                       </span>
                                     </TableCell>
                                     <TableCell className="text-right">

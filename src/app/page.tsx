@@ -80,6 +80,17 @@ const services = [
   },
 ];
 
+const clientLogos = [
+  { name: 'Bind', src: '/bind.png' },
+  { name: 'Fiserv', src: '/fiserv.png' },
+  { name: 'Mercado Pago', src: '/mercadopago.png' },
+  { name: 'Payway', src: '/payway.png' },
+  { name: 'PVS', src: '/pvs.png' },
+  { name: 'Clover', src: '/clover.png' },
+  { name: 'Posberry', src: '/POSBERRY.png' },
+  { name: 'Posberry 2', src: '/POSBERRY2.png' },
+];
+
 type HomeProduct = {
   imageId: string;
   title: string;
@@ -165,7 +176,10 @@ export default function Home() {
   const [inicioRef, inicioInView] = useInView({ threshold: 0.2 });
   const [serviciosRef, serviciosInView] = useInView({ threshold: 0.1 });
   const [productosRef, productosInView] = useInView({ threshold: 0.1 });
+  const [controladoresRef, controladoresInView] = useInView({ threshold: 0.1 });
   const [sobreNosotrosRef, sobreNosotrosInView] = useInView({ threshold: 0.2 });
+  const [clientesRef, clientesInView] = useInView({ threshold: 0.1 });
+  const [coberturaRef, coberturaInView] = useInView({ threshold: 0.1 });
   const [contactoRef, contactoInView] = useInView({ threshold: 0.1 });
 
   React.useEffect(() => {
@@ -435,6 +449,52 @@ export default function Home() {
         </div>
       </section>
 
+      <section ref={controladoresRef} className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <div className="container px-4 md:px-6">
+          <div className="mx-auto grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className={cn("opacity-0", controladoresInView && "animate-slide-in-from-left")}>
+              <Image
+                src="https://picsum.photos/seed/fiscal-control/600/400"
+                alt="Controladores Fiscales"
+                width={600}
+                height={400}
+                className="aspect-video rounded-lg object-cover"
+              />
+            </div>
+            <div className={cn("space-y-4 opacity-0", controladoresInView && "animate-slide-in-from-right")}>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
+                  Controladores Fiscales
+                </h2>
+                <p className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Equipos homologados por AFIP para garantizar el cumplimiento fiscal y optimizar la gestión de tu negocio. Tecnología avanzada para reportes automáticos y control preciso.
+                </p>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                  Cumplimiento total con normativas AFIP
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                  Procesamiento rápido de transacciones
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                  Reportes automáticos y detallados
+                </li>
+              </ul>
+              <Button asChild size="lg" className="rounded-full">
+                <Link href="/controladores-fiscales">
+                  Ver Más
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section
         ref={sobreNosotrosRef}
         id="sobre-nosotros"
@@ -509,6 +569,89 @@ export default function Home() {
                     </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        ref={clientesRef}
+        id="nuestros-clientes"
+        className={cn('w-full bg-muted/40 py-12 md:py-20 lg:py-24 opacity-0', clientesInView && 'animate-fade-in')}
+      >
+        <div className="w-full">
+          <div className="mx-auto max-w-3xl space-y-2 px-4 text-center md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
+              Nuestros clientes
+            </h2>
+            <p className="text-foreground/80 md:text-xl">
+              Empresas y comercios que confían en nuestras soluciones tecnológicas.
+            </p>
+          </div>
+
+          <div className="mt-10 space-y-4">
+            {Array.from({ length: 5 }).map((_, rowIndex) => {
+              const isRightDirection = rowIndex % 2 !== 0;
+              const logos = isRightDirection ? [...clientLogos].reverse() : clientLogos;
+
+              return (
+                <div key={`client-row-${rowIndex}`} className="overflow-hidden">
+                  <div
+                    className={cn(
+                      isRightDirection ? 'clients-marquee-right' : 'clients-marquee-left',
+                      'flex min-w-max items-center gap-4'
+                    )}
+                  >
+                    {[...logos, ...logos].map((logo, index) => (
+                      <div
+                        key={`client-row-${rowIndex}-${logo.name}-${index}`}
+                        className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
+                      >
+                        <Image
+                          src={logo.src}
+                          alt={logo.name}
+                          width={100}
+                          height={34}
+                          className="h-7 w-auto object-contain"
+                        />
+                        <span className="whitespace-nowrap text-sm font-medium text-foreground/80">{logo.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
+        ref={coberturaRef}
+        id="donde-trabajamos"
+        className={cn('w-full py-12 md:py-20 lg:py-24 opacity-0', coberturaInView && 'animate-fade-in')}
+      >
+        <div className="container px-4 md:px-6">
+          <div className="mx-auto max-w-4xl space-y-3 text-center">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
+              Lugares donde trabajamos
+            </h2>
+            <p className="text-foreground/80 md:text-xl">
+              Conocé las zonas y localidades a las que llegamos con instalación, soporte técnico y soluciones comerciales.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 w-full">
+          <div className="relative aspect-[4/3] w-full overflow-hidden md:aspect-[16/9]">
+            <iframe
+              src="https://www.google.com/maps/d/u/0/embed?mid=1CqBXj8VZZZaSNDT8zIsZWvNGqVY0PLg&ehbc=2E312F"
+              width="100%"
+              height="100%"
+              title="Mapa de cobertura de servicios"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="absolute left-0 top-[-56px] h-[calc(100%+56px)] w-full border-0"
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-background" />
           </div>
         </div>
       </section>
