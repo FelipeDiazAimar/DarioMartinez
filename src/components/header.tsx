@@ -241,6 +241,13 @@ export function Header() {
               </Link>
             </Button>
           )}
+          {isAdmin && (
+            <Button asChild size="icon" className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
+              <Link href="/admin" aria-label="Dashboard de Admin">
+                <Cog className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
 
           {/* Mobile Navigation */}
           <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>

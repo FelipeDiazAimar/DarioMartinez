@@ -1076,7 +1076,7 @@ function ProductosPageContent() {
                     </ScrollArea>
                 </div>
             </aside>
-            <div className="lg:max-w-5xl lg:mx-auto">
+            <div className="lg:mx-auto lg:max-w-5xl lg:min-h-[calc(100vh-12rem)]">
                 <div className="mb-8 flex justify-center">
                     <div ref={searchContainerRef} className="relative w-full max-w-md">
                         <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
