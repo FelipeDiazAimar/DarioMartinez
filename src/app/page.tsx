@@ -80,7 +80,7 @@ const services = [
   },
 ];
 
-const clientLogos = [
+const defaultClientLogos = [
   { name: 'Bind', src: '/bind.png' },
   { name: 'Fiserv', src: '/fiserv.png' },
   { name: 'Mercado Pago', src: '/mercadopago.png' },
@@ -181,6 +181,9 @@ const defaultHomeContent = {
   coverage_footer_text: '¿No encuentras tu localidad en el mapa? Consultanos para verificar si podemos llegar hasta tu zona y ofrecerte nuestros servicios.',
   coverage_footer_link_text: 'Contactanos',
   coverage_footer_link_url: '/contacto',
+  clients_title: 'Nuestros clientes',
+  clients_description: 'Empresas y comercios que confían en nuestras soluciones tecnológicas.',
+  clients: defaultClientLogos.map((item) => ({ name: item.name, logoUrl: item.src })),
   about_title: 'Sobre Nosotros',
   about_description: 'Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.',
   mission_title: 'Misión',
@@ -234,6 +237,15 @@ export default function Home() {
     .split(/\r?\n/)
     .map((location: string) => location.trim())
     .filter(Boolean);
+
+  const clientsToRender = Array.isArray((homeContent as any).clients) && (homeContent as any).clients.length > 0
+    ? (homeContent as any).clients
+        .map((client: any) => ({
+          name: typeof client?.name === 'string' && client.name.trim().length > 0 ? client.name.trim() : '',
+          src: typeof client?.logoUrl === 'string' && client.logoUrl.trim().length > 0 ? client.logoUrl.trim() : '',
+        }))
+        .filter((client: { name: string; src: string }) => client.name.length > 0 && client.src.length > 0)
+    : defaultClientLogos;
 
   React.useEffect(() => {
     const loadHomeContent = async () => {
@@ -663,17 +675,17 @@ export default function Home() {
         <div className="w-full">
           <div className="mx-auto max-w-3xl space-y-2 px-4 text-center md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-              Nuestros clientes
+              {homeContent.clients_title}
             </h2>
             <p className="text-foreground/80 md:text-xl">
-              Empresas y comercios que confían en nuestras soluciones tecnológicas.
+              {homeContent.clients_description}
             </p>
           </div>
 
           <div className="mt-10 space-y-4">
             {Array.from({ length: 5 }).map((_, rowIndex) => {
               const isRightDirection = rowIndex % 2 !== 0;
-              const logos = isRightDirection ? [...clientLogos].reverse() : clientLogos;
+              const logos = isRightDirection ? [...clientsToRender].reverse() : clientsToRender;
 
               return (
                 <div key={`client-row-${rowIndex}`} className="overflow-hidden">
@@ -688,12 +700,11 @@ export default function Home() {
                         key={`client-row-${rowIndex}-${logo.name}-${index}`}
                         className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
                       >
-                        <LoadingImage
+                        <img
                           src={logo.src}
                           alt={logo.name}
-                          width={100}
-                          height={34}
                           className="h-7 w-auto object-contain"
+                          loading="lazy"
                         />
                         <span className="whitespace-nowrap text-sm font-medium text-foreground/80">{logo.name}</span>
                       </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,11 +13,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home, Check, Undo2 } from 'lucide-react';
+import { Home, Check, Undo2, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase-client';
+
+const defaultClients = [
+  { name: 'Bind', logoUrl: '/bind.png' },
+  { name: 'Fiserv', logoUrl: '/fiserv.png' },
+  { name: 'Mercado Pago', logoUrl: '/mercadopago.png' },
+  { name: 'Payway', logoUrl: '/payway.png' },
+  { name: 'PVS', logoUrl: '/pvs.png' },
+  { name: 'Clover', logoUrl: '/clover.png' },
+  { name: 'Posberry', logoUrl: '/POSBERRY.png' },
+  { name: 'Posberry 2', logoUrl: '/POSBERRY2.png' },
+];
+
+const clientSchema = z.object({
+  name: z.string().min(1, { message: 'El nombre del cliente es obligatorio.' }),
+  logoUrl: z.string().min(1, { message: 'La URL del logo es obligatoria.' }),
+});
+
+const normalizeClients = (value: unknown) => {
+  const raw = Array.isArray(value) ? value : [];
+  const source = raw.length > 0 ? raw : defaultClients;
+
+  return source.map((item: any, index: number) => ({
+    name: typeof item?.name === 'string' && item.name.trim().length > 0
+      ? item.name.trim()
+      : defaultClients[index]?.name ?? '',
+    logoUrl: typeof item?.logoUrl === 'string' && item.logoUrl.trim().length > 0
+      ? item.logoUrl.trim()
+      : defaultClients[index]?.logoUrl ?? '',
+  }));
+};
 
 const formSchema = z.object({
   carouselImage1: z.any().optional(),
@@ -55,6 +85,10 @@ const formSchema = z.object({
   coverageFooterText: z.string().min(5, { message: "El texto es muy corto." }),
   coverageFooterLinkText: z.string().min(2, { message: "El texto del enlace es muy corto." }),
   coverageFooterLinkUrl: z.string().min(1, { message: "El enlace es obligatorio." }),
+
+  clientsTitle: z.string().min(5, { message: "El título es muy corto." }),
+  clientsDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  clients: z.array(clientSchema).min(1, { message: 'Debe haber al menos un cliente.' }),
 
   aboutTitle: z.string().min(5, { message: "El título es muy corto." }),
   aboutDescription: z.string().min(10, { message: "La descripción es muy corta." }),
@@ -101,6 +135,9 @@ const defaultValues = {
     coverageFooterText: "¿No encuentras tu localidad en el mapa? Consultanos para verificar si podemos llegar hasta tu zona y ofrecerte nuestros servicios.",
     coverageFooterLinkText: "Contactanos",
     coverageFooterLinkUrl: "/contacto",
+    clientsTitle: "Nuestros clientes",
+    clientsDescription: "Empresas y comercios que confían en nuestras soluciones tecnológicas.",
+    clients: defaultClients,
     aboutTitle: "Sobre Nosotros",
     aboutDescription: "Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.",
     missionTitle: "Misión",
@@ -131,6 +168,7 @@ export default function EditHomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedClientIndex, setExpandedClientIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
@@ -163,6 +201,15 @@ export default function EditHomePage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
+  });
+
+  const {
+    fields: clientFields,
+    append: appendClient,
+    remove: removeClient,
+  } = useFieldArray({
+    control: form.control,
+    name: 'clients',
   });
 
   useEffect(() => {
@@ -211,6 +258,9 @@ export default function EditHomePage() {
           coverageFooterText: data.coverage_footer_text ?? defaultValues.coverageFooterText,
           coverageFooterLinkText: data.coverage_footer_link_text ?? defaultValues.coverageFooterLinkText,
           coverageFooterLinkUrl: data.coverage_footer_link_url ?? defaultValues.coverageFooterLinkUrl,
+          clientsTitle: data.clients_title ?? defaultValues.clientsTitle,
+          clientsDescription: data.clients_description ?? defaultValues.clientsDescription,
+          clients: normalizeClients(data.clients),
           aboutTitle: data.about_title ?? defaultValues.aboutTitle,
           aboutDescription: data.about_description ?? defaultValues.aboutDescription,
           missionTitle: data.mission_title ?? defaultValues.missionTitle,
@@ -343,6 +393,9 @@ export default function EditHomePage() {
         coverage_footer_text: values.coverageFooterText,
         coverage_footer_link_text: values.coverageFooterLinkText,
         coverage_footer_link_url: values.coverageFooterLinkUrl,
+        clients_title: values.clientsTitle,
+        clients_description: values.clientsDescription,
+        clients: values.clients,
         about_title: values.aboutTitle,
         about_description: values.aboutDescription,
         mission_title: values.missionTitle,
@@ -570,6 +623,105 @@ export default function EditHomePage() {
                                   <FormItem><FormLabel>URL del enlace final</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                               </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                              <h3 className="text-xl font-semibold">Sección "Nuestros clientes"</h3>
+                              <FormField control={form.control} name="clientsTitle" render={({ field }) => (
+                                <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="clientsDescription" render={({ field }) => (
+                                <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+
+                              <div className="grid grid-cols-1 gap-4">
+                                {clientFields.map((clientField, index) => {
+                                  const clientName = form.watch(`clients.${index}.name`) || `Cliente ${index + 1}`;
+                                  const isExpanded = expandedClientIndex === index;
+
+                                  return (
+                                    <div key={clientField.id} className="rounded-lg border">
+                                      <div className="flex items-center justify-between gap-3 p-4">
+                                        <div className="min-w-0">
+                                          <p className="truncate font-medium">{clientName}</p>
+                                          <p className="truncate text-sm text-muted-foreground">
+                                            {form.watch(`clients.${index}.logoUrl`) || 'Sin URL de logo'}
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setExpandedClientIndex(isExpanded ? null : index)}
+                                          >
+                                            <Pencil className="h-4 w-4" />
+                                            <span className="sr-only">Editar cliente</span>
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            disabled={clientFields.length <= 1}
+                                            onClick={() => {
+                                              removeClient(index);
+                                              if (expandedClientIndex === index) {
+                                                setExpandedClientIndex(null);
+                                              } else if (expandedClientIndex !== null && expandedClientIndex > index) {
+                                                setExpandedClientIndex(expandedClientIndex - 1);
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                            <span className="sr-only">Eliminar cliente</span>
+                                          </Button>
+                                        </div>
+                                      </div>
+
+                                      {isExpanded ? (
+                                        <div className="space-y-3 border-t p-4">
+                                          <FormField
+                                            control={form.control}
+                                            name={`clients.${index}.name`}
+                                            render={({ field }) => (
+                                              <FormItem>
+                                                <FormLabel>Cliente {index + 1} - Nombre</FormLabel>
+                                                <FormControl><Input {...field} /></FormControl>
+                                                <FormMessage />
+                                              </FormItem>
+                                            )}
+                                          />
+                                          <FormField
+                                            control={form.control}
+                                            name={`clients.${index}.logoUrl`}
+                                            render={({ field }) => (
+                                              <FormItem>
+                                                <FormLabel>Cliente {index + 1} - URL del logo</FormLabel>
+                                                <FormControl><Input placeholder="https://..." {...field} /></FormControl>
+                                                <FormMessage />
+                                              </FormItem>
+                                            )}
+                                          />
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  appendClient({ name: '', logoUrl: '' });
+                                  setExpandedClientIndex(clientFields.length);
+                                }}
+                              >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Agregar cliente
+                              </Button>
                             </div>
 
                             <Separator />

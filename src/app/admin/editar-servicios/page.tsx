@@ -22,6 +22,8 @@ const serviceSchema = z.object({
   title: z.string().min(5, { message: "El título es muy corto." }),
   description: z.string().min(10, { message: "La descripción es muy corta." }),
   details: z.array(serviceDetailSchema),
+    imageUrl: z.string().optional(),
+    imageFile: z.any().optional(),
 });
 
 const formSchema = z.object({
@@ -32,6 +34,8 @@ const defaultServices = [
     {
         title: 'Reparación de PC y Notebooks',
         description: 'Diagnóstico y solución de problemas de hardware y software.',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Diagnóstico preciso de fallas de hardware (placas madre, fuentes, discos) y software (virus, errores de sistema, drivers).',
             'Reemplazo de componentes dañados: pantallas, teclados, baterías, memorias RAM, discos duros y SSD.',
@@ -43,6 +47,8 @@ const defaultServices = [
     {
         title: 'Instalación de Windows y Software',
         description: 'Instalación y configuración de sistemas operativos y programas.',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Instalación desde cero de Windows 11, 10 o la versión que necesites, con licencia original.',
             'Configuración inicial del sistema, incluyendo drivers, actualizaciones y optimización para máximo rendimiento.',
@@ -54,6 +60,8 @@ const defaultServices = [
     {
         title: 'Actualización de Hardware',
         description: 'Mejora el rendimiento con nuevos componentes (SSD, RAM).',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Reemplazo de discos rígidos mecánicos (HDD) por unidades de estado sólido (SSD) para una velocidad hasta 10 veces mayor.',
             'Ampliación de la memoria RAM para mejorar la multitarea y el rendimiento general del sistema.',
@@ -65,6 +73,8 @@ const defaultServices = [
     {
         title: 'Mantenimiento Preventivo',
         description: 'Limpieza y optimización para alargar la vida útil de tus equipos.',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Limpieza física interna completa para eliminar polvo y pelusa que causan sobrecalentamiento.',
             'Cambio de pasta térmica del procesador y placa de video para mantener temperaturas óptimas de funcionamiento.',
@@ -76,6 +86,8 @@ const defaultServices = [
     {
         title: 'Redes, WiFi y Routers',
         description: 'Configuración y optimización de tu red doméstica o de oficina.',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Instalación y configuración de routers y repetidores para ampliar la cobertura WiFi en toda tu casa u oficina.',
             'Solución a problemas de conexión a internet, cortes intermitentes y baja velocidad.',
@@ -87,6 +99,8 @@ const defaultServices = [
     {
         title: 'Asistencia Técnica',
         description: 'Soporte remoto y presencial para hogares y empresas.',
+        imageUrl: '',
+        imageFile: undefined,
         details: [
             'Soporte técnico remoto a través de herramientas seguras para solucionar problemas de software de forma inmediata.',
             'Visitas a domicilio u oficina para resolver problemas de hardware o redes que requieran asistencia presencial.',
@@ -154,6 +168,8 @@ export default function EditServicesPage() {
                         title: item.titulo || '',
                         description: item.descripcion || '',
                         details: Array.isArray(item.detalles) ? item.detalles : [],
+                        imageUrl: item.imagen_url || '',
+                        imageFile: undefined,
                     })),
                 });
             }
@@ -173,32 +189,70 @@ export default function EditServicesPage() {
             .replace(/(^-|-$)+/g, '')
             .trim();
 
+    const uploadImage = async (file: File, serviceIndex: number) => {
+        const maxFileSize = 15 * 1024 * 1024;
+        if (file.size > maxFileSize) {
+            throw new Error('La imagen supera 15MB. Comprimila e intentá nuevamente.');
+        }
+
+        const formData = new FormData();
+        formData.append('serviceIndex', String(serviceIndex + 1));
+        formData.append('file', file);
+
+        const response = await fetch('/api/admin/servicios/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload?.error || 'No se pudo subir la imagen del servicio.');
+        }
+
+        if (!payload?.publicUrl || typeof payload.publicUrl !== 'string') {
+            throw new Error('El servidor no devolvió la URL pública de la imagen.');
+        }
+
+        return payload.publicUrl as string;
+    };
+
     async function onSubmit(values: FormValues) {
         setIsSaving(true);
         try {
-            const { error: deleteError } = await supabase
-                .from('servicios')
-                .delete()
-                .not('id', 'is', null);
+            const servicesWithImageUrls = await Promise.all(
+                values.services.map(async (service, index) => {
+                    if (service.imageFile instanceof File) {
+                        const uploadedImageUrl = await uploadImage(service.imageFile, index);
+                        return {
+                            ...service,
+                            imageUrl: uploadedImageUrl,
+                        };
+                    }
 
-            if (deleteError) {
-                throw new Error(deleteError.message);
-            }
+                    return service;
+                })
+            );
 
-            const rows = values.services.map((service, index) => ({
+            const rows = servicesWithImageUrls.map((service, index) => ({
                 titulo: service.title,
                 descripcion: service.description,
                 detalles: service.details,
+                imagen_url: service.imageUrl || null,
                 orden: index,
                 slug: slugify(service.title || `servicio-${index + 1}`),
             }));
 
-            const { error: insertError } = await supabase
-                .from('servicios')
-                .insert(rows);
+            const response = await fetch('/api/admin/servicios/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ services: rows }),
+            });
 
-            if (insertError) {
-                throw new Error(insertError.message);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload?.error || 'No se pudieron guardar los servicios.');
             }
 
             toast({
@@ -307,6 +361,44 @@ export default function EditServicesPage() {
                                             )}
                                         />
 
+                                        <FormField
+                                            control={form.control}
+                                            name={`services.${serviceIndex}.imageFile`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Imagen del Servicio</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            name={field.name}
+                                                            ref={field.ref}
+                                                            onBlur={field.onBlur}
+                                                            onChange={(event) => {
+                                                                const file = event.target.files?.[0];
+                                                                field.onChange(file);
+                                                                if (file) {
+                                                                    const previewUrl = URL.createObjectURL(file);
+                                                                    form.setValue(`services.${serviceIndex}.imageUrl`, previewUrl, { shouldDirty: true });
+                                                                }
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {form.watch(`services.${serviceIndex}.imageUrl`) ? (
+                                            <img
+                                                src={form.watch(`services.${serviceIndex}.imageUrl`)}
+                                                alt={`Preview servicio ${serviceIndex + 1}`}
+                                                className="h-32 w-full rounded-md border object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-32 w-full rounded-md border bg-muted/30" />
+                                        )}
+
                                         <ServiceDetailsArray control={form.control} serviceIndex={serviceIndex} />
                                     </div>
                                 ))}
@@ -315,7 +407,7 @@ export default function EditServicesPage() {
                                 type="button"
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => append({ title: "", description: "", details: [""] })}
+                                onClick={() => append({ title: "", description: "", details: [""], imageUrl: "", imageFile: undefined })}
                             >
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Agregar Servicio
