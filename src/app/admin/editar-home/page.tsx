@@ -37,6 +37,25 @@ const formSchema = z.object({
   productsTitle: z.string().min(5, { message: "El título es muy corto." }),
   productsDescription: z.string().min(10, { message: "La descripción es muy corta." }),
 
+  controladoresTitle: z.string().min(5, { message: "El título es muy corto." }),
+  controladoresDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  controladoresFeature1: z.string().min(5, { message: "El punto es muy corto." }),
+  controladoresFeature2: z.string().min(5, { message: "El punto es muy corto." }),
+  controladoresFeature3: z.string().min(5, { message: "El punto es muy corto." }),
+  controladoresButtonText: z.string().min(2, { message: "El texto del botón es muy corto." }),
+  controladoresButtonLink: z.string().min(1, { message: "El enlace es obligatorio." }),
+  controladoresSectionImage: z.any().optional(),
+
+  coverageTitle: z.string().min(5, { message: "El título es muy corto." }),
+  coverageDescription: z.string().min(10, { message: "La descripción es muy corta." }),
+  coverageLocationsText: z.string().min(5, { message: "Agregá al menos una localidad." }),
+  coverageMapEmbedUrl: z.string().min(10, { message: "El enlace del mapa es muy corto." }),
+  coverageOverlayText: z.string().min(5, { message: "El texto es muy corto." }),
+  coverageOverlayButtonText: z.string().min(2, { message: "El texto del botón es muy corto." }),
+  coverageFooterText: z.string().min(5, { message: "El texto es muy corto." }),
+  coverageFooterLinkText: z.string().min(2, { message: "El texto del enlace es muy corto." }),
+  coverageFooterLinkUrl: z.string().min(1, { message: "El enlace es obligatorio." }),
+
   aboutTitle: z.string().min(5, { message: "El título es muy corto." }),
   aboutDescription: z.string().min(10, { message: "La descripción es muy corta." }),
 
@@ -65,6 +84,23 @@ const defaultValues = {
     servicesDescription: "Ofrecemos una amplia gama de servicios para mantener tus equipos en perfecto estado y optimizar tu entorno tecnológico.",
     productsTitle: "Nuestros Productos",
     productsDescription: "Equipamiento tecnológico para potenciar tu hogar o empresa.",
+    controladoresTitle: "Controladores Fiscales",
+    controladoresDescription: "Equipos homologados por AFIP para garantizar el cumplimiento fiscal y optimizar la gestión de tu negocio. Tecnología avanzada para reportes automáticos y control preciso.",
+    controladoresFeature1: "Cumplimiento total con normativas AFIP",
+    controladoresFeature2: "Procesamiento rápido de transacciones",
+    controladoresFeature3: "Reportes automáticos y detallados",
+    controladoresButtonText: "Ver Más",
+    controladoresButtonLink: "/controladores-fiscales",
+    controladoresSectionImage: undefined,
+    coverageTitle: "Lugares donde trabajamos",
+    coverageDescription: "Conocé las zonas y localidades a las que llegamos con instalación, soporte técnico y soluciones comerciales.",
+    coverageLocationsText: "Alicia\nAltos de Chipión\nArroyito\nBalnearia\nBrinkmann\nClucellas\nColonia San Bartolomé\nDevoto\nEl Tío\nFreyre\nJosefina\nLa Francia\nLa Paquita\nLa Para\nLas Varillas\nMiramar de Ansenuza\nMorteros\nPorteña\nQuebracho Herrado\nSuardi\nTránsito\nSastre\nSaturnino M. Laspiur",
+    coverageMapEmbedUrl: "https://www.google.com/maps/d/u/0/embed?mid=1CqBXj8VZZZaSNDT8zIsZWvNGqVY0PLg&ehbc=2E312F",
+    coverageOverlayText: "Averigua las localidades donde trabajamos y conoce si llegamos hasta tu casa u oficina.",
+    coverageOverlayButtonText: "Ver mapa",
+    coverageFooterText: "¿No encuentras tu localidad en el mapa? Consultanos para verificar si podemos llegar hasta tu zona y ofrecerte nuestros servicios.",
+    coverageFooterLinkText: "Contactanos",
+    coverageFooterLinkUrl: "/contacto",
     aboutTitle: "Sobre Nosotros",
     aboutDescription: "Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.",
     missionTitle: "Misión",
@@ -111,6 +147,7 @@ export default function EditHomePage() {
     carouselMobile1: carouselImage1?.imageUrl || fallbackImage,
     carouselMobile2: carouselImage2?.imageUrl || fallbackImage,
     carouselMobile3: carouselImage3?.imageUrl || fallbackImage,
+    controladores: '/POSBERRY2.png',
   });
   
   useEffect(() => {
@@ -157,6 +194,23 @@ export default function EditHomePage() {
           servicesDescription: data.services_description ?? defaultValues.servicesDescription,
           productsTitle: data.products_title ?? defaultValues.productsTitle,
           productsDescription: data.products_description ?? defaultValues.productsDescription,
+          controladoresTitle: data.controladores_title ?? defaultValues.controladoresTitle,
+          controladoresDescription: data.controladores_description ?? defaultValues.controladoresDescription,
+          controladoresFeature1: data.controladores_feature_1 ?? defaultValues.controladoresFeature1,
+          controladoresFeature2: data.controladores_feature_2 ?? defaultValues.controladoresFeature2,
+          controladoresFeature3: data.controladores_feature_3 ?? defaultValues.controladoresFeature3,
+          controladoresButtonText: data.controladores_button_text ?? defaultValues.controladoresButtonText,
+          controladoresButtonLink: data.controladores_button_link ?? defaultValues.controladoresButtonLink,
+          controladoresSectionImage: undefined,
+          coverageTitle: data.coverage_title ?? defaultValues.coverageTitle,
+          coverageDescription: data.coverage_description ?? defaultValues.coverageDescription,
+          coverageLocationsText: (data.coverage_locations_text ?? defaultValues.coverageLocationsText).replace(/\\n/g, '\n'),
+          coverageMapEmbedUrl: data.coverage_map_embed_url ?? defaultValues.coverageMapEmbedUrl,
+          coverageOverlayText: data.coverage_overlay_text ?? defaultValues.coverageOverlayText,
+          coverageOverlayButtonText: data.coverage_overlay_button_text ?? defaultValues.coverageOverlayButtonText,
+          coverageFooterText: data.coverage_footer_text ?? defaultValues.coverageFooterText,
+          coverageFooterLinkText: data.coverage_footer_link_text ?? defaultValues.coverageFooterLinkText,
+          coverageFooterLinkUrl: data.coverage_footer_link_url ?? defaultValues.coverageFooterLinkUrl,
           aboutTitle: data.about_title ?? defaultValues.aboutTitle,
           aboutDescription: data.about_description ?? defaultValues.aboutDescription,
           missionTitle: data.mission_title ?? defaultValues.missionTitle,
@@ -188,6 +242,7 @@ export default function EditHomePage() {
           carouselMobile1: data.carousel_mobile_image1_url || data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
           carouselMobile2: data.carousel_mobile_image2_url || data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
           carouselMobile3: data.carousel_mobile_image3_url || data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
+          controladores: data.controladores_image_url || '/POSBERRY2.png',
         });
       }
 
@@ -258,6 +313,10 @@ export default function EditHomePage() {
         ? await uploadImage(values.carouselMobileImage3, 'carousel-mobile-3')
         : currentImages.carouselMobile3;
 
+      const controladoresUrl = values.controladoresSectionImage instanceof File
+        ? await uploadImage(values.controladoresSectionImage, 'controladores-home')
+        : currentImages.controladores;
+
       const { error } = await supabase.from('home_content').upsert({
         id: 1,
         hero_title: values.heroTitle,
@@ -267,6 +326,23 @@ export default function EditHomePage() {
         services_description: values.servicesDescription,
         products_title: values.productsTitle,
         products_description: values.productsDescription,
+        controladores_title: values.controladoresTitle,
+        controladores_description: values.controladoresDescription,
+        controladores_feature_1: values.controladoresFeature1,
+        controladores_feature_2: values.controladoresFeature2,
+        controladores_feature_3: values.controladoresFeature3,
+        controladores_button_text: values.controladoresButtonText,
+        controladores_button_link: values.controladoresButtonLink,
+        controladores_image_url: controladoresUrl,
+        coverage_title: values.coverageTitle,
+        coverage_description: values.coverageDescription,
+        coverage_locations_text: values.coverageLocationsText.replace(/\r\n/g, '\n'),
+        coverage_map_embed_url: values.coverageMapEmbedUrl,
+        coverage_overlay_text: values.coverageOverlayText,
+        coverage_overlay_button_text: values.coverageOverlayButtonText,
+        coverage_footer_text: values.coverageFooterText,
+        coverage_footer_link_text: values.coverageFooterLinkText,
+        coverage_footer_link_url: values.coverageFooterLinkUrl,
         about_title: values.aboutTitle,
         about_description: values.aboutDescription,
         mission_title: values.missionTitle,
@@ -302,6 +378,7 @@ export default function EditHomePage() {
         carouselMobile1: carouselMobile1Url,
         carouselMobile2: carouselMobile2Url,
         carouselMobile3: carouselMobile3Url,
+        controladores: controladoresUrl,
       });
 
       toast({
@@ -418,6 +495,81 @@ export default function EditHomePage() {
                                 <FormField control={form.control} name="productsDescription" render={({ field }) => (
                                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                              <h3 className="text-xl font-semibold">Sección "Controladores Fiscales"</h3>
+                              <FormField control={form.control} name="controladoresTitle" render={({ field }) => (
+                                <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="controladoresDescription" render={({ field }) => (
+                                <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="controladoresFeature1" render={({ field }) => (
+                                <FormItem><FormLabel>Punto 1</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="controladoresFeature2" render={({ field }) => (
+                                <FormItem><FormLabel>Punto 2</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="controladoresFeature3" render={({ field }) => (
+                                <FormItem><FormLabel>Punto 3</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <FormField control={form.control} name="controladoresButtonText" render={({ field }) => (
+                                  <FormItem><FormLabel>Texto del botón</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                <FormField control={form.control} name="controladoresButtonLink" render={({ field }) => (
+                                  <FormItem><FormLabel>Enlace del botón</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                              </div>
+                              <ImageUploadField form={form} name="controladoresSectionImage" label="Imagen de la Sección" currentImageUrl={currentImages.controladores} imageAlt="Controladores Fiscales" />
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                              <h3 className="text-xl font-semibold">Sección "Lugares donde trabajamos"</h3>
+                              <FormField control={form.control} name="coverageTitle" render={({ field }) => (
+                                <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageDescription" render={({ field }) => (
+                                <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageLocationsText" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Localidades (una por línea)</FormLabel>
+                                  <FormControl><Textarea rows={8} {...field} /></FormControl>
+                                  <FormDescription>Estas localidades se usan en la tira animada de la sección.</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageMapEmbedUrl" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Enlace embebido del mapa</FormLabel>
+                                  <FormControl><Input {...field} /></FormControl>
+                                  <FormDescription>Pegá la URL del `iframe` de Google Maps.</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageOverlayText" render={({ field }) => (
+                                <FormItem><FormLabel>Texto sobre el mapa bloqueado</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageOverlayButtonText" render={({ field }) => (
+                                <FormItem><FormLabel>Texto del botón del mapa</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <FormField control={form.control} name="coverageFooterText" render={({ field }) => (
+                                <FormItem><FormLabel>Texto final de ayuda</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
+                              )}/>
+                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <FormField control={form.control} name="coverageFooterLinkText" render={({ field }) => (
+                                  <FormItem><FormLabel>Texto del enlace final</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                <FormField control={form.control} name="coverageFooterLinkUrl" render={({ field }) => (
+                                  <FormItem><FormLabel>URL del enlace final</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                              </div>
                             </div>
 
                             <Separator />

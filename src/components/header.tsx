@@ -15,12 +15,15 @@ import {
   BarChart,
   HelpCircle,
   Eye,
+  ChevronLeft,
+  ChevronRight,
+  Receipt,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { LoadingImage } from "@/components/loading-image";
 import {
   Sheet,
   SheetContent,
@@ -43,13 +46,41 @@ const defaultContactInfo = {
   hours_fri: "Viernes de 8:00 a 12:00 y de 15:30 a 19:30",
 };
 
+const adminNavItems = [
+  { href: "/admin/editar-home", label: "Editar Home", icon: Home },
+  { href: "/admin/editar-servicios", label: "Servicio Técnico", icon: Wrench },
+  { href: "/admin/editar-productos", label: "Productos", icon: Package },
+  { href: "/admin/editar-posberry", label: "Posberry", icon: ShoppingBasket },
+  { href: "/admin/editar-controladores-fiscales", label: "Controladores Fiscales", icon: Receipt },
+  { href: "/admin/editar-sobre-nosotros", label: "Sobre Nosotros", icon: Users },
+  { href: "/admin/editar-contacto", label: "Contacto", icon: Mail },
+  { href: "/admin/consultas", label: "Consultas", icon: Inbox },
+  { href: "/admin/estadisticas", label: "Estadísticas", icon: BarChart },
+  { href: "/admin/editar-preguntas-frecuentes", label: "Preguntas Frecuentes", icon: HelpCircle },
+  { href: "/admin/articulos", label: "Articulos (Base de datos)", icon: Package },
+  { href: "/admin/kardex", label: "Kardex (Base de datos)", icon: Package },
+  { href: "/", label: "Ver Sitio Web", icon: Eye },
+];
+
 export function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [contactInfo, setContactInfo] = useState(defaultContactInfo);
+  const adminNavScrollRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
 
   const closeSheet = () => setSheetOpen(false);
+
+  const scrollAdminNav = (direction: "left" | "right") => {
+    if (!adminNavScrollRef.current) {
+      return;
+    }
+
+    adminNavScrollRef.current.scrollBy({
+      left: direction === "left" ? -280 : 280,
+      behavior: "smooth",
+    });
+  };
 
   useEffect(() => {
     const loadContactInfo = async () => {
@@ -76,7 +107,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="mr-6 flex items-center">
-          <Image
+          <LoadingImage
             src="/LOGO1.png"
             alt="Darío Martínez Computación"
             width={60}
@@ -87,89 +118,54 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex md:items-center md:gap-6 text-sm font-medium">
+        <nav className="hidden md:flex md:items-center md:gap-4 text-sm font-medium flex-1 min-w-0">
           {isAdmin ? (
-            <>
-              <Link
-                href="/admin/editar-home"
-                className="transition-colors hover:text-primary flex items-center gap-2"
+            <div className="flex w-full items-center gap-2 min-w-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => scrollAdminNav("left")}
+                aria-label="Desplazar navegación admin a la izquierda"
               >
-                <Home className="h-4 w-4" />
-                Editar Home
-              </Link>
-              
-              <Link
-                href="/admin/editar-servicios"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <Wrench className="h-4 w-4" />
-                Servicio Técnico
-              </Link>
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
 
-              <Link
-                href="/admin/editar-productos"
-                className="transition-colors hover:text-primary flex items-center gap-2"
+              <div
+                ref={adminNavScrollRef}
+                className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               >
-                <Package className="h-4 w-4" />
-                Productos
-              </Link>
+                <div className="flex items-center gap-2 pr-2">
+                  {adminNavItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="shrink-0 rounded-lg border bg-background px-3 py-2 transition-colors hover:bg-muted"
+                      >
+                        <span className="flex items-center gap-2 text-xs font-medium">
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
 
-              <Link
-                href="/admin/editar-posberry"
-                className="transition-colors hover:text-primary flex items-center gap-2"
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => scrollAdminNav("right")}
+                aria-label="Desplazar navegación admin a la derecha"
               >
-                <ShoppingBasket className="h-4 w-4" />
-                Posberry
-              </Link>
-              
-              <Link
-                href="/admin/editar-sobre-nosotros"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <Users className="h-4 w-4" />
-                Sobre Nosotros
-              </Link>
-              
-              <Link
-                href="/admin/editar-contacto"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <Mail className="h-4 w-4" />
-                Contacto
-              </Link>
-
-              <Link
-                href="/admin/consultas"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <Inbox className="h-4 w-4" />
-                Consultas
-              </Link>
-
-              <Link
-                href="/admin/estadisticas"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <BarChart className="h-4 w-4" />
-                Estadísticas
-              </Link>
-
-              <Link
-                href="/admin/editar-preguntas-frecuentes"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <HelpCircle className="h-4 w-4" />
-                Preguntas Frecuentes
-              </Link>
-
-              <Link
-                href="/"
-                className="transition-colors hover:text-primary flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Ver Sitio Web
-              </Link>
-            </>
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
           ) : (
             <>
               <Link
@@ -190,7 +186,7 @@ export function Header() {
                 href="/posberry"
                 className="flex items-center transition-colors hover:text-primary"
               >
-                <Image
+                <LoadingImage
                   src="/LOGOBOSBERRY3.png"
                   alt="Posberry"
                   width={28}
@@ -269,7 +265,7 @@ export function Header() {
                 <SheetHeader>
                   <SheetTitle>
                     <Link href="/" onClick={closeSheet}>
-                      <Image
+                      <LoadingImage
                           src="/LOGO1.png"
                           alt="Darío Martínez Computación"
                           width={60}
@@ -282,86 +278,20 @@ export function Header() {
                 <nav className="grid gap-4 text-lg font-medium mt-8">
                   {isAdmin ? (
                     <>
-                      <Link
-                        href="/admin/editar-home"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Home className="h-5 w-5" />
-                        Editar Home
-                      </Link>
-                      <Link
-                        href="/admin/editar-servicios"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Wrench className="h-5 w-5" />
-                        Servicio Técnico
-                      </Link>
-                      <Link
-                        href="/admin/editar-productos"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Package className="h-5 w-5" />
-                        Productos
-                      </Link>
-                      <Link
-                        href="/admin/editar-posberry"
-                        className="flex items-center px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <ShoppingBasket className="h-5 w-5" />
-                        Posberry
-                      </Link>
-                      <Link
-                        href="/admin/editar-sobre-nosotros"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Users className="h-5 w-5" />
-                        Sobre Nosotros
-                      </Link>
-                      <Link
-                        href="/admin/editar-contacto"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Mail className="h-5 w-5" />
-                        Contacto
-                      </Link>
-                      <Link
-                        href="/admin/consultas"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Inbox className="h-5 w-5" />
-                        Consultas
-                      </Link>
-                      <Link
-                        href="/admin/estadisticas"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <BarChart className="h-5 w-5" />
-                        Estadísticas
-                      </Link>
-                      <Link
-                        href="/admin/editar-preguntas-frecuentes"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <HelpCircle className="h-5 w-5" />
-                        Preguntas Frecuentes
-                      </Link>
-                      <Link
-                        href="/"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        <Eye className="h-5 w-5" />
-                        Ver Sitio Web
-                      </Link>
+                      {adminNavItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                            onClick={closeSheet}
+                          >
+                            <Icon className="h-5 w-5" />
+                            {item.label}
+                          </Link>
+                        );
+                      })}
                     </>
                   ) : (
                     <>
@@ -384,7 +314,7 @@ export function Header() {
                         className="flex items-center px-2.5 text-foreground hover:text-primary"
                         onClick={closeSheet}
                       >
-                        <Image
+                        <LoadingImage
                           src="/LOGOBOSBERRY3.png"
                           alt="Posberry"
                           width={28}

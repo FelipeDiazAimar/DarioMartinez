@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Cpu,
   ShieldCheck,
@@ -30,6 +29,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { LoadingImage } from '@/components/loading-image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { supabase } from '@/lib/supabase-client';
 
@@ -204,8 +204,8 @@ export default function ServiciosPage() {
                             <CardContent className="pt-4">
                                 <div className="grid gap-6 md:grid-cols-3">
                                     <div className="md:col-span-1">
-                                        <Image
-                                        src={service.imageUrl || serviceImage?.imageUrl || `https://picsum.photos/seed/${service.imageId}/600/400`}
+                                        <LoadingImage
+                                        src={service.imageUrl || serviceImage?.imageUrl || ''}
                                         alt={service.title}
                                         width={600}
                                         height={400}

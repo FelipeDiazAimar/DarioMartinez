@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   CheckCircle,
@@ -22,8 +21,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingImage } from '@/components/loading-image';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { supabase } from '@/lib/supabase-client';
+import { useInView } from '@/hooks/use-in-view';
+import { cn } from '@/lib/utils';
 
 const defaultPosberryContent = {
   heroTitle: 'Simple, flexible y confiable',
@@ -104,6 +106,12 @@ const defaultPosberryContent = {
 
 export default function PosberryPage() {
   const [content, setContent] = useState(defaultPosberryContent);
+  const [heroRef, heroInView] = useInView({ threshold: 0.1 });
+  const [whyChooseRef, whyChooseInView] = useInView({ threshold: 0.1 });
+  const [coreRef, coreInView] = useInView({ threshold: 0.1 });
+  const [advancedRef, advancedInView] = useInView({ threshold: 0.1 });
+  const [integrationsRef, integrationsInView] = useInView({ threshold: 0.1 });
+  const [ctaRef, ctaInView] = useInView({ threshold: 0.1 });
 
   useEffect(() => {
     const loadPosberry = async () => {
@@ -183,11 +191,14 @@ export default function PosberryPage() {
   return (
     <div className="bg-white text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-white text-foreground py-20 md:py-32">
+      <section
+        ref={heroRef}
+        className={cn('relative bg-white text-foreground py-20 md:py-32 opacity-0', heroInView && 'animate-fade-in')}
+      >
         <div className="container relative z-10 mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-            <div className="space-y-6 text-center lg:text-left">
-              <Image
+            <div className={cn('space-y-6 text-center opacity-0 lg:text-left', heroInView && 'animate-slide-in-from-left')}>
+              <LoadingImage
                 src="/LOGOBOSBERRY3.png"
                 alt="POSBerry Logo"
                 width={200}
@@ -213,8 +224,8 @@ export default function PosberryPage() {
                 </div>
               </div>
             </div>
-            <div className="flex justify-center">
-              <Image
+            <div className={cn('flex justify-center opacity-0', heroInView && 'animate-slide-in-from-right')}>
+              <LoadingImage
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
                 width={512}
@@ -228,9 +239,12 @@ export default function PosberryPage() {
       </section>
 
       {/* Why Choose Section */}
-      <section className="py-12 md:py-24 lg:py-32">
+      <section
+        ref={whyChooseRef}
+        className={cn('py-12 md:py-24 lg:py-32 opacity-0', whyChooseInView && 'animate-fade-in')}
+      >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-12 text-center">
+          <div className={cn('mb-12 text-center opacity-0', whyChooseInView && 'animate-fade-in')}>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
               {content.whyChooseTitle}
             </h2>
@@ -239,8 +253,12 @@ export default function PosberryPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {whyChooseFeatures.map((feature) => (
-              <div key={feature.title} className="flex flex-col items-center text-center">
+            {whyChooseFeatures.map((feature, index) => (
+              <div
+                key={feature.title}
+                className={cn('flex flex-col items-center text-center opacity-0', whyChooseInView && 'animate-slide-in-from-bottom')}
+                style={{ animationDelay: `${index * 120}ms` }}
+              >
                 <div className="grid h-20 w-20 place-items-center rounded-full bg-primary/10 mb-4">
                     {feature.icon}
                 </div>
@@ -253,9 +271,12 @@ export default function PosberryPage() {
       </section>
 
       {/* Core Features Section */}
-      <section className="bg-muted py-12 md:py-24 lg:py-32">
+      <section
+        ref={coreRef}
+        className={cn('bg-muted py-12 md:py-24 lg:py-32 opacity-0', coreInView && 'animate-fade-in')}
+      >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-12 text-center">
+          <div className={cn('mb-12 text-center opacity-0', coreInView && 'animate-fade-in')}>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
               {content.coreFeaturesTitle}
             </h2>
@@ -264,8 +285,15 @@ export default function PosberryPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {coreFeatures.map((feature) => (
-              <Card key={feature.title} className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+            {coreFeatures.map((feature, index) => (
+              <Card
+                key={feature.title}
+                className={cn(
+                  'transform opacity-0 transition-transform duration-300 hover:scale-105 hover:shadow-xl',
+                  coreInView && 'animate-slide-in-from-bottom'
+                )}
+                style={{ animationDelay: `${index * 120}ms` }}
+              >
                 <CardHeader className="flex flex-row items-center gap-4">
                   <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                     {feature.icon}
@@ -287,9 +315,12 @@ export default function PosberryPage() {
       </section>
 
         {/* Advanced Features Section */}
-        <section className="py-12 md:py-24 lg:py-32">
+        <section
+          ref={advancedRef}
+          className={cn('py-12 md:py-24 lg:py-32 opacity-0', advancedInView && 'animate-fade-in')}
+        >
             <div className="container mx-auto px-4 md:px-6">
-                <div className="mb-12 text-center">
+            <div className={cn('mb-12 text-center opacity-0', advancedInView && 'animate-fade-in')}>
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
                     {content.advancedFeaturesTitle}
                     </h2>
@@ -298,8 +329,12 @@ export default function PosberryPage() {
                     </p>
                 </div>
                 <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-                    {advancedFeatures.map((feature) => (
-                    <div key={feature.title} className="flex items-start gap-4">
+                    {advancedFeatures.map((feature, index) => (
+                    <div
+                      key={feature.title}
+                      className={cn('flex items-start gap-4 opacity-0', advancedInView && 'animate-slide-in-from-bottom')}
+                      style={{ animationDelay: `${index * 120}ms` }}
+                    >
                         <div className="flex-shrink-0">{feature.icon}</div>
                         <div>
                         <h3 className="text-lg font-bold">{feature.title}</h3>
@@ -313,9 +348,13 @@ export default function PosberryPage() {
 
 
       {/* Integrations Section */}
-      <section id="integrations" className="bg-muted py-12 md:py-24 lg:py-32">
+      <section
+        id="integrations"
+        ref={integrationsRef}
+        className={cn('bg-muted py-12 md:py-24 lg:py-32 opacity-0', integrationsInView && 'animate-fade-in')}
+      >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-12 text-center">
+          <div className={cn('mb-12 text-center opacity-0', integrationsInView && 'animate-fade-in')}>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
               Integraciones de Pago
             </h2>
@@ -324,19 +363,34 @@ export default function PosberryPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <Image src="/mercadopago.png" alt="Mercado Pago" width={150} height={40} className="h-10 w-auto" />
-            <Image src="/fiserv.png" alt="Fiserv" width={120} height={40} className="h-10 w-auto" />
-            <Image src="/clover.png" alt="Clover" width={140} height={40} className="h-10 w-auto" />
-            <Image src="/payway.png" alt="Payway" width={130} height={40} className="h-10 w-auto" />
-            <Image src="/pvs.png" alt="PVS SuperPOS" width={100} height={40} className="h-10 w-auto" />
-            <Image src="/bind.png" alt="QR Bind" width={90} height={40} className="h-10 w-auto" />
+            {[
+              { src: '/mercadopago.png', alt: 'Mercado Pago', width: 150 },
+              { src: '/fiserv.png', alt: 'Fiserv', width: 120 },
+              { src: '/clover.png', alt: 'Clover', width: 140 },
+              { src: '/payway.png', alt: 'Payway', width: 130 },
+              { src: '/pvs.png', alt: 'PVS SuperPOS', width: 100 },
+              { src: '/bind.png', alt: 'QR Bind', width: 90 },
+            ].map((integration, index) => (
+              <LoadingImage
+                key={integration.alt}
+                src={integration.src}
+                alt={integration.alt}
+                width={integration.width}
+                height={40}
+                className={cn('h-10 w-auto opacity-0', integrationsInView && 'animate-slide-in-from-bottom')}
+                style={{ animationDelay: `${index * 100}ms` }}
+              />
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary text-primary-foreground py-20 md:py-24">
-        <div className="container mx-auto px-4 md:px-6 text-center">
+      <section
+        ref={ctaRef}
+        className={cn('bg-primary py-20 text-primary-foreground opacity-0 md:py-24', ctaInView && 'animate-fade-in')}
+      >
+        <div className={cn('container mx-auto px-4 text-center opacity-0 md:px-6', ctaInView && 'animate-slide-in-from-bottom')}>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">
             ¿Listo para transformar tu negocio?
           </h2>

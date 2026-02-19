@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import * as React from 'react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -41,6 +40,7 @@ import { ContactForm } from '@/components/contact-form';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
+import { LoadingImage } from '@/components/loading-image';
 import { useInView } from '@/hooks/use-in-view';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase-client';
@@ -91,6 +91,32 @@ const clientLogos = [
   { name: 'Posberry 2', src: '/POSBERRY2.png' },
 ];
 
+const defaultCoverageLocations = [
+  'Alicia',
+  'Altos de Chipión',
+  'Arroyito',
+  'Balnearia',
+  'Brinkmann',
+  'Clucellas',
+  'Colonia San Bartolomé',
+  'Devoto',
+  'El Tío',
+  'Freyre',
+  'Josefina',
+  'La Francia',
+  'La Paquita',
+  'La Para',
+  'Las Varillas',
+  'Miramar de Ansenuza',
+  'Morteros',
+  'Porteña',
+  'Quebracho Herrado',
+  'Suardi',
+  'Tránsito',
+  'Sastre',
+  'Saturnino M. Laspiur',
+];
+
 type HomeProduct = {
   imageId: string;
   title: string;
@@ -138,6 +164,23 @@ const defaultHomeContent = {
   services_description: 'Ofrecemos una amplia gama de servicios para mantener tus equipos en perfecto estado y optimizar tu entorno tecnológico.',
   products_title: 'Nuestros Productos',
   products_description: 'Equipamiento tecnológico para potenciar tu hogar o empresa.',
+  controladores_title: 'Controladores Fiscales',
+  controladores_description: 'Equipos homologados por AFIP para garantizar el cumplimiento fiscal y optimizar la gestión de tu negocio. Tecnología avanzada para reportes automáticos y control preciso.',
+  controladores_feature_1: 'Cumplimiento total con normativas AFIP',
+  controladores_feature_2: 'Procesamiento rápido de transacciones',
+  controladores_feature_3: 'Reportes automáticos y detallados',
+  controladores_button_text: 'Ver Más',
+  controladores_button_link: '/controladores-fiscales',
+  controladores_image_url: '/POSBERRY2.png',
+  coverage_title: 'Lugares donde trabajamos',
+  coverage_description: 'Conocé las zonas y localidades a las que llegamos con instalación, soporte técnico y soluciones comerciales.',
+  coverage_locations_text: defaultCoverageLocations.join('\n'),
+  coverage_map_embed_url: 'https://www.google.com/maps/d/u/0/embed?mid=1CqBXj8VZZZaSNDT8zIsZWvNGqVY0PLg&ehbc=2E312F',
+  coverage_overlay_text: 'Averigua las localidades donde trabajamos y conoce si llegamos hasta tu casa u oficina.',
+  coverage_overlay_button_text: 'Ver mapa',
+  coverage_footer_text: '¿No encuentras tu localidad en el mapa? Consultanos para verificar si podemos llegar hasta tu zona y ofrecerte nuestros servicios.',
+  coverage_footer_link_text: 'Contactanos',
+  coverage_footer_link_url: '/contacto',
   about_title: 'Sobre Nosotros',
   about_description: 'Somos una empresa con más de 20 años de experiencia en el sector tecnológico, brindando soluciones integrales a nuestros clientes. Nuestro compromiso es ofrecer un servicio de calidad, con atención personalizada y los mejores productos del mercado.',
   mission_title: 'Misión',
@@ -164,6 +207,8 @@ const defaultHomeContent = {
 export default function Home() {
   const [homeContent, setHomeContent] = React.useState(defaultHomeContent);
   const [homeProducts, setHomeProducts] = React.useState<HomeProduct[]>(products);
+  const [isHomeContentLoaded, setIsHomeContentLoaded] = React.useState(false);
+  const [isCoverageMapUnlocked, setIsCoverageMapUnlocked] = React.useState(false);
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
   const carouselImages = PlaceHolderImages.filter(img => img.id.startsWith('carousel-'));
   const desktopPlugin = React.useRef(
@@ -182,36 +227,48 @@ export default function Home() {
   const [coberturaRef, coberturaInView] = useInView({ threshold: 0.1 });
   const [contactoRef, contactoInView] = useInView({ threshold: 0.1 });
 
+  const normalizedCoverageLocationsText = (homeContent.coverage_locations_text || defaultHomeContent.coverage_locations_text)
+    .replace(/\\n/g, '\n');
+
+  const coverageLocations = normalizedCoverageLocationsText
+    .split(/\r?\n/)
+    .map((location: string) => location.trim())
+    .filter(Boolean);
+
   React.useEffect(() => {
     const loadHomeContent = async () => {
-      const { data } = await supabase
-        .from('home_content')
-        .select('*')
-        .eq('id', 1)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from('home_content')
+          .select('*')
+          .eq('id', 1)
+          .maybeSingle();
 
-      if (data) {
-        setHomeContent({
-          ...defaultHomeContent,
-          ...data,
-        });
-      }
+        if (data) {
+          setHomeContent({
+            ...defaultHomeContent,
+            ...data,
+          });
+        }
 
-      const { data: productsData } = await supabase
-        .from('productos')
-        .select('slug, titulo, descripcion, imagen_url, orden')
-        .order('orden', { ascending: true })
-        .limit(6);
+        const { data: productsData } = await supabase
+          .from('productos')
+          .select('slug, titulo, descripcion, imagen_url, orden')
+          .order('orden', { ascending: true })
+          .limit(6);
 
-      if (productsData && productsData.length > 0) {
-        setHomeProducts(
-          productsData.map((item: any, index: number) => ({
-            imageId: item.slug || `product-${index + 1}`,
-            title: item.titulo || '',
-            description: item.descripcion || '',
-            imageUrl: item.imagen_url || undefined,
-          }))
-        );
+        if (productsData && productsData.length > 0) {
+          setHomeProducts(
+            productsData.map((item: any, index: number) => ({
+              imageId: item.slug || `product-${index + 1}`,
+              title: item.titulo || '',
+              description: item.descripcion || '',
+              imageUrl: item.imagen_url || undefined,
+            }))
+          );
+        }
+      } finally {
+        setIsHomeContentLoaded(true);
       }
     };
 
@@ -231,7 +288,7 @@ export default function Home() {
         description: `Imagen ${index + 1} del carrusel`,
         imageHint: 'home carousel',
       }))
-    : carouselImages;
+    : [];
 
   const savedMobileCarouselImages = [
     homeContent.carousel_mobile_image1_url,
@@ -251,65 +308,90 @@ export default function Home() {
   return (
     <>
       <section className="w-full relative">
-        <Carousel
-          plugins={[desktopPlugin.current]}
-          className="hidden md:block w-full"
-          onMouseEnter={desktopPlugin.current.stop}
-          onMouseLeave={desktopPlugin.current.reset}
-          opts={{
-            loop: true,
-          }}
-        >
-          <CarouselContent>
-            {carouselImagesToRender.map((image, index) => (
-              <CarouselItem key={image.id}>
-                <div className="relative w-full h-[500px] lg:h-[600px]">
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.description}
-                    data-ai-hint={image.imageHint}
-                    fill
-                    className="object-cover"
-                    priority={index === 0}
-                    sizes="100vw"
-                  />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
-          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
-        </Carousel>
+        {!isHomeContentLoaded ? (
+          <>
+            <div className="hidden md:block relative w-full h-[500px] lg:h-[600px] bg-muted/30">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+              </div>
+            </div>
+            <div className="block md:hidden relative w-full aspect-[9/16] bg-muted/30">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {carouselImagesToRender.length > 0 ? (
+              <Carousel
+                plugins={[desktopPlugin.current]}
+                className="hidden md:block w-full"
+                onMouseEnter={desktopPlugin.current.stop}
+                onMouseLeave={desktopPlugin.current.reset}
+                opts={{
+                  loop: true,
+                }}
+              >
+                <CarouselContent>
+                  {carouselImagesToRender.map((image, index) => (
+                    <CarouselItem key={image.id}>
+                      <div className="relative w-full h-[500px] lg:h-[600px]">
+                        <LoadingImage
+                          src={image.imageUrl}
+                          alt={image.description}
+                          data-ai-hint={image.imageHint}
+                          fill
+                          className="object-cover"
+                          priority={index === 0}
+                          sizes="100vw"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
+                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors sm:h-12 sm:w-12" />
+              </Carousel>
+            ) : (
+              <div className="hidden md:block relative w-full h-[500px] lg:h-[600px] bg-muted/30" />
+            )}
 
-        <Carousel
-          plugins={[mobilePlugin.current]}
-          className="block md:hidden w-full"
-          onMouseEnter={mobilePlugin.current.stop}
-          onMouseLeave={mobilePlugin.current.reset}
-          opts={{
-            loop: true,
-          }}
-        >
-          <CarouselContent>
-            {mobileCarouselImagesToRender.map((image, index) => (
-              <CarouselItem key={image.id}>
-                <div className="relative w-full aspect-[9/16]">
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.description}
-                    data-ai-hint={image.imageHint}
-                    fill
-                    className="object-cover"
-                    priority={index === 0}
-                    sizes="100vw"
-                  />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
-          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
-        </Carousel>
+            {mobileCarouselImagesToRender.length > 0 ? (
+              <Carousel
+                plugins={[mobilePlugin.current]}
+                className="block md:hidden w-full"
+                onMouseEnter={mobilePlugin.current.stop}
+                onMouseLeave={mobilePlugin.current.reset}
+                opts={{
+                  loop: true,
+                }}
+              >
+                <CarouselContent>
+                  {mobileCarouselImagesToRender.map((image, index) => (
+                    <CarouselItem key={image.id}>
+                      <div className="relative w-full aspect-[9/16]">
+                        <LoadingImage
+                          src={image.imageUrl}
+                          alt={image.description}
+                          data-ai-hint={image.imageHint}
+                          fill
+                          className="object-cover"
+                          priority={index === 0}
+                          sizes="100vw"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
+                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/30 text-white border-none hover:bg-black/50 transition-colors" />
+              </Carousel>
+            ) : (
+              <div className="block md:hidden relative w-full aspect-[9/16] bg-muted/30" />
+            )}
+          </>
+        )}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
           <Link href="#inicio" aria-label="Bajar a la siguiente sección">
             <ChevronDown className="h-12 w-12 text-primary animate-bounce rounded-full bg-background/70 p-2 backdrop-blur-sm" />
@@ -321,9 +403,9 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12">
             <div className={cn("w-full max-w-md mx-auto sm:max-w-none opacity-0", inicioInView && "animate-slide-in-from-left")}>
-                <Image
-                src={homeContent.hero_image_url || heroImage?.imageUrl || "https://picsum.photos/seed/computer-repair-tools/600/400"}
-                data-ai-hint={heroImage?.imageHint || "computer repair"}
+              <LoadingImage
+              src={homeContent.hero_image_url || heroImage?.imageUrl || '/FOTOFRENTE.jpeg'}
+              data-ai-hint={heroImage?.imageHint || "computer repair"}
                 alt="Hero"
                 width={600}
                 height={400}
@@ -419,8 +501,8 @@ export default function Home() {
                return (
                   <div key={product.title} className={cn("opacity-0", productosInView && 'animate-slide-in-from-bottom')} style={{animationDelay: `${index * 150}ms`}}>
                     <Card className="flex flex-col h-full overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-                      <Image
-                        src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                      <LoadingImage
+                        src={product.imageUrl || productImage?.imageUrl || ''}
                         data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                         alt={product.title}
                         width={600}
@@ -453,8 +535,8 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="mx-auto grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12">
             <div className={cn("opacity-0", controladoresInView && "animate-slide-in-from-left")}>
-              <Image
-                src="https://picsum.photos/seed/fiscal-control/600/400"
+              <LoadingImage
+                src={homeContent.controladores_image_url || '/POSBERRY2.png'}
                 alt="Controladores Fiscales"
                 width={600}
                 height={400}
@@ -464,29 +546,29 @@ export default function Home() {
             <div className={cn("space-y-4 opacity-0", controladoresInView && "animate-slide-in-from-right")}>
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                  Controladores Fiscales
+                  {homeContent.controladores_title}
                 </h2>
                 <p className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Equipos homologados por AFIP para garantizar el cumplimiento fiscal y optimizar la gestión de tu negocio. Tecnología avanzada para reportes automáticos y control preciso.
+                  {homeContent.controladores_description}
                 </p>
               </div>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-primary"></div>
-                  Cumplimiento total con normativas AFIP
+                  {homeContent.controladores_feature_1}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-primary"></div>
-                  Procesamiento rápido de transacciones
+                  {homeContent.controladores_feature_2}
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-primary"></div>
-                  Reportes automáticos y detallados
+                  {homeContent.controladores_feature_3}
                 </li>
               </ul>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/controladores-fiscales">
-                  Ver Más
+                <Link href={homeContent.controladores_button_link} target={homeContent.controladores_button_link?.startsWith('http') ? '_blank' : undefined}>
+                  {homeContent.controladores_button_text}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -513,7 +595,7 @@ export default function Home() {
           </div>
           <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
             <div className={cn("opacity-0", sobreNosotrosInView && "animate-slide-in-from-right")}>
-              <Image
+              <LoadingImage
                 src="/FOTOFRENTE.jpeg"
                 alt="Frente del local Darío Martínez Computación"
                 width="600"
@@ -606,7 +688,7 @@ export default function Home() {
                         key={`client-row-${rowIndex}-${logo.name}-${index}`}
                         className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
                       >
-                        <Image
+                        <LoadingImage
                           src={logo.src}
                           alt={logo.name}
                           width={100}
@@ -632,27 +714,71 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="mx-auto max-w-4xl space-y-3 text-center">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-              Lugares donde trabajamos
+              {homeContent.coverage_title}
             </h2>
             <p className="text-foreground/80 md:text-xl">
-              Conocé las zonas y localidades a las que llegamos con instalación, soporte técnico y soluciones comerciales.
+              {homeContent.coverage_description}
             </p>
+          </div>
+        </div>
+
+        <div className="mt-6 overflow-hidden">
+          <div className="clients-marquee-right flex min-w-max items-center gap-3 px-4 md:px-6">
+            {[...coverageLocations, ...coverageLocations].map((location, index) => (
+              <div
+                key={`coverage-location-${location}-${index}`}
+                className="rounded-full bg-muted px-5 py-2 text-sm font-medium text-foreground/80"
+              >
+                {location}
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="mt-8 w-full">
           <div className="relative aspect-[4/3] w-full overflow-hidden md:aspect-[16/9]">
             <iframe
-              src="https://www.google.com/maps/d/u/0/embed?mid=1CqBXj8VZZZaSNDT8zIsZWvNGqVY0PLg&ehbc=2E312F"
+              src={homeContent.coverage_map_embed_url}
               width="100%"
               height="100%"
               title="Mapa de cobertura de servicios"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="absolute left-0 top-[-56px] h-[calc(100%+56px)] w-full border-0"
+              className={cn(
+                'absolute left-0 top-[-56px] h-[calc(100%+56px)] w-full border-0',
+                isCoverageMapUnlocked ? 'pointer-events-auto' : 'pointer-events-none'
+              )}
             />
+            {!isCoverageMapUnlocked && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/35 backdrop-blur-sm">
+                <div className="text-center space-y-4 max-w-md px-4">
+                  <p className="text-lg font-medium text-foreground">
+                    {homeContent.coverage_overlay_text}
+                  </p>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="rounded-full"
+                    onClick={() => setIsCoverageMapUnlocked(true)}
+                  >
+                    {homeContent.coverage_overlay_button_text}
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-background" />
           </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            {homeContent.coverage_footer_text}
+          </p>
+          <p className="text-primary font-medium mt-2">
+            <Link href={homeContent.coverage_footer_link_url} className="hover:underline">
+              {homeContent.coverage_footer_link_text}
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -663,7 +789,7 @@ export default function Home() {
       >
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
-            <Image
+            <LoadingImage
                 src="/LOGO1.png"
                 alt="Darío Martínez Computación"
                 width={200}

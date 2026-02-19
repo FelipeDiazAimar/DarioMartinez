@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Instagram, ArrowRight, Clock, Phone, Mail } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -12,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { LoadingImage } from "@/components/loading-image";
 import { WhatsAppIcon } from "./icons/whatsapp-icon";
 import { FacebookIcon } from "./icons/facebook-icon";
 import { MapsIcon } from "./icons/maps-icon";
@@ -108,7 +108,7 @@ export function Footer() {
         <div className="flex flex-col items-start gap-4 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-[108px] w-[108px]">
-              <Image
+              <LoadingImage
                 src="/LOGO1.png"
                 alt="Darío Martínez Computación"
                 width={108}

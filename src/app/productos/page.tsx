@@ -1,10 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import * as React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { LoadingImage } from '@/components/loading-image';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
@@ -1166,8 +1166,8 @@ function ProductosPageContent() {
                                 isExpanded && 'rounded-b-none'
                             )}
                             >
-                            <Image
-                              src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                            <LoadingImage
+                              src={product.imageUrl || productImage?.imageUrl || ''}
                                 data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 width={600}
@@ -1237,8 +1237,8 @@ function ProductosPageContent() {
                             )}
                         >
                             <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                            <Image
-                              src={product.imageUrl || productImage?.imageUrl || `https://picsum.photos/seed/${product.imageId}/600/400`}
+                            <LoadingImage
+                              src={product.imageUrl || productImage?.imageUrl || ''}
                                 data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
                                 alt={product.title}
                                 fill

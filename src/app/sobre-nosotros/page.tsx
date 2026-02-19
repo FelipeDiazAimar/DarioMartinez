@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import {
   Award,
   BrainCircuit,
@@ -16,6 +15,7 @@ import {
   ArrowRight,
   Clock,
 } from 'lucide-react';
+import { LoadingImage } from '@/components/loading-image';
 import { supabase } from '@/lib/supabase-client';
 
 const defaultAboutContent = {
@@ -132,7 +132,7 @@ export default function SobreNosotrosPage() {
                                 Adaptándonos a los nuevos tiempos, sin perder la esencia.
                             </p>
                             <div className="mt-8 flex flex-row items-center justify-center gap-x-2 sm:gap-x-4">
-                                <Image
+                                <LoadingImage
                                     src="/LOGO3.png"
                                     alt="Logo Antiguo"
                                     width={150}
@@ -140,7 +140,7 @@ export default function SobreNosotrosPage() {
                                     className="h-auto w-28 sm:w-36"
                                 />
                                 <ArrowRight className="h-8 w-8 flex-shrink-0 text-primary sm:h-12 sm:w-12" />
-                                <Image
+                                <LoadingImage
                                     src="/LOGO1.png"
                                     alt="Logo Nuevo"
                                     width={180}
@@ -151,7 +151,7 @@ export default function SobreNosotrosPage() {
                         </div>
                     </div>
                      <div className="sticky top-24 grid gap-8">
-                         <Image
+                                 <LoadingImage
                             src="/FOTOFRENTE.jpeg"
                             alt="Taller de Darío Martínez Computación"
                             width="600"

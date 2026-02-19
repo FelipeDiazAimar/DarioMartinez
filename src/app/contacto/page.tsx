@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ContactForm } from '@/components/contact-form';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Instagram } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
+import { LoadingImage } from '@/components/loading-image';
 import { supabase } from '@/lib/supabase-client';
 
 const defaultContactInfo = {
@@ -56,7 +56,7 @@ export default function ContactoPage() {
       >
         <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
-            <Image
+            <LoadingImage
                 src="/LOGO1.png"
                 alt="Darío Martínez Computación"
                 width={200}
