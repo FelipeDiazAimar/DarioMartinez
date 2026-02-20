@@ -117,6 +117,11 @@ const defaultCoverageLocations = [
   'Saturnino M. Laspiur',
 ];
 
+const repeatItems = <T,>(items: T[], times: number): T[] => {
+  if (times <= 1) return [...items];
+  return Array.from({ length: times }, () => items).flat();
+};
+
 type HomeProduct = {
   imageId: string;
   title: string;
@@ -706,11 +711,12 @@ export default function Home() {
             {Array.from({ length: 5 }).map((_, rowIndex) => {
               const isRightDirection = rowIndex % 2 !== 0;
               const logos = isRightDirection ? [...clientsToRender].reverse() : clientsToRender;
+              const infiniteLogos = repeatItems(logos, 8);
 
               return (
                 <div
                   key={`client-row-${rowIndex}`}
-                  className={cn('overflow-hidden px-4 md:px-6', rowIndex > 2 && 'hidden md:block')}
+                  className={cn('overflow-x-hidden overflow-y-visible px-4 py-1 md:px-6', rowIndex > 2 && 'hidden md:block')}
                 >
                   <div
                     className={cn(
@@ -721,21 +727,21 @@ export default function Home() {
                     {[0, 1].map((groupIndex) => (
                       <div
                         key={`client-row-${rowIndex}-group-${groupIndex}`}
-                        className="flex shrink-0 items-center gap-4"
+                        className="flex shrink-0 items-center gap-4 py-1"
                         aria-hidden={groupIndex === 1}
                       >
-                        {logos.map((logo, index) => (
+                        {infiniteLogos.map((logo, index) => (
                           <div
                             key={`client-row-${rowIndex}-${groupIndex}-${logo.name}-${index}`}
-                            className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
+                            className="flex shrink-0 items-center gap-3 rounded-full bg-background px-5 py-3"
                           >
                             <img
                               src={logo.src}
                               alt={logo.name}
-                              className="h-7 w-auto object-contain"
+                              className="block h-7 w-auto shrink-0 object-contain"
                               loading="eager"
                             />
-                            <span className="whitespace-nowrap text-sm font-medium text-foreground/80">{logo.name}</span>
+                            <span className="whitespace-nowrap text-sm font-medium leading-none text-foreground/80">{logo.name}</span>
                           </div>
                         ))}
                       </div>
