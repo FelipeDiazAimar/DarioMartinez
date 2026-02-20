@@ -688,25 +688,36 @@ export default function Home() {
               const logos = isRightDirection ? [...clientsToRender].reverse() : clientsToRender;
 
               return (
-                <div key={`client-row-${rowIndex}`} className="overflow-hidden">
+                <div
+                  key={`client-row-${rowIndex}`}
+                  className={cn('overflow-hidden px-4 md:px-6', rowIndex > 2 && 'hidden md:block')}
+                >
                   <div
                     className={cn(
                       isRightDirection ? 'clients-marquee-right' : 'clients-marquee-left',
-                      'flex min-w-max items-center gap-4'
+                      'flex w-max items-center will-change-transform'
                     )}
                   >
-                    {[...logos, ...logos].map((logo, index) => (
+                    {[0, 1].map((groupIndex) => (
                       <div
-                        key={`client-row-${rowIndex}-${logo.name}-${index}`}
-                        className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
+                        key={`client-row-${rowIndex}-group-${groupIndex}`}
+                        className="flex shrink-0 items-center gap-4"
+                        aria-hidden={groupIndex === 1}
                       >
-                        <img
-                          src={logo.src}
-                          alt={logo.name}
-                          className="h-7 w-auto object-contain"
-                          loading="lazy"
-                        />
-                        <span className="whitespace-nowrap text-sm font-medium text-foreground/80">{logo.name}</span>
+                        {logos.map((logo, index) => (
+                          <div
+                            key={`client-row-${rowIndex}-${groupIndex}-${logo.name}-${index}`}
+                            className="flex items-center gap-3 rounded-full bg-background px-5 py-3"
+                          >
+                            <img
+                              src={logo.src}
+                              alt={logo.name}
+                              className="h-7 w-auto object-contain"
+                              loading="eager"
+                            />
+                            <span className="whitespace-nowrap text-sm font-medium text-foreground/80">{logo.name}</span>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
