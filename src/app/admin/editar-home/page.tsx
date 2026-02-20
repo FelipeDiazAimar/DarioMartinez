@@ -13,11 +13,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home, Check, Undo2, Pencil, PlusCircle, Trash2 } from 'lucide-react';
+import { Home, Check, Undo2, Pencil, PlusCircle, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase-client';
+
+type CarouselEditorItem = {
+  id: string;
+  url: string;
+  file?: File;
+};
+
+const createCarouselEditorItem = (url: string): CarouselEditorItem => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+  url,
+});
+
+const normalizeCarouselUrls = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter((item) => item.length > 0);
+};
+
+const moveCarouselItem = (items: CarouselEditorItem[], index: number, direction: 'up' | 'down') => {
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+  if (targetIndex < 0 || targetIndex >= items.length) return items;
+
+  const nextItems = [...items];
+  const [moved] = nextItems.splice(index, 1);
+  nextItems.splice(targetIndex, 0, moved);
+  return nextItems;
+};
 
 const defaultClients = [
   { name: 'Bind', logoUrl: '/bind.png' },
@@ -179,14 +209,20 @@ export default function EditHomePage() {
 
   const [currentImages, setCurrentImages] = useState({
     hero: heroImage?.imageUrl || fallbackImage,
-    carousel1: carouselImage1?.imageUrl || fallbackImage,
-    carousel2: carouselImage2?.imageUrl || fallbackImage,
-    carousel3: carouselImage3?.imageUrl || fallbackImage,
-    carouselMobile1: carouselImage1?.imageUrl || fallbackImage,
-    carouselMobile2: carouselImage2?.imageUrl || fallbackImage,
-    carouselMobile3: carouselImage3?.imageUrl || fallbackImage,
     controladores: '/POSBERRY2.png',
   });
+
+  const [carouselDesktopItems, setCarouselDesktopItems] = useState<CarouselEditorItem[]>([
+    createCarouselEditorItem(carouselImage1?.imageUrl || fallbackImage),
+    createCarouselEditorItem(carouselImage2?.imageUrl || fallbackImage),
+    createCarouselEditorItem(carouselImage3?.imageUrl || fallbackImage),
+  ]);
+
+  const [carouselMobileItems, setCarouselMobileItems] = useState<CarouselEditorItem[]>([
+    createCarouselEditorItem(carouselImage1?.imageUrl || fallbackImage),
+    createCarouselEditorItem(carouselImage2?.imageUrl || fallbackImage),
+    createCarouselEditorItem(carouselImage3?.imageUrl || fallbackImage),
+  ]);
   
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -234,6 +270,33 @@ export default function EditHomePage() {
       }
 
       if (data) {
+        const desktopFromArray = normalizeCarouselUrls((data as any).carousel_images);
+        const mobileFromArray = normalizeCarouselUrls((data as any).carousel_mobile_images);
+
+        const desktopFallback = [
+          data.carousel_image1_url,
+          data.carousel_image2_url,
+          data.carousel_image3_url,
+        ].filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+
+        const mobileFallback = [
+          data.carousel_mobile_image1_url,
+          data.carousel_mobile_image2_url,
+          data.carousel_mobile_image3_url,
+        ].filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+
+        const desktopUrls = desktopFromArray.length > 0
+          ? desktopFromArray
+          : desktopFallback.length > 0
+            ? desktopFallback
+            : [carouselImage1?.imageUrl || fallbackImage];
+
+        const mobileUrls = mobileFromArray.length > 0
+          ? mobileFromArray
+          : mobileFallback.length > 0
+            ? mobileFallback
+            : desktopUrls;
+
         form.reset({
           heroTitle: data.hero_title ?? defaultValues.heroTitle,
           heroDescription: data.hero_description ?? defaultValues.heroDescription,
@@ -286,14 +349,11 @@ export default function EditHomePage() {
 
         setCurrentImages({
           hero: data.hero_image_url || heroImage?.imageUrl || fallbackImage,
-          carousel1: data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
-          carousel2: data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
-          carousel3: data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
-          carouselMobile1: data.carousel_mobile_image1_url || data.carousel_image1_url || carouselImage1?.imageUrl || fallbackImage,
-          carouselMobile2: data.carousel_mobile_image2_url || data.carousel_image2_url || carouselImage2?.imageUrl || fallbackImage,
-          carouselMobile3: data.carousel_mobile_image3_url || data.carousel_image3_url || carouselImage3?.imageUrl || fallbackImage,
           controladores: data.controladores_image_url || '/POSBERRY2.png',
         });
+
+        setCarouselDesktopItems(desktopUrls.map((url) => createCarouselEditorItem(url)));
+        setCarouselMobileItems(mobileUrls.map((url) => createCarouselEditorItem(url)));
       }
 
       setIsLoading(false);
@@ -335,33 +395,29 @@ export default function EditHomePage() {
   async function onSubmit(values: FormValues) {
     setIsSaving(true);
     try {
+      if (carouselDesktopItems.length < 1 || carouselMobileItems.length < 1) {
+        throw new Error('Debe haber al menos 1 imagen en cada carrusel (desktop y móvil).');
+      }
+
       const heroUrl = values.heroSectionImage instanceof File
         ? await uploadImage(values.heroSectionImage, 'hero')
         : currentImages.hero;
 
-      const carousel1Url = values.carouselImage1 instanceof File
-        ? await uploadImage(values.carouselImage1, 'carousel-1')
-        : currentImages.carousel1;
+      const desktopCarouselUrls = await Promise.all(
+        carouselDesktopItems.map(async (item, index) => (
+          item.file instanceof File
+            ? uploadImage(item.file, `carousel-${index + 1}`)
+            : item.url
+        ))
+      );
 
-      const carousel2Url = values.carouselImage2 instanceof File
-        ? await uploadImage(values.carouselImage2, 'carousel-2')
-        : currentImages.carousel2;
-
-      const carousel3Url = values.carouselImage3 instanceof File
-        ? await uploadImage(values.carouselImage3, 'carousel-3')
-        : currentImages.carousel3;
-
-      const carouselMobile1Url = values.carouselMobileImage1 instanceof File
-        ? await uploadImage(values.carouselMobileImage1, 'carousel-mobile-1')
-        : currentImages.carouselMobile1;
-
-      const carouselMobile2Url = values.carouselMobileImage2 instanceof File
-        ? await uploadImage(values.carouselMobileImage2, 'carousel-mobile-2')
-        : currentImages.carouselMobile2;
-
-      const carouselMobile3Url = values.carouselMobileImage3 instanceof File
-        ? await uploadImage(values.carouselMobileImage3, 'carousel-mobile-3')
-        : currentImages.carouselMobile3;
+      const mobileCarouselUrls = await Promise.all(
+        carouselMobileItems.map(async (item, index) => (
+          item.file instanceof File
+            ? uploadImage(item.file, `carousel-mobile-${index + 1}`)
+            : item.url
+        ))
+      );
 
       const controladoresUrl = values.controladoresSectionImage instanceof File
         ? await uploadImage(values.controladoresSectionImage, 'controladores-home')
@@ -410,12 +466,14 @@ export default function EditHomePage() {
         schedule_sat: values.scheduleSat,
         contact_title: values.contactTitle,
         contact_description: values.contactDescription,
-        carousel_image1_url: carousel1Url,
-        carousel_image2_url: carousel2Url,
-        carousel_image3_url: carousel3Url,
-        carousel_mobile_image1_url: carouselMobile1Url,
-        carousel_mobile_image2_url: carouselMobile2Url,
-        carousel_mobile_image3_url: carouselMobile3Url,
+        carousel_images: desktopCarouselUrls,
+        carousel_mobile_images: mobileCarouselUrls,
+        carousel_image1_url: desktopCarouselUrls[0] ?? null,
+        carousel_image2_url: desktopCarouselUrls[1] ?? null,
+        carousel_image3_url: desktopCarouselUrls[2] ?? null,
+        carousel_mobile_image1_url: mobileCarouselUrls[0] ?? null,
+        carousel_mobile_image2_url: mobileCarouselUrls[1] ?? null,
+        carousel_mobile_image3_url: mobileCarouselUrls[2] ?? null,
         updated_at: new Date().toISOString(),
       });
 
@@ -425,14 +483,11 @@ export default function EditHomePage() {
 
       setCurrentImages({
         hero: heroUrl,
-        carousel1: carousel1Url,
-        carousel2: carousel2Url,
-        carousel3: carousel3Url,
-        carouselMobile1: carouselMobile1Url,
-        carouselMobile2: carouselMobile2Url,
-        carouselMobile3: carouselMobile3Url,
         controladores: controladoresUrl,
       });
+
+      setCarouselDesktopItems(desktopCarouselUrls.map((url) => createCarouselEditorItem(url)));
+      setCarouselMobileItems(mobileCarouselUrls.map((url) => createCarouselEditorItem(url)));
 
       toast({
         title: 'Cambios guardados',
@@ -501,16 +556,98 @@ export default function EditHomePage() {
                             
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">Carrusel de Imágenes</h3>
-                                <ImageUploadField form={form} name="carouselImage1" label="Imagen 1 del Carrusel" currentImageUrl={currentImages.carousel1} imageAlt="Imagen 1 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
-                                <ImageUploadField form={form} name="carouselImage2" label="Imagen 2 del Carrusel" currentImageUrl={currentImages.carousel2} imageAlt="Imagen 2 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
-                                <ImageUploadField form={form} name="carouselImage3" label="Imagen 3 del Carrusel" currentImageUrl={currentImages.carousel3} imageAlt="Imagen 3 del Carrusel" aspectRatio="aspect-[9/16] sm:aspect-video" />
+                                {carouselDesktopItems.map((item, index) => (
+                                  <CarouselImageItemEditor
+                                    key={item.id}
+                                    label={`Imagen ${index + 1} del Carrusel`}
+                                    imageAlt={`Imagen ${index + 1} del Carrusel`}
+                                    item={item}
+                                    aspectRatio="aspect-[9/16] sm:aspect-video"
+                                    canMoveUp={index > 0}
+                                    canMoveDown={index < carouselDesktopItems.length - 1}
+                                    onFileChange={(file) => {
+                                      setCarouselDesktopItems((prev) => prev.map((current) => (
+                                        current.id === item.id
+                                          ? { ...current, file }
+                                          : current
+                                      )));
+                                    }}
+                                    onMoveUp={() => {
+                                      setCarouselDesktopItems((prev) => moveCarouselItem(prev, index, 'up'));
+                                    }}
+                                    onMoveDown={() => {
+                                      setCarouselDesktopItems((prev) => moveCarouselItem(prev, index, 'down'));
+                                    }}
+                                    onRemove={() => {
+                                      if (carouselDesktopItems.length <= 1) {
+                                        toast({
+                                          title: 'No se puede eliminar',
+                                          description: 'Debe quedar al menos 1 imagen en el carrusel.',
+                                          variant: 'destructive',
+                                        });
+                                        return;
+                                      }
+                                      setCarouselDesktopItems((prev) => prev.filter((current) => current.id !== item.id));
+                                    }}
+                                  />
+                                ))}
+
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setCarouselDesktopItems((prev) => [...prev, createCarouselEditorItem(fallbackImage)])}
+                                >
+                                  <PlusCircle className="mr-2 h-4 w-4" />
+                                  Agregar imagen al carrusel
+                                </Button>
                             </div>
 
                             <div className="space-y-4">
                               <h3 className="text-xl font-semibold">Carrusel de Imágenes (Vista Móvil)</h3>
-                              <ImageUploadField form={form} name="carouselMobileImage1" label="Imagen 1 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile1} imageAlt="Imagen 1 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
-                              <ImageUploadField form={form} name="carouselMobileImage2" label="Imagen 2 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile2} imageAlt="Imagen 2 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
-                              <ImageUploadField form={form} name="carouselMobileImage3" label="Imagen 3 del Carrusel Móvil" currentImageUrl={currentImages.carouselMobile3} imageAlt="Imagen 3 del Carrusel Móvil" aspectRatio="aspect-[9/16]" />
+                              {carouselMobileItems.map((item, index) => (
+                                <CarouselImageItemEditor
+                                  key={item.id}
+                                  label={`Imagen ${index + 1} del Carrusel Móvil`}
+                                  imageAlt={`Imagen ${index + 1} del Carrusel Móvil`}
+                                  item={item}
+                                  aspectRatio="aspect-[9/16]"
+                                  canMoveUp={index > 0}
+                                  canMoveDown={index < carouselMobileItems.length - 1}
+                                  onFileChange={(file) => {
+                                    setCarouselMobileItems((prev) => prev.map((current) => (
+                                      current.id === item.id
+                                        ? { ...current, file }
+                                        : current
+                                    )));
+                                  }}
+                                  onMoveUp={() => {
+                                    setCarouselMobileItems((prev) => moveCarouselItem(prev, index, 'up'));
+                                  }}
+                                  onMoveDown={() => {
+                                    setCarouselMobileItems((prev) => moveCarouselItem(prev, index, 'down'));
+                                  }}
+                                  onRemove={() => {
+                                    if (carouselMobileItems.length <= 1) {
+                                      toast({
+                                        title: 'No se puede eliminar',
+                                        description: 'Debe quedar al menos 1 imagen en el carrusel móvil.',
+                                        variant: 'destructive',
+                                      });
+                                      return;
+                                    }
+                                    setCarouselMobileItems((prev) => prev.filter((current) => current.id !== item.id));
+                                  }}
+                                />
+                              ))}
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setCarouselMobileItems((prev) => [...prev, createCarouselEditorItem(fallbackImage)])}
+                              >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Agregar imagen al carrusel móvil
+                              </Button>
                             </div>
 
                             <Separator />
@@ -870,5 +1007,87 @@ function ImageUploadField({
         </FormItem>
       )}
     />
+  );
+}
+
+function CarouselImageItemEditor({
+  label,
+  imageAlt,
+  item,
+  canMoveUp,
+  canMoveDown,
+  onFileChange,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
+  aspectRatio = 'aspect-video',
+}: {
+  label: string;
+  imageAlt: string;
+  item: CarouselEditorItem;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onFileChange: (file?: File) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+  aspectRatio?: string;
+}) {
+  const [preview, setPreview] = useState(item.url || 'https://placehold.co/600x400?text=Sin+imagen');
+
+  useEffect(() => {
+    if (item.file instanceof File) {
+      const fileUrl = URL.createObjectURL(item.file);
+      setPreview(fileUrl);
+      return () => URL.revokeObjectURL(fileUrl);
+    }
+
+    setPreview(item.url || 'https://placehold.co/600x400?text=Sin+imagen');
+    return undefined;
+  }, [item.file, item.url]);
+
+  return (
+    <div className="space-y-2 rounded-lg border p-4">
+      <div className="flex items-center justify-between gap-4">
+        <p className="font-medium">{label}</p>
+        <div className="flex items-center gap-1">
+          <Button type="button" variant="ghost" size="icon" disabled={!canMoveUp} onClick={onMoveUp}>
+            <ArrowUp className="h-4 w-4" />
+            <span className="sr-only">Subir imagen</span>
+          </Button>
+          <Button type="button" variant="ghost" size="icon" disabled={!canMoveDown} onClick={onMoveDown}>
+            <ArrowDown className="h-4 w-4" />
+            <span className="sr-only">Bajar imagen</span>
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
+            <Trash2 className="h-4 w-4 text-destructive" />
+            <span className="sr-only">Eliminar imagen</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-6">
+        <Image
+          src={preview}
+          alt={imageAlt}
+          width={160}
+          height={90}
+          className={cn('rounded-lg border object-cover', aspectRatio)}
+        />
+        <div className="flex-1 space-y-2">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              onFileChange(file);
+            }}
+          />
+          <FormDescription>
+            Seleccioná una nueva imagen. Sin límite de tamaño.
+          </FormDescription>
+        </div>
+      </div>
+    </div>
   );
 }

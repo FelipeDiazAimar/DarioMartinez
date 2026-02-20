@@ -199,6 +199,8 @@ const defaultHomeContent = {
   contact_title: 'Contactanos sin compromiso',
   contact_description: '¿Tenés alguna duda o necesitás un presupuesto? Completá el formulario o envianos un WhatsApp.',
   hero_image_url: '',
+  carousel_images: [] as string[],
+  carousel_mobile_images: [] as string[],
   carousel_image1_url: '',
   carousel_image2_url: '',
   carousel_image3_url: '',
@@ -229,6 +231,14 @@ export default function Home() {
   const [clientesRef, clientesInView] = useInView({ threshold: 0.1 });
   const [coberturaRef, coberturaInView] = useInView({ threshold: 0.1 });
   const [contactoRef, contactoInView] = useInView({ threshold: 0.1 });
+
+  const normalizeCarouselUrls = React.useCallback((value: unknown): string[] => {
+    if (!Array.isArray(value)) return [];
+
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter((item) => item.length > 0);
+  }, []);
 
   const normalizedCoverageLocationsText = (homeContent.coverage_locations_text || defaultHomeContent.coverage_locations_text)
     .replace(/\\n/g, '\n');
@@ -287,11 +297,16 @@ export default function Home() {
     loadHomeContent();
   }, []);
 
-  const savedCarouselImages = [
-    homeContent.carousel_image1_url,
-    homeContent.carousel_image2_url,
-    homeContent.carousel_image3_url,
-  ].filter(Boolean);
+  const savedCarouselImages = (() => {
+    const fromArray = normalizeCarouselUrls((homeContent as any).carousel_images);
+    if (fromArray.length > 0) return fromArray;
+
+    return [
+      homeContent.carousel_image1_url,
+      homeContent.carousel_image2_url,
+      homeContent.carousel_image3_url,
+    ].filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  })();
 
   const carouselImagesToRender = savedCarouselImages.length > 0
     ? savedCarouselImages.map((url, index) => ({
@@ -302,11 +317,16 @@ export default function Home() {
       }))
     : [];
 
-  const savedMobileCarouselImages = [
-    homeContent.carousel_mobile_image1_url,
-    homeContent.carousel_mobile_image2_url,
-    homeContent.carousel_mobile_image3_url,
-  ].filter(Boolean);
+  const savedMobileCarouselImages = (() => {
+    const fromArray = normalizeCarouselUrls((homeContent as any).carousel_mobile_images);
+    if (fromArray.length > 0) return fromArray;
+
+    return [
+      homeContent.carousel_mobile_image1_url,
+      homeContent.carousel_mobile_image2_url,
+      homeContent.carousel_mobile_image3_url,
+    ].filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  })();
 
   const mobileCarouselImagesToRender = savedMobileCarouselImages.length > 0
     ? savedMobileCarouselImages.map((url, index) => ({
