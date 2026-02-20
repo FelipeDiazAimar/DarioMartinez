@@ -1,4 +1,3 @@
-import { getProductos } from '@/lib/mysql';
 import Link from 'next/link';
 import { AdminScrollableTable } from '@/components/admin-scrollable-table';
 
@@ -34,34 +33,72 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
   const basePath = '/admin/kardex';
 
   try {
+    const apiBaseUrl = process.env.API_BASE_URL;
+    const apiToken = process.env.API_TOKEN;
+
+    if (!apiBaseUrl || !apiToken) {
+      throw new Error('Faltan API_BASE_URL o API_TOKEN en variables de entorno de Vercel.');
+    }
+
     const resolvedSearchParams = await searchParams;
-    const page = Number(resolvedSearchParams?.page ?? '1');
-    const pageSize = Number(resolvedSearchParams?.pageSize ?? '200');
-    const selectedColumn = resolvedSearchParams?.column;
-    const query = resolvedSearchParams?.query;
+    const requestedPage = Number(resolvedSearchParams?.page ?? '1');
+    const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '200');
+    const selectedColumn = resolvedSearchParams?.column?.trim();
+    const query = resolvedSearchParams?.query?.trim();
     const order = resolvedSearchParams?.order ?? 'asc';
 
-    const {
-      schema,
-      tableName,
-      rows,
-      total,
-      totalPages,
-      page: currentPage,
-      pageSize: currentPageSize,
-      availableColumns,
-      searchColumn,
-      searchTerm,
-    } = await getProductos(page, pageSize, {
-      tableName: 'kardex',
-      searchColumn: selectedColumn,
-      searchTerm: query,
-      orderBy: selectedColumn,
-      orderDirection: order as 'asc' | 'desc',
+    const response = await fetch(`${apiBaseUrl.replace(/\/$/, '')}/kardex`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+      cache: 'no-store',
     });
 
-    const products = rows as ProductRow[];
-    const columns = availableColumns;
+    const payload = await response.json();
+
+    if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
+      throw new Error(payload?.message || 'La API no devolvió un resultado válido para kardex.');
+    }
+
+    const allRows = payload.data as ProductRow[];
+    const columns = Array.from(
+      allRows.reduce((acc, row) => {
+        Object.keys(row).forEach((key) => acc.add(key));
+        return acc;
+      }, new Set<string>()),
+    );
+
+    const searchColumn = selectedColumn && columns.includes(selectedColumn) ? selectedColumn : undefined;
+    const searchTerm = query && query.length > 0 ? query : undefined;
+    const shouldFilter = Boolean(searchColumn && searchTerm);
+
+    const filteredRows = shouldFilter
+      ? allRows.filter((row) => String(row[searchColumn! as keyof ProductRow] ?? '').toLowerCase().includes(searchTerm!.toLowerCase()))
+      : allRows;
+
+    const direction = order === 'desc' ? -1 : 1;
+    const sortedRows = searchColumn
+      ? [...filteredRows].sort((a, b) => {
+          const aValue = String(a[searchColumn as keyof ProductRow] ?? '').toLowerCase();
+          const bValue = String(b[searchColumn as keyof ProductRow] ?? '').toLowerCase();
+
+          if (aValue < bValue) return -1 * direction;
+          if (aValue > bValue) return 1 * direction;
+          return 0;
+        })
+      : filteredRows;
+
+    const safePageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? Math.min(Math.floor(requestedPageSize), 500) : 200;
+    const total = sortedRows.length;
+    const totalPages = total > 0 ? Math.ceil(total / safePageSize) : 1;
+    const currentPage = Math.min(Math.max(Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1, 1), totalPages);
+    const offset = (currentPage - 1) * safePageSize;
+    const products = sortedRows.slice(offset, offset + safePageSize);
+    const currentPageSize = safePageSize;
+    const schema = 'api';
+    const tableName = 'kardex';
+
     const displayRows = products.map((product) => {
       const row: Record<string, string> = {};
 

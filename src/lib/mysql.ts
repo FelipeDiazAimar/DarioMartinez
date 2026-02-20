@@ -17,6 +17,19 @@ function getPool() {
     return pool;
   }
 
+  const connectionUri = process.env.MYSQL_URL ?? process.env.DATABASE_URL;
+
+  if (connectionUri) {
+    pool = mysql.createPool({
+      uri: connectionUri,
+      waitForConnections: true,
+      connectionLimit: 5,
+      namedPlaceholders: true,
+    });
+
+    return pool;
+  }
+
   const host = process.env.MYSQL_HOST;
   const user = process.env.MYSQL_USER;
   const password = process.env.MYSQL_PASSWORD;
@@ -37,6 +50,29 @@ function getPool() {
   });
 
   return pool;
+}
+
+function mapConnectionError(error: unknown) {
+  const fallback = error instanceof Error ? error : new Error('Error desconocido al conectar con MySQL.');
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: unknown }).code)
+    : '';
+
+  if (code === 'ENOTFOUND') {
+    const host = process.env.MYSQL_HOST?.trim() || 'sin definir';
+
+    return new Error(
+      `No se pudo resolver el host MySQL (${host}). En Vercel debes usar un host DNS público o una MYSQL_URL accesible desde internet.`,
+    );
+  }
+
+  if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT') {
+    return new Error(
+      'No se pudo conectar con MySQL desde Vercel. Verifica que el servidor acepte conexiones remotas, puerto abierto y credenciales válidas.',
+    );
+  }
+
+  return fallback;
 }
 
 async function resolveTableSchema(connection: mysql.PoolConnection, tableName: string) {
@@ -74,7 +110,13 @@ export async function getProductos(page = 1, pageSize = 200, filters: ProductosF
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
   const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.min(Math.floor(pageSize), 500) : 200;
   const poolInstance = getPool();
-  const connection = await poolInstance.getConnection();
+  let connection: mysql.PoolConnection;
+
+  try {
+    connection = await poolInstance.getConnection();
+  } catch (error) {
+    throw mapConnectionError(error);
+  }
 
   try {
     const schema = await resolveTableSchema(connection, tableName);
