@@ -41,6 +41,7 @@ const productSchema = z.object({
   imageId: z.string(),
   title: z.string().min(5, { message: "El título es muy corto." }),
   description: z.string().min(10, { message: "La descripción es muy corta." }),
+  category: z.array(z.string().min(1)).min(1, { message: "Seleccioná al menos una categoría." }),
   details: z.array(productDetailSchema),
   image: z.any().optional(),
   imageUrl: z.string().optional(),
@@ -84,6 +85,32 @@ const defaultProducts = [
 ];
 
 type FormValues = z.infer<typeof formSchema>;
+type CategoryItem = {
+  id: string;
+  nombre: string;
+  orden: number | null;
+};
+
+const DEFAULT_CATEGORY = 'General';
+
+function normalizeCategoryValue(value: unknown) {
+  if (Array.isArray(value)) {
+    const cleaned = value
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
+    return cleaned.length > 0 ? Array.from(new Set(cleaned)) : [DEFAULT_CATEGORY];
+  }
+
+  const single = String(value || '').trim();
+  return single ? [single] : [DEFAULT_CATEGORY];
+}
+
+function withDefaultCategory<T extends { category?: unknown }>(product: T): T & { category: string[] } {
+  return {
+    ...product,
+    category: normalizeCategoryValue(product.category),
+  };
+}
 
 export default function EditProductsPage() {
   const router = useRouter();
@@ -94,6 +121,9 @@ export default function EditProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('a-z');
   const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [categoryItems, setCategoryItems] = useState<CategoryItem[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
@@ -108,7 +138,7 @@ export default function EditProductsPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      products: defaultProducts,
+      products: defaultProducts.map((product) => withDefaultCategory(product)),
     },
   });
 
@@ -118,6 +148,13 @@ export default function EditProductsPage() {
   });
 
   const watchedProducts = form.watch('products');
+  const categoryOptions = useMemo(() => {
+    const fromProducts = watchedProducts.flatMap((product) => normalizeCategoryValue(product?.category));
+    const fromCatalog = categoryItems.map((item) => item.nombre).filter(Boolean);
+
+    return Array.from(new Set([...fromCatalog, ...fromProducts, DEFAULT_CATEGORY])).sort((a, b) => a.localeCompare(b));
+  }, [watchedProducts, categoryItems]);
+
   const displayProductFields = useMemo(() => {
     let productsWithIndex = fields.map((field, index) => ({
       ...field,
@@ -173,6 +210,7 @@ export default function EditProductsPage() {
             imageId: item.slug || item.id || `product-${index + 1}`,
             title: item.titulo || '',
             description: item.descripcion || '',
+            category: normalizeCategoryValue(item.categoria),
             details: Array.isArray(item.detalles) ? item.detalles : [''],
             image: undefined,
             imageUrl: item.imagen_url || undefined,
@@ -185,7 +223,37 @@ export default function EditProductsPage() {
       setIsLoading(false);
     };
 
+    const loadCategories = async () => {
+      setIsCategoriesLoading(true);
+      const { data, error } = await supabase
+        .from('productos_categorias')
+        .select('id, nombre, orden')
+        .order('orden', { ascending: true })
+        .order('nombre', { ascending: true });
+
+      if (error) {
+        toast({
+          title: 'No se pudieron cargar categorías',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setCategoryItems([]);
+        setIsCategoriesLoading(false);
+        return;
+      }
+
+      setCategoryItems(
+        (data || []).map((row: any) => ({
+          id: String(row.id),
+          nombre: row.nombre || DEFAULT_CATEGORY,
+          orden: row.orden ?? null,
+        })),
+      );
+      setIsCategoriesLoading(false);
+    };
+
     loadProducts();
+    loadCategories();
   }, [isAuthenticated, form, toast]);
 
   const slugify = (value: string) =>
@@ -258,6 +326,7 @@ export default function EditProductsPage() {
         const rowPayload = {
           titulo: product.title,
           descripcion: product.description,
+          categoria: normalizeCategoryValue(product.category),
           detalles: product.details,
           imagen_url: imageUrl || null,
           orden: i,
@@ -463,6 +532,146 @@ export default function EditProductsPage() {
     });
   }
 
+  const createCategory = async () => {
+    const nombre = newCategoryName.trim();
+
+    if (!nombre) {
+      toast({
+        title: 'Categoría requerida',
+        description: 'Escribí un nombre de categoría para crearla.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const alreadyExists = categoryOptions.some((item) => item.toLowerCase() === nombre.toLowerCase());
+    if (alreadyExists) {
+      toast({
+        title: 'Categoría duplicada',
+        description: 'Ya existe una categoría con ese nombre.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('productos_categorias')
+      .insert({ nombre, orden: categoryItems.length })
+      .select('id, nombre, orden')
+      .single();
+
+    if (error) {
+      toast({
+        title: 'No se pudo crear la categoría',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (data) {
+      setCategoryItems((prev) => [...prev, {
+        id: String(data.id),
+        nombre: data.nombre,
+        orden: data.orden ?? null,
+      }]);
+    }
+
+    setNewCategoryName('');
+    toast({
+      title: 'Categoría creada',
+      description: `Se creó “${nombre}”.`,
+    });
+  };
+
+  const updateCategory = async (id: string, nextName: string) => {
+    const nombre = nextName.trim();
+
+    if (!nombre) {
+      toast({
+        title: 'Nombre inválido',
+        description: 'La categoría no puede quedar vacía.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const currentItem = categoryItems.find((item) => item.id === id);
+    if (!currentItem) {
+      return;
+    }
+
+    const duplicated = categoryItems.some((item) => item.id !== id && item.nombre.toLowerCase() === nombre.toLowerCase());
+    if (duplicated) {
+      toast({
+        title: 'Categoría duplicada',
+        description: 'Ya existe otra categoría con ese nombre.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('productos_categorias')
+      .update({ nombre })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: 'No se pudo editar la categoría',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setCategoryItems((prev) => prev.map((item) => (item.id === id ? { ...item, nombre } : item)));
+
+    const currentProducts = form.getValues('products');
+    const updatedProducts = currentProducts.map((product) => (
+      ({
+        ...product,
+        category: normalizeCategoryValue(product.category).map((entry) => (entry === currentItem.nombre ? nombre : entry)),
+      })
+    ));
+
+    form.setValue('products', updatedProducts, { shouldDirty: true });
+  };
+
+  const deleteCategory = async (id: string) => {
+    const category = categoryItems.find((item) => item.id === id);
+    if (!category) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('productos_categorias')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: 'No se pudo eliminar la categoría',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setCategoryItems((prev) => prev.filter((item) => item.id !== id));
+
+    const currentProducts = form.getValues('products');
+    const updatedProducts = currentProducts.map((product) => {
+      const remaining = normalizeCategoryValue(product.category).filter((entry) => entry !== category.nombre);
+      return {
+        ...product,
+        category: remaining.length > 0 ? remaining : [DEFAULT_CATEGORY],
+      };
+    });
+
+    form.setValue('products', updatedProducts, { shouldDirty: true });
+  };
+
   if (!isAuthenticated || isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col">
@@ -527,12 +736,65 @@ export default function EditProductsPage() {
                 <CardHeader>
                     <CardTitle>Gestor de Productos</CardTitle>
                     <CardDescription>
-                        Añadí, editá o eliminá los productos que se muestran en la página. Este es un editor de demostración.
+                        Añadí, editá o eliminá los productos, y asignales su categoría.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-8 pb-24">
+                            <Accordion type="single" collapsible className="w-full">
+                              <AccordionItem value="categories-manager" className="rounded-lg border bg-card shadow-sm">
+                                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                                  <div className="text-left">
+                                    <h3 className="text-xl font-semibold">Categorías</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      Creá, editá y eliminá categorías para asignarlas a los productos.
+                                    </p>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="space-y-4 px-4 pb-4">
+                                  <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                                    <Input
+                                      value={newCategoryName}
+                                      onChange={(event) => setNewCategoryName(event.target.value)}
+                                      placeholder="Nueva categoría (ej: Impresión)"
+                                    />
+                                    <Button type="button" onClick={createCategory}>
+                                      <PlusCircle className="mr-2 h-4 w-4" />
+                                      Crear
+                                    </Button>
+                                  </div>
+
+                                  {isCategoriesLoading ? (
+                                    <p className="text-sm text-muted-foreground">Cargando categorías...</p>
+                                  ) : categoryItems.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No hay categorías cargadas.</p>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {categoryItems.map((item) => (
+                                        <div key={item.id} className="grid gap-3 rounded-md border p-3 md:grid-cols-[1fr_auto_auto]">
+                                          <Input
+                                            value={item.nombre}
+                                            onChange={(event) => {
+                                              const value = event.target.value;
+                                              setCategoryItems((prev) => prev.map((current) => (current.id === item.id ? { ...current, nombre: value } : current)));
+                                            }}
+                                            placeholder="Nombre de categoría"
+                                          />
+                                          <Button type="button" variant="outline" onClick={() => updateCategory(item.id, item.nombre)}>
+                                            Guardar
+                                          </Button>
+                                          <Button type="button" variant="destructive" onClick={() => deleteCategory(item.id)}>
+                                            Eliminar
+                                          </Button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+
                             <Accordion
                               type="single"
                               collapsible
@@ -650,6 +912,43 @@ export default function EditProductsPage() {
                                                             </FormItem>
                                                         )}
                                                     />
+                                                    <div className="grid gap-4 md:grid-cols-2">
+                                                      <FormField
+                                                        control={form.control}
+                                                        name={`products.${productIndex}.category`}
+                                                        render={({ field }) => (
+                                                          <FormItem>
+                                                            <FormLabel>Categoría</FormLabel>
+                                                            <FormControl>
+                                                              <div className="space-y-2 rounded-md border p-3">
+                                                                {categoryOptions.map((option) => {
+                                                                  const selectedValues = normalizeCategoryValue(field.value);
+                                                                  const checked = selectedValues.includes(option);
+
+                                                                  return (
+                                                                    <label key={option} className="flex cursor-pointer items-center gap-2 text-sm">
+                                                                      <input
+                                                                        type="checkbox"
+                                                                        checked={checked}
+                                                                        onChange={() => {
+                                                                          const nextValues = checked
+                                                                            ? selectedValues.filter((item) => item !== option)
+                                                                            : [...selectedValues, option];
+
+                                                                          field.onChange(nextValues.length > 0 ? Array.from(new Set(nextValues)) : [DEFAULT_CATEGORY]);
+                                                                        }}
+                                                                      />
+                                                                      <span>{option}</span>
+                                                                    </label>
+                                                                  );
+                                                                })}
+                                                              </div>
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                          </FormItem>
+                                                        )}
+                                                      />
+                                                    </div>
                                                     <ImageUploadField form={form} name={`products.${productIndex}.image`} label="Imagen del Producto" currentImageUrl={productField.imageUrl || productImage?.imageUrl || ''} imageAlt={productImage?.description || ''} />
                                                     <ProductDetailsArray control={form.control} productIndex={productIndex} />
                                                     <Button
@@ -672,7 +971,7 @@ export default function EditProductsPage() {
                                 type="button"
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => append({ imageId: `new-product-${fields.length}`, title: "", description: "", details: [""], isNew: true, isFavorite: false })}
+                              onClick={() => append({ imageId: `new-product-${fields.length}`, title: "", description: "", category: [DEFAULT_CATEGORY], details: [""], isNew: true, isFavorite: false })}
                             >
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Agregar Producto
@@ -682,7 +981,7 @@ export default function EditProductsPage() {
                             <div className="fixed bottom-6 right-6 z-50">
                                 {/* Desktop buttons */}
                                 <div className="hidden md:flex items-center gap-4">
-                                    <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset({ products: defaultProducts })} disabled={isSaving}>
+                                  <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={() => form.reset({ products: defaultProducts.map((product) => withDefaultCategory(product)) })} disabled={isSaving}>
                                         <Undo2 className="mr-2 h-5 w-5" />
                                         Deshacer Cambios
                                     </Button>
@@ -693,7 +992,7 @@ export default function EditProductsPage() {
                                 </div>
                                 {/* Mobile buttons */}
                                 <div className="md:hidden flex flex-col gap-3">
-                                    <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset({ products: defaultProducts })} disabled={isSaving}>
+                                  <Button type="button" variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg border-2 bg-background" onClick={() => form.reset({ products: defaultProducts.map((product) => withDefaultCategory(product)) })} disabled={isSaving}>
                                         <Undo2 className="h-6 w-6" />
                                         <span className="sr-only">Deshacer Cambios</span>
                                     </Button>

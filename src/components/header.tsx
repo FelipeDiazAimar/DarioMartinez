@@ -223,14 +223,6 @@ export function Header() {
         <div className="flex flex-1 items-center justify-end gap-2">
           {!isAdmin && (
             <Button asChild className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
-              <Link href={whatsappLink} target="_blank">
-                <WhatsAppIcon className="mr-2 h-5 w-5" />
-                WhatsApp
-              </Link>
-            </Button>
-          )}
-          {!isAdmin && (
-            <Button asChild className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
               <Link href={contactInfo.instagram} target="_blank">
                 <Instagram className="mr-2 h-5 w-5" />
                 Instagram
@@ -349,14 +341,6 @@ export function Header() {
                 </nav>
               </div>
               <div className="mt-auto grid grid-cols-1 gap-4">
-                {!isAdmin && (
-                  <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
-                    <Link href={whatsappLink} target="_blank" onClick={closeSheet}>
-                      <WhatsAppIcon className="mr-2 h-5 w-5" />
-                      WhatsApp
-                    </Link>
-                  </Button>
-                )}
                 {!isAdmin && (
                   <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
                     <Link href={contactInfo.instagram} target="_blank" onClick={closeSheet}>

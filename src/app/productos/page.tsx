@@ -790,10 +790,50 @@ function ProductosPageContent() {
   const searchTerm = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'a-z';
   const currentPage = Number(searchParams.get('page') || '1');
+  const selectedCategory = searchParams.get('cat') || 'all';
 
   const [inputValue, setInputValue] = React.useState(searchTerm);
   const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
   const [isHistoryVisible, setIsHistoryVisible] = React.useState(false);
+
+  const normalizeCategories = React.useCallback((value: unknown) => {
+    if (Array.isArray(value)) {
+      const cleaned = value
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+      return cleaned.length > 0 ? Array.from(new Set(cleaned)) : ['General'];
+    }
+
+    const raw = String(value || '').trim();
+    if (!raw) {
+      return ['General'];
+    }
+
+    if (raw.startsWith('[') && raw.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(raw);
+        return normalizeCategories(parsed);
+      } catch {
+        return [raw];
+      }
+    }
+
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      const inner = raw.slice(1, -1).trim();
+      if (!inner) {
+        return ['General'];
+      }
+
+      const values = inner
+        .split(',')
+        .map((item) => item.replace(/^"|"$/g, '').trim())
+        .filter(Boolean);
+
+      return values.length > 0 ? Array.from(new Set(values)) : ['General'];
+    }
+
+    return [raw];
+  }, []);
 
   React.useEffect(() => {
     try {
@@ -813,10 +853,22 @@ function ProductosPageContent() {
 
       console.log('[productos] Iniciando carga de productos desde Supabase');
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('productos')
-        .select('id, slug, titulo, descripcion, detalles, imagen_url, orden')
+        .select('id, slug, titulo, descripcion, detalles, imagen_url, orden, categoria')
         .order('orden', { ascending: true });
+
+      let { data, error } = await query;
+
+      if (error && error.message.toLowerCase().includes('categoria')) {
+        const fallback = await supabase
+          .from('productos')
+          .select('id, slug, titulo, descripcion, detalles, imagen_url, orden')
+          .order('orden', { ascending: true });
+
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       console.log('[productos] Respuesta Supabase', { error, dataCount: data?.length });
 
@@ -842,6 +894,7 @@ function ProductosPageContent() {
           imageId: item.slug || item.id,
           title: item.titulo || 'Producto',
           description: item.descripcion || '',
+          categories: normalizeCategories(item.categoria),
           details: normalizedDetails.length > 0 ? normalizedDetails : [
             { icon: <Check className="h-5 w-5 text-primary" />, text: 'Consultanos por disponibilidad y precio.' },
           ],
@@ -856,7 +909,7 @@ function ProductosPageContent() {
     };
 
     loadProducts();
-  }, []);
+  }, [normalizeCategories]);
 
   const updateSearchHistory = React.useCallback((term: string) => {
     if (!term.trim()) return;
@@ -937,8 +990,23 @@ function ProductosPageContent() {
     setIsHistoryVisible(false);
   };
   
-  const handleCategoryClick = (category: string) => {
+  const handleSuggestionClick = (category: string) => {
     setInputValue(category);
+    window.scrollTo(0, 0);
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    setOpenItemId(null);
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (category === 'all') {
+      params.delete('cat');
+    } else {
+      params.set('cat', category);
+    }
+
+    params.delete('page');
+    router.push(`${pathname}?${params.toString()}`);
     window.scrollTo(0, 0);
   };
 
@@ -959,12 +1027,13 @@ function ProductosPageContent() {
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
-    console.log('[productos] Filtrado', { searchTerm, sortOrder, total: productsData.length });
+    console.log('[productos] Filtrado', { searchTerm, sortOrder, selectedCategory, total: productsData.length });
     return productsData
       .filter(
         (product) =>
-          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+          (product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+          (selectedCategory === 'all' || (product.categories || []).includes(selectedCategory))
       )
       .sort((a, b) => {
         if (sortOrder === 'a-z') {
@@ -973,7 +1042,7 @@ function ProductosPageContent() {
           return b.title.localeCompare(a.title);
         }
       });
-  }, [searchTerm, sortOrder, productsData]);
+  }, [searchTerm, sortOrder, productsData, selectedCategory]);
 
   const suggestion = React.useMemo(() => {
     if (!searchTerm.trim() || filteredAndSortedProducts.length > 0) {
@@ -983,7 +1052,10 @@ function ProductosPageContent() {
     return getClosestSuggestion(searchTerm, titles);
   }, [searchTerm, filteredAndSortedProducts.length, productsData]);
 
-  const sortedCategories = React.useMemo(() => [...productsData].sort((a,b) => a.title.localeCompare(b.title)), [productsData]);
+  const groupedCategories = React.useMemo(() => {
+    return Array.from(new Set(productsData.flatMap((product) => product.categories || ['General'])))
+      .sort((a, b) => a.localeCompare(b));
+  }, [productsData]);
 
 
   const totalPages = Math.ceil(
@@ -1044,7 +1116,7 @@ function ProductosPageContent() {
                 {suggestion && (
                   <button
                     type="button"
-                    onClick={() => handleCategoryClick(suggestion)}
+                    onClick={() => handleSuggestionClick(suggestion)}
                     className="ml-2 text-primary hover:underline"
                   >
                     ¿Quisiste decir “{suggestion}”?
@@ -1057,21 +1129,32 @@ function ProductosPageContent() {
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
                     <ScrollArea className="h-[calc(100vh-12rem)]" dir="rtl">
                         <ul className="space-y-1 pl-4 pt-2" dir="ltr">
-                             {sortedCategories.map((product, index) => (
-                              <li key={getProductKey(product, index)}>
-                                <button
-                                  onClick={() => handleCategoryClick(product.title)}
-                                  className={cn(
-                                    "w-full rounded-md p-2 text-left text-sm transition-colors",
-                                    searchTerm.toLowerCase() === product.title.toLowerCase()
-                                      ? "bg-primary/10 font-semibold text-primary"
-                                      : "text-muted-foreground hover:text-black"
-                                  )}
-                                >
-                                  {product.title}
-                                </button>
-                              </li>
-                            ))}
+                          <li>
+                            <button
+                              onClick={() => handleCategoryFilter('all')}
+                              className={cn(
+                                "w-full rounded-md p-2 text-left text-sm transition-colors",
+                                selectedCategory === 'all' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:text-black'
+                              )}
+                            >
+                              Todas
+                            </button>
+                          </li>
+                          {groupedCategories.map((category) => (
+                            <li key={category} className="rounded-md p-1">
+                              <button
+                                onClick={() => handleCategoryFilter(category)}
+                                className={cn(
+                                  "w-full rounded-md px-2 py-1 text-left text-sm transition-colors",
+                                  selectedCategory === category
+                                    ? 'bg-primary/10 font-semibold text-primary'
+                                    : 'text-foreground hover:bg-muted'
+                                )}
+                              >
+                                {category}
+                              </button>
+                            </li>
+                          ))}
                         </ul>
                     </ScrollArea>
                 </div>
@@ -1179,6 +1262,13 @@ function ProductosPageContent() {
                             <h3 className="text-xl font-semibold leading-none tracking-tight">
                                 {product.title}
                             </h3>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {(product.categories || ['General']).map((category: string) => (
+                                <span key={`${product.id}-desktop-${category}`} className="rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                  {category}
+                                </span>
+                              ))}
+                            </div>
                             <p className="mt-2 text-sm text-muted-foreground">
                                 {product.description}
                             </p>
@@ -1262,6 +1352,13 @@ function ProductosPageContent() {
                             <h3 className="mb-4 text-left text-2xl font-bold">
                                 {product.title}
                             </h3>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                              {(product.categories || ['General']).map((category: string) => (
+                                <span key={`${product.id}-mobile-${category}`} className="rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                  {category}
+                                </span>
+                              ))}
+                            </div>
                             <ul className="mb-6 space-y-4 text-foreground/80">
                                 {product.details.map((detail, i) => (
                                 <li key={i} className="flex items-start gap-3">

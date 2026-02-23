@@ -86,11 +86,11 @@
 }
 
 .clients-marquee-left {
-  animation: clients-marquee-left 80s linear infinite;
+  animation: clients-marquee-left 160s linear infinite;
 }
 
 .clients-marquee-right {
-  animation: clients-marquee-right 88s linear infinite;
+  animation: clients-marquee-right 176s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

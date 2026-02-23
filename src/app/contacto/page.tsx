@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ContactForm } from '@/components/contact-form';
 import { Button } from '@/components/ui/button';
-import { Instagram } from 'lucide-react';
+import { Instagram, Mail } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { LoadingImage } from '@/components/loading-image';
@@ -23,7 +23,8 @@ const defaultContactInfo = {
 };
 
 export default function ContactoPage() {
-    const [contactInfo, setContactInfo] = useState(defaultContactInfo);
+  const [contactInfo, setContactInfo] = useState(defaultContactInfo);
+  const [businessName, setBusinessName] = useState('');
 
     useEffect(() => {
       const loadContactInfo = async () => {
@@ -49,6 +50,26 @@ export default function ContactoPage() {
       [contactInfo.whatsapp]
     );
 
+  const businessMailLink = useMemo(() => {
+    const company = businessName.trim();
+    const companySuffix = company ? ` - ${company}` : '';
+    const subject = `Consulta empresarial${companySuffix}`;
+    const body = company
+      ? `Hola, somos ${company} y queremos recibir asesoramiento comercial.`
+      : 'Hola, somos una empresa y queremos recibir asesoramiento comercial.';
+    const safeEmail = (contactInfo.email || defaultContactInfo.email).trim();
+
+    const params = new URLSearchParams({
+      view: 'cm',
+      fs: '1',
+      to: safeEmail,
+      su: subject,
+      body,
+    });
+
+    return `https://mail.google.com/mail/?${params.toString()}`;
+  }, [businessName, contactInfo.email]);
+
     return (
         <section
         id="contacto"
@@ -71,12 +92,38 @@ export default function ContactoPage() {
               formulario o envianos un WhatsApp.
             </p>
           </div>
-          <div className="mx-auto w-full max-w-sm space-y-2">
+          <div className="mx-auto w-full max-w-sm space-y-3">
             <ContactForm />
             <p className="text-xs text-foreground/70">
               Tu consulta es bienvenida. ¡Respondemos a la brevedad!
             </p>
-            <div className="pt-4 flex justify-center gap-4">
+
+            <div className="mt-32 text-center">
+              <h2 className="text-4xl font-bold tracking-tight" style={{ marginTop: '70px' }}>Eres una empresa?</h2>
+              <p className="mt-2 text-lg text-muted-foreground">
+                O quieres contactarte por mail
+              </p>
+            </div>
+
+            <div className="mt-6 rounded-2xl border bg-card/70 p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="mt-4 space-y-3">
+                <input
+                  value={businessName}
+                  onChange={(event) => setBusinessName(event.target.value)}
+                  placeholder="Nombre de la empresa"
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-all duration-200 ring-offset-background placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring"
+                />
+
+                <Button asChild className="w-full transition-transform duration-200 hover:scale-[1.01]">
+                  <a href={businessMailLink} target="_blank" rel="noopener noreferrer">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Enviar mail
+                  </a>
+                </Button>
+              </div>
+            </div>
+
+            <div className="pt-8 flex justify-center gap-4">
               <Button asChild size="icon" className="rounded-full bg-[#25D366] text-white hover:bg-[#25D366]/90">
                 <Link href={whatsappLink} target="_blank" aria-label="WhatsApp">
                   <WhatsAppIcon className="h-6 w-6" />

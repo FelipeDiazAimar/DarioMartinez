@@ -3,6 +3,77 @@ import { AdminScrollableTable } from '@/components/admin-scrollable-table';
 
 type ProductRow = Record<string, unknown>;
 
+type LoadErrorDetails = {
+  title: string;
+  step: string;
+  technicalDetail: string;
+  nextActions: string[];
+};
+
+function normalizeErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Error desconocido';
+}
+
+function buildLoadErrorDetails(step: string, rawMessage: string, endpoint: string | null): LoadErrorDetails {
+  const normalized = rawMessage.toLowerCase();
+  const technicalDetail = rawMessage;
+  const endpointText = endpoint ?? 'No disponible';
+
+  if (normalized.includes('api_base_url') || normalized.includes('api_token')) {
+    return {
+      title: 'Faltan datos de configuración para conectar la API.',
+      step,
+      technicalDetail,
+      nextActions: [
+        'Abrí Vercel → Project Settings → Environment Variables.',
+        'Verificá que API_BASE_URL y API_TOKEN existan y estén activos en el entorno actual.',
+        'Guardá cambios y redeployá el proyecto.',
+      ],
+    };
+  }
+
+  if (normalized.includes('fetch failed') || normalized.includes('failed to fetch')) {
+    return {
+      title: 'No se pudo contactar al servidor de datos.',
+      step,
+      technicalDetail,
+      nextActions: [
+        `Comprobá que la API esté levantada y respondiendo en: ${endpointText}.`,
+        'Si usás tunnel (Railway/Render/local), verificá que la URL no haya cambiado.',
+        'Probá recargar en 10 segundos. Si persiste, reiniciá la API backend.',
+      ],
+    };
+  }
+
+  if (normalized.includes('unexpected token') || normalized.includes('json')) {
+    return {
+      title: 'La API respondió, pero el formato de datos no fue válido.',
+      step,
+      technicalDetail,
+      nextActions: [
+        'Revisá el endpoint /kardex en la API para confirmar que devuelve JSON válido.',
+        'Comprobá que la respuesta incluya success=true y data como arreglo.',
+        'Si hubo cambios recientes en backend, revertí o ajustá el contrato de respuesta.',
+      ],
+    };
+  }
+
+  return {
+    title: 'Ocurrió un error al cargar la tabla de kardex.',
+    step,
+    technicalDetail,
+    nextActions: [
+      'Actualizá la página para reintentar la carga.',
+      'Verificá conectividad de la API y credenciales del proyecto.',
+      'Si continúa fallando, compartí el detalle técnico con soporte/desarrollo.',
+    ],
+  };
+}
+
 function toCellValue(value: unknown) {
   if (value === null || value === undefined) {
     return '—';
@@ -31,8 +102,11 @@ type AdminKardexPageProps = {
 
 export default async function AdminKardexPage({ searchParams }: AdminKardexPageProps) {
   const basePath = '/admin/kardex';
+  let currentStep = '1) Preparando configuración de conexión';
+  let endpoint: string | null = null;
 
   try {
+    currentStep = '2) Leyendo variables de entorno';
     const apiBaseUrl = process.env.API_BASE_URL;
     const apiToken = process.env.API_TOKEN;
 
@@ -40,6 +114,7 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
       throw new Error('Faltan API_BASE_URL o API_TOKEN en variables de entorno de Vercel.');
     }
 
+    currentStep = '3) Procesando parámetros de búsqueda';
     const resolvedSearchParams = await searchParams;
     const requestedPage = Number(resolvedSearchParams?.page ?? '1');
     const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '200');
@@ -47,7 +122,9 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
     const query = resolvedSearchParams?.query?.trim();
     const order = resolvedSearchParams?.order ?? 'asc';
 
-    const response = await fetch(`${apiBaseUrl.replace(/\/$/, '')}/kardex`, {
+    endpoint = `${apiBaseUrl.replace(/\/$/, '')}/kardex`;
+    currentStep = '4) Consultando API de kardex';
+    const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${apiToken}`,
@@ -55,12 +132,15 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
       cache: 'no-store',
     });
 
+    currentStep = '5) Interpretando respuesta de la API';
     const payload = await response.json();
 
+    currentStep = '6) Validando estructura de datos recibida';
     if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
       throw new Error(payload?.message || 'La API no devolvió un resultado válido para kardex.');
     }
 
+    currentStep = '7) Preparando datos para mostrar en tabla';
     const allRows = payload.data as ProductRow[];
     const columns = Array.from(
       allRows.reduce((acc, row) => {
@@ -209,14 +289,33 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
       </main>
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error desconocido';
+    const message = normalizeErrorMessage(error);
+    const details = buildLoadErrorDetails(currentStep, message, endpoint);
+
+    console.error('[ADMIN][KARDEX] Error de carga', {
+      step: currentStep,
+      endpoint,
+      message,
+      error,
+    });
 
     return (
       <main className="p-6">
         <h1 className="text-2xl font-semibold">Conexión con la base de datos de Dario Martinez Computación</h1>
-        <p className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          No se pudo leer la tabla: {message}
-        </p>
+        <section className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm">
+          <p className="font-semibold text-destructive">{details.title}</p>
+          <p className="mt-2 text-destructive">Paso donde falló: {details.step}</p>
+          <p className="mt-2 text-destructive">Detalle técnico: {details.technicalDetail}</p>
+
+          <div className="mt-3">
+            <p className="font-medium text-destructive">Cómo proceder:</p>
+            <ol className="mt-1 list-decimal space-y-1 pl-5 text-destructive">
+              {details.nextActions.map((action) => (
+                <li key={action}>{action}</li>
+              ))}
+            </ol>
+          </div>
+        </section>
       </main>
     );
   }
