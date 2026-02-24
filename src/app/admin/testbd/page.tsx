@@ -12,6 +12,12 @@ type CatalogItem = {
   subtitle?: string;
 };
 
+type ArticulosApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: ProductRow[];
+};
+
 function parseStock(value: unknown) {
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : 0;
@@ -118,6 +124,48 @@ function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: string): Cat
   };
 }
 
+function parseJsonSafely(rawText: string) {
+  const trimmed = rawText.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const sanitized = trimmed.replace(/^\)\]\}',?\s*/, '');
+  return JSON.parse(sanitized);
+}
+
+async function fetchArticulos(endpoint: string, apiToken: string) {
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+    },
+    cache: 'no-store',
+  });
+
+  const rawText = await response.text();
+  let payload: ArticulosApiResponse | null = null;
+
+  try {
+    payload = parseJsonSafely(rawText) as ArticulosApiResponse | null;
+  } catch {
+    const preview = rawText.trim().slice(0, 180).replace(/\s+/g, ' ');
+    throw new Error(
+      `Respuesta no JSON desde API (${response.status}). Preview: ${preview || '[vacío]'}`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(payload?.message || `La API respondió ${response.status}.`);
+  }
+
+  if (!payload?.success || !Array.isArray(payload?.data)) {
+    throw new Error(payload?.message || 'La API no devolvió artículos válidos.');
+  }
+
+  return payload;
+}
+
 export default async function AdminTestBdPage() {
   const apiBaseUrl = process.env.API_BASE_URL;
   const apiToken = process.env.API_TOKEN;
@@ -132,26 +180,33 @@ export default async function AdminTestBdPage() {
     );
   }
 
-  const endpoint = `${apiBaseUrl.replace(/\/$/, '')}/articulos`;
+  const primaryBase = apiBaseUrl.replace(/\/$/, '');
+  const primaryEndpoint = `${primaryBase}/articulos`;
+  const fallbackEndpoint = 'http://localhost:3001/articulos';
+  const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
+  let endpointUsed = primaryEndpoint;
 
   try {
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-      },
-      cache: 'no-store',
-    });
+    let payload: ArticulosApiResponse | null = null;
+    let lastError: Error | null = null;
 
-    const payload = await response.json();
+    for (const endpoint of endpointsToTry) {
+      try {
+        payload = await fetchArticulos(endpoint, apiToken);
+        endpointUsed = endpoint;
+        break;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+    }
 
-    if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
-      throw new Error(payload?.message || 'La API no devolvió artículos válidos.');
+    if (!payload || !Array.isArray(payload.data)) {
+      throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
     }
 
     const allRows = payload.data as ProductRow[];
     const inStockItems = allRows
-      .map((row, index) => mapCatalogItem(row, index, apiBaseUrl))
+      .map((row, index) => mapCatalogItem(row, index, primaryBase))
       .filter((item) => item.stock > 0 && item.visibleInTestbd);
 
     return (
@@ -161,7 +216,7 @@ export default async function AdminTestBdPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Mostrando únicamente productos con <span className="font-medium">cantidadUnidades &gt; 0</span> y marcados para visibilidad.
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Endpoint: {endpoint}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Endpoint: {endpointUsed}</p>
           <div className="mt-4">
             <Link href="/admin/articulos" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
               Ver tabla completa de artículos
@@ -216,7 +271,7 @@ export default async function AdminTestBdPage() {
         <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
           <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
           <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
-          <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpoint}</p>
+          <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
         </section>
       </main>
     );
