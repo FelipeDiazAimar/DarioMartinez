@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image, { type ImageProps } from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -20,9 +20,35 @@ export function LoadingImage({
   ...props
 }: LoadingImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [proxyAttempted, setProxyAttempted] = useState(false);
+  const externalImgRef = useRef<HTMLImageElement | null>(null);
   const wrapperBaseClassName = props.fill ? 'relative h-full w-full' : 'relative';
+  const normalizedSrc = typeof src === 'string' ? src.trim() : src;
+  const isExternalUrl = typeof normalizedSrc === 'string' && /^(https?:)?\/\//i.test(normalizedSrc);
+  const proxySrc =
+    isExternalUrl && typeof normalizedSrc === 'string'
+      ? `/api/image-proxy?url=${encodeURIComponent(normalizedSrc)}`
+      : normalizedSrc;
+  const [runtimeSrc, setRuntimeSrc] = useState<typeof normalizedSrc>(normalizedSrc);
 
-  const hasValidSrc = typeof src === 'string' ? src.trim().length > 0 : Boolean(src);
+  useEffect(() => {
+    setIsLoaded(false);
+    setProxyAttempted(false);
+    setRuntimeSrc(normalizedSrc);
+  }, [normalizedSrc]);
+
+  useEffect(() => {
+    if (!isExternalUrl) {
+      return;
+    }
+
+    const imgEl = externalImgRef.current;
+    if (imgEl && imgEl.complete && imgEl.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, [isExternalUrl, runtimeSrc]);
+
+  const hasValidSrc = typeof normalizedSrc === 'string' ? normalizedSrc.length > 0 : Boolean(normalizedSrc);
 
   if (!hasValidSrc) {
     return (
@@ -44,20 +70,68 @@ export function LoadingImage({
           />
         </div>
       )}
-      <Image
-        {...props}
-        src={src}
-        alt={alt}
-        className={className}
-        onLoad={(event) => {
-          setIsLoaded(true);
-          onLoad?.(event);
-        }}
-        onError={(event) => {
-          setIsLoaded(true);
-          onError?.(event);
-        }}
-      />
+
+      {isExternalUrl ? (
+        <img
+          ref={externalImgRef}
+          src={typeof runtimeSrc === 'string' ? runtimeSrc : ''}
+          alt={alt}
+          className={cn(className, props.fill ? 'absolute inset-0 h-full w-full' : undefined)}
+          width={props.fill ? undefined : props.width}
+          height={props.fill ? undefined : props.height}
+          sizes={props.sizes}
+          loading={props.priority ? 'eager' : props.loading}
+          onLoad={(event) => {
+            setIsLoaded(true);
+            if (typeof runtimeSrc === 'string') {
+              console.info('[LoadingImage] loaded', {
+                alt,
+                src: runtimeSrc,
+                viaProxy: runtimeSrc.startsWith('/api/image-proxy?url='),
+              });
+            }
+            onLoad?.(event as unknown as Parameters<NonNullable<typeof onLoad>>[0]);
+          }}
+          onError={(event) => {
+            const currentSrc = typeof runtimeSrc === 'string' ? runtimeSrc : '';
+
+            if (!proxyAttempted && typeof proxySrc === 'string') {
+              setProxyAttempted(true);
+              setRuntimeSrc(proxySrc);
+              setIsLoaded(false);
+              console.warn('[LoadingImage] external image failed, retrying via proxy', {
+                alt,
+                originalSrc: normalizedSrc,
+                proxySrc,
+              });
+              return;
+            }
+
+            setIsLoaded(true);
+            console.error('[LoadingImage] image failed after retry', {
+              alt,
+              src: currentSrc,
+              originalSrc: normalizedSrc,
+            });
+            onError?.(event as unknown as Parameters<NonNullable<typeof onError>>[0]);
+          }}
+        />
+      ) : (
+        <Image
+          {...props}
+          src={normalizedSrc}
+          alt={alt}
+          className={className}
+          onLoad={(event) => {
+            setIsLoaded(true);
+            onLoad?.(event);
+          }}
+          onError={(event) => {
+            setIsLoaded(true);
+            onError?.(event);
+          }}
+        />
+      )}
     </div>
   );
 }

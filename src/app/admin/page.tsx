@@ -17,6 +17,7 @@ import {
     Inbox,
     Eye,
     Package,
+    Database,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -34,6 +35,7 @@ const sections = [
     { title: 'Ver Sitio Web', href: '/', icon: <Eye className="h-8 w-8" /> },
     { title: 'Articulos (Base de datos)', href: '/admin/articulos', icon: <Package className="h-8 w-8" /> },
     { title: 'Kardex (Base de datos)', href: '/admin/kardex', icon: <Package className="h-8 w-8" /> },
+    { title: 'TestBD', href: '/admin/testbd', icon: <Database className="h-8 w-8" /> },
 ];
 
 export default function AdminPage() {

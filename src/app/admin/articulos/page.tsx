@@ -1,86 +1,63 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AdminScrollableTable } from '@/components/admin-scrollable-table';
+import { Check, Undo2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type ProductRow = Record<string, unknown>;
 
-type LoadErrorDetails = {
-  title: string;
-  step: string;
-  technicalDetail: string;
-  nextActions: string[];
+type RowIdentifier = {
+  field: string;
+  value: string;
 };
 
-function normalizeErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  }
+type PaginationMeta = {
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  totalPages?: number;
+};
 
-  return 'Error desconocido';
-}
+type ApiResponse = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  targetUrl?: string;
+  data?: ProductRow[];
+  publicUrl?: string;
+  pagination?: PaginationMeta;
+};
 
-function buildLoadErrorDetails(step: string, rawMessage: string, endpoint: string | null): LoadErrorDetails {
-  const normalized = rawMessage.toLowerCase();
-  const technicalDetail = rawMessage;
-  const endpointText = endpoint ?? 'No disponible';
+type UiErrorInfo = {
+  title: string;
+  causes: string[];
+  solutions: string[];
+};
 
-  if (normalized.includes('api_base_url') || normalized.includes('api_token')) {
-    return {
-      title: 'Faltan datos de configuración para conectar la API.',
-      step,
-      technicalDetail,
-      nextActions: [
-        'Abrí Vercel → Project Settings → Environment Variables.',
-        'Verificá que API_BASE_URL y API_TOKEN existan y estén activos en el entorno actual.',
-        'Guardá cambios y redeployá el proyecto.',
-      ],
-    };
-  }
+const PAGE_SIZE = 30;
 
-  if (normalized.includes('fetch failed') || normalized.includes('failed to fetch')) {
-    return {
-      title: 'No se pudo contactar al servidor de datos.',
-      step,
-      technicalDetail,
-      nextActions: [
-        `Comprobá que la API esté levantada y respondiendo en: ${endpointText}.`,
-        'Si usás tunnel (Railway/Render/local), verificá que la URL no haya cambiado.',
-        'Probá recargar en 10 segundos. Si persiste, reiniciá la API backend.',
-      ],
-    };
-  }
+type NewArticleForm = {
+  codigo: string;
+  descripcion: string;
+  cantidadUnidades: string;
+  precio: string;
+  imagen: string;
+  mostrar_en_testbd: boolean;
+};
 
-  if (normalized.includes('unexpected token') || normalized.includes('json')) {
-    return {
-      title: 'La API respondió, pero el formato de datos no fue válido.',
-      step,
-      technicalDetail,
-      nextActions: [
-        'Revisá el endpoint /articulos en la API para confirmar que devuelve JSON válido.',
-        'Comprobá que la respuesta incluya success=true y data como arreglo.',
-        'Si hubo cambios recientes en backend, revertí o ajustá el contrato de respuesta.',
-      ],
-    };
-  }
-
-  return {
-    title: 'Ocurrió un error al cargar la tabla de artículos.',
-    step,
-    technicalDetail,
-    nextActions: [
-      'Actualizá la página para reintentar la carga.',
-      'Verificá conectividad de la API y credenciales del proyecto.',
-      'Si continúa fallando, compartí el detalle técnico con soporte/desarrollo.',
-    ],
-  };
-}
+const initialNewArticle: NewArticleForm = {
+  codigo: '',
+  descripcion: '',
+  cantidadUnidades: '',
+  precio: '',
+  imagen: '',
+  mostrar_en_testbd: false,
+};
 
 function toCellValue(value: unknown) {
   if (value === null || value === undefined) {
     return '—';
-  }
-
-  if (value instanceof Date) {
-    return value.toISOString();
   }
 
   if (typeof value === 'object') {
@@ -90,233 +67,887 @@ function toCellValue(value: unknown) {
   return String(value);
 }
 
-type AdminArticulosPageProps = {
-  searchParams?: Promise<{
-    page?: string;
-    pageSize?: string;
-    column?: string;
-    query?: string;
-    order?: string;
-  }>;
-};
+function isTruthyDbBoolean(value: unknown) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === '1' || normalized === 'true' || normalized === 'si' || normalized === 'sí';
+  }
 
-export default async function AdminArticulosPage({ searchParams }: AdminArticulosPageProps) {
-  const basePath = '/admin/articulos';
-  let currentStep = '1) Preparando configuración de conexión';
-  let endpoint: string | null = null;
+  return false;
+}
 
-  try {
-    currentStep = '2) Leyendo variables de entorno';
-    const apiBaseUrl = process.env.API_BASE_URL;
-    const apiToken = process.env.API_TOKEN;
+function toUpdateValue(rawValue: string, sample: unknown) {
+  if (typeof sample === 'number') {
+    const parsed = Number(rawValue);
+    return Number.isFinite(parsed) ? parsed : sample;
+  }
 
-    if (!apiBaseUrl || !apiToken) {
-      throw new Error('Faltan API_BASE_URL o API_TOKEN en variables de entorno de Vercel.');
+  if (typeof sample === 'boolean') {
+    return rawValue.trim().toLowerCase() === 'true' ? 1 : 0;
+  }
+
+  if (sample === null && rawValue.trim() === '') {
+    return null;
+  }
+
+  return rawValue;
+}
+
+function inputWidthFromValue(value: string) {
+  const normalizedLength = value.trim().length > 0 ? value.length : 1;
+  const widthInCh = Math.max(4, normalizedLength + 1);
+  return `${widthInCh}ch`;
+}
+
+function getRowIdentifier(row: ProductRow): RowIdentifier | null {
+  const candidates = ['id', 'codigo', 'cod', 'sku', 'nroArticulo', 'articulo'];
+
+  for (const field of candidates) {
+    const value = row[field];
+    if (value !== null && value !== undefined && String(value).trim() !== '') {
+      return {
+        field,
+        value: String(value),
+      };
     }
+  }
 
-    currentStep = '3) Procesando parámetros de búsqueda';
-    const resolvedSearchParams = await searchParams;
-    const requestedPage = Number(resolvedSearchParams?.page ?? '1');
-    const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '200');
-    const selectedColumn = resolvedSearchParams?.column?.trim();
-    const query = resolvedSearchParams?.query?.trim();
-    const order = resolvedSearchParams?.order ?? 'asc';
+  return null;
+}
 
-    endpoint = `${apiBaseUrl.replace(/\/$/, '')}/articulos`;
-    currentStep = '4) Consultando API de artículos';
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-      },
-      cache: 'no-store',
+function buildIdentifierUrl(identifier: RowIdentifier) {
+  return `/api/admin/articulos/${encodeURIComponent(identifier.value)}?by=${encodeURIComponent(identifier.field)}`;
+}
+
+function normalizeImageForPreview(value: unknown) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const raw = value.trim();
+  if (!raw) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(raw) || /^\/\//.test(raw)) {
+    return raw;
+  }
+
+  return '';
+}
+
+function parseUiError(rawError: string): UiErrorInfo {
+  const normalized = rawError.toLowerCase();
+
+  if (normalized.includes("data too long for column 'imagen'")) {
+    return {
+      title: 'La URL de imagen es demasiado larga para la columna imagen.',
+      causes: [
+        'La base de datos tiene la columna imagen con tamaño corto (por ejemplo VARCHAR chico).',
+        'La URL pegada supera el límite permitido por esa columna.',
+      ],
+      solutions: [
+        'Reiniciá mysql-api-express para que aplique el ajuste automático de imagen a VARCHAR(2048).',
+        'Volvé a guardar la URL; si persiste, confirmá en la DB que imagen tenga al menos 2048 caracteres.',
+        'Como alternativa, subí la imagen a Supabase desde “Adjuntar imagen” y guardá esa URL pública.',
+      ],
+    };
+  }
+
+  if (normalized.includes('502') || normalized.includes('bad gateway') || normalized.includes('upstream')) {
+    return {
+      title: 'No se pudo conectar con la API de artículos (error de gateway).',
+      causes: [
+        'La API backend no está levantada o la URL configurada no responde.',
+        'El túnel público (Cloudflare/otro) está caído o cambió.',
+      ],
+      solutions: [
+        'Verificá que mysql-api-express esté corriendo.',
+        'Comprobá API_BASE_URL y API_TOKEN en .env.local.',
+        'Probá /health de la API y luego recargá la página.',
+      ],
+    };
+  }
+
+  if (normalized.includes('fetch failed') || normalized.includes('failed to fetch') || normalized.includes('econnrefused')) {
+    return {
+      title: 'No hay conexión con el servidor de datos.',
+      causes: [
+        'Servidor detenido o puerto incorrecto.',
+        'Host inaccesible desde esta máquina.',
+      ],
+      solutions: [
+        'Levantá la API mysql-api-express.',
+        'Confirmá la URL de API_BASE_URL y el puerto.',
+      ],
+    };
+  }
+
+  if (normalized.includes('401') || normalized.includes('no autorizado') || normalized.includes('unauthorized')) {
+    return {
+      title: 'Token inválido o faltante para acceder a la API.',
+      causes: [
+        'API_TOKEN no coincide entre frontend y backend.',
+      ],
+      solutions: [
+        'Verificá API_TOKEN en DarioMartinez/.env.local y mysql-api-express/.env.',
+        'Reiniciá ambos servidores después de corregir variables.',
+      ],
+    };
+  }
+
+  return {
+    title: 'No se pudo completar la operación sobre artículos.',
+    causes: [
+      'Hubo un error en la API o en la base de datos.',
+    ],
+    solutions: [
+      'Intentá nuevamente.',
+      'Si persiste, revisá el detalle técnico y el log del backend.',
+    ],
+  };
+}
+
+export default function AdminArticulosPage() {
+  const [rows, setRows] = useState<ProductRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRows, setTotalRows] = useState(0);
+  const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+  const floatingScrollRef = useRef<HTMLDivElement | null>(null);
+  const syncingScrollRef = useRef(false);
+  const [showFloatingScrollbar, setShowFloatingScrollbar] = useState(false);
+  const [floatingScrollWidth, setFloatingScrollWidth] = useState(0);
+
+  const uiError = useMemo(() => (error ? parseUiError(error) : null), [error]);
+
+  const columns = useMemo(() => {
+    const set = new Set<string>();
+
+    rows.forEach((row) => {
+      Object.keys(row).forEach((key) => set.add(key));
     });
 
-    currentStep = '5) Interpretando respuesta de la API';
-    const payload = await response.json();
+    set.add('mostrar_en_testbd');
+    return Array.from(set);
+  }, [rows]);
 
-    currentStep = '6) Validando estructura de datos recibida';
-    if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
-      throw new Error(payload?.message || 'La API no devolvió un resultado válido para artículos.');
+  const editingRow = useMemo(() => {
+    if (!editingRowKey) {
+      return null;
     }
 
-    currentStep = '7) Preparando datos para mostrar en tabla';
-    const allRows = payload.data as ProductRow[];
-    const columns = Array.from(
-      allRows.reduce((acc, row) => {
-        Object.keys(row).forEach((key) => acc.add(key));
-        return acc;
-      }, new Set<string>()),
-    );
+    return rows.find((row, index) => String(row.id ?? `row-${index}`) === editingRowKey) ?? null;
+  }, [rows, editingRowKey]);
 
-    const searchColumn = selectedColumn && columns.includes(selectedColumn) ? selectedColumn : undefined;
-    const searchTerm = query && query.length > 0 ? query : undefined;
-    const shouldFilter = Boolean(searchColumn && searchTerm);
+  const loadRows = async (targetPage = currentPage) => {
+    setLoading(true);
+    setError(null);
 
-    const filteredRows = shouldFilter
-      ? allRows.filter((row) => String(row[searchColumn! as keyof ProductRow] ?? '').toLowerCase().includes(searchTerm!.toLowerCase()))
-      : allRows;
+    try {
+      const params = new URLSearchParams({
+        page: String(targetPage),
+        pageSize: String(PAGE_SIZE),
+      });
 
-    const direction = order === 'desc' ? -1 : 1;
-    const sortedRows = searchColumn
-      ? [...filteredRows].sort((a, b) => {
-          const aValue = String(a[searchColumn as keyof ProductRow] ?? '').toLowerCase();
-          const bValue = String(b[searchColumn as keyof ProductRow] ?? '').toLowerCase();
+      const response = await fetch(`/api/admin/articulos?${params.toString()}`, {
+        method: 'GET',
+        cache: 'no-store',
+      });
 
-          if (aValue < bValue) return -1 * direction;
-          if (aValue > bValue) return 1 * direction;
-          return 0;
-        })
-      : filteredRows;
+      const payload = (await response.json()) as ApiResponse;
 
-    const safePageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? Math.min(Math.floor(requestedPageSize), 500) : 200;
-    const total = sortedRows.length;
-    const totalPages = total > 0 ? Math.ceil(total / safePageSize) : 1;
-    const currentPage = Math.min(Math.max(Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1, 1), totalPages);
-    const offset = (currentPage - 1) * safePageSize;
-    const products = sortedRows.slice(offset, offset + safePageSize);
-    const currentPageSize = safePageSize;
-    const schema = 'api';
-    const tableName = 'articulos';
-
-    const displayRows = products.map((product) => {
-      const row: Record<string, string> = {};
-
-      for (const column of columns) {
-        row[column] = toCellValue(product[column]);
+      if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
+        const detail = payload?.error ? ` (${payload.error})` : '';
+        const target = payload?.targetUrl ? ` [API: ${payload.targetUrl}]` : '';
+        throw new Error(`${payload?.message || 'No se pudieron obtener los artículos.'}${detail}${target}`);
       }
 
-      return row;
-    });
-    const hasPrev = currentPage > 1;
-    const hasNext = currentPage < totalPages;
+      const normalizedRows = payload.data.map((row) => ({
+        ...row,
+        mostrar_en_testbd: isTruthyDbBoolean(row.mostrar_en_testbd) ? 1 : 0,
+      }));
 
-    const buildHref = (targetPage: number) => {
-      const params = new URLSearchParams();
-      params.set('page', String(targetPage));
-      params.set('pageSize', String(currentPageSize));
+      const page = Number(payload.pagination?.page ?? targetPage);
+      const pages = Number(payload.pagination?.totalPages ?? 1);
+      const total = Number(payload.pagination?.total ?? normalizedRows.length);
 
-      if (searchColumn) {
-        params.set('column', searchColumn);
+      setRows(normalizedRows);
+      setCurrentPage(Number.isFinite(page) && page > 0 ? page : 1);
+      setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
+      setTotalRows(Number.isFinite(total) && total >= 0 ? total : 0);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadRows(1);
+  }, []);
+
+  useEffect(() => {
+    const updateFloatingScrollbar = () => {
+      const tableContainer = tableScrollRef.current;
+      if (!tableContainer) {
+        setShowFloatingScrollbar(false);
+        setFloatingScrollWidth(0);
+        return;
       }
 
-      if (searchTerm) {
-        params.set('query', searchTerm);
-      }
+      const hasHorizontalOverflow = tableContainer.scrollWidth > tableContainer.clientWidth + 1;
+      const rect = tableContainer.getBoundingClientRect();
+      const isOnScreen = rect.bottom > 0 && rect.top < window.innerHeight;
 
-      if (order !== 'asc') {
-        params.set('order', order);
-      }
+      setFloatingScrollWidth(tableContainer.scrollWidth);
+      setShowFloatingScrollbar(hasHorizontalOverflow && isOnScreen);
 
-      return `${basePath}?${params.toString()}`;
+      const floatingContainer = floatingScrollRef.current;
+      if (floatingContainer && Math.abs(floatingContainer.scrollLeft - tableContainer.scrollLeft) > 1) {
+        floatingContainer.scrollLeft = tableContainer.scrollLeft;
+      }
     };
 
-    return (
-      <main className="mx-auto w-full max-w-[1400px] space-y-6 p-6">
-        <section className="rounded-2xl border bg-card p-5 shadow-sm">
-          <h1 className="text-2xl font-semibold tracking-tight">Base de datos de Dario Martinez Computación (Artículos)</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Tabla: {schema}.{tableName}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Mostrando {products.length} de {total} registros · Página {currentPage} de {totalPages}
-          </p>
+    updateFloatingScrollbar();
+    window.addEventListener('resize', updateFloatingScrollbar);
+    window.addEventListener('scroll', updateFloatingScrollbar, { passive: true });
 
-          <form action={basePath} method="get" className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-            <input type="hidden" name="pageSize" value={String(currentPageSize)} />
-            <select
-              name="column"
-              defaultValue={searchColumn ?? ''}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="">Selecciona una columna</option>
-              {columns.map((column: string) => (
-                <option key={column} value={column}>
-                  {column}
-                </option>
-              ))}
-            </select>
+    return () => {
+      window.removeEventListener('resize', updateFloatingScrollbar);
+      window.removeEventListener('scroll', updateFloatingScrollbar);
+    };
+  }, [rows, loading, editingRowKey]);
 
-            <input
-              name="query"
-              defaultValue={searchTerm ?? ''}
-              placeholder="Buscar en la columna seleccionada..."
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-            />
+  const syncFromTable = () => {
+    const tableContainer = tableScrollRef.current;
+    const floatingContainer = floatingScrollRef.current;
 
-            <select
-              name="order"
-              defaultValue={order}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="asc">Ascendente (menor a mayor / A-Z)</option>
-              <option value="desc">Descendente (mayor a menor / Z-A)</option>
-            </select>
+    if (!tableContainer || !floatingContainer || syncingScrollRef.current) {
+      return;
+    }
 
-            <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-              Buscar
-            </button>
+    syncingScrollRef.current = true;
+    floatingContainer.scrollLeft = tableContainer.scrollLeft;
+    requestAnimationFrame(() => {
+      syncingScrollRef.current = false;
+    });
+  };
 
-            <Link href={`${basePath}?page=1&pageSize=${currentPageSize}`} className="h-10 rounded-md border px-4 text-sm leading-10">
-              Limpiar
-            </Link>
-          </form>
+  const syncFromFloating = () => {
+    const tableContainer = tableScrollRef.current;
+    const floatingContainer = floatingScrollRef.current;
 
-          <div className="mt-4 flex items-center gap-2">
-            {hasPrev ? (
-              <Link className="rounded-md border px-3 py-1 text-sm hover:bg-muted" href={buildHref(currentPage - 1)}>
-                Anterior
-              </Link>
-            ) : (
-              <span className="rounded-md border px-3 py-1 text-sm text-muted-foreground">Anterior</span>
-            )}
+    if (!tableContainer || !floatingContainer || syncingScrollRef.current) {
+      return;
+    }
 
-            {hasNext ? (
-              <Link className="rounded-md border px-3 py-1 text-sm hover:bg-muted" href={buildHref(currentPage + 1)}>
-                Siguiente
-              </Link>
-            ) : (
-              <span className="rounded-md border px-3 py-1 text-sm text-muted-foreground">Siguiente</span>
-            )}
-          </div>
-        </section>
+    syncingScrollRef.current = true;
+    tableContainer.scrollLeft = floatingContainer.scrollLeft;
+    requestAnimationFrame(() => {
+      syncingScrollRef.current = false;
+    });
+  };
 
-        <AdminScrollableTable
-          columns={columns}
-          rows={displayRows}
-          emptyMessage={`No hay registros en la tabla ${tableName}.`}
-        />
-      </main>
-    );
-  } catch (error) {
-    const message = normalizeErrorMessage(error);
-    const details = buildLoadErrorDetails(currentStep, message, endpoint);
+  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
 
-    console.error('[ADMIN][ARTICULOS] Error de carga', {
-      step: currentStep,
-      endpoint,
-      message,
-      error,
+    try {
+      const payload: Record<string, unknown> = {
+        codigo: newArticle.codigo.trim(),
+        descripcion: newArticle.descripcion.trim(),
+        cantidadUnidades: Number(newArticle.cantidadUnidades || '0'),
+        precio: Number(newArticle.precio || '0'),
+        imagen: newArticle.imagen.trim(),
+        mostrar_en_testbd: newArticle.mostrar_en_testbd ? 1 : 0,
+      };
+
+      const response = await fetch('/api/admin/articulos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'No se pudo crear el artículo.');
+      }
+
+      setNewArticle(initialNewArticle);
+      await loadRows();
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Error al crear artículo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (row: ProductRow, rowKey: string) => {
+    setEditingRowKey(rowKey);
+
+    const nextDraft: Record<string, string> = {};
+    Object.entries(row).forEach(([key, value]) => {
+      nextDraft[key] = value === null || value === undefined ? '' : String(value);
     });
 
-    return (
-      <main className="p-6">
-        <h1 className="text-2xl font-semibold">Conexión con la base de datos de Dario Martinez Computación</h1>
-        <section className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm">
-          <p className="font-semibold text-destructive">{details.title}</p>
-          <p className="mt-2 text-destructive">Paso donde falló: {details.step}</p>
-          <p className="mt-2 text-destructive">Detalle técnico: {details.technicalDetail}</p>
+    nextDraft.mostrar_en_testbd = isTruthyDbBoolean(row.mostrar_en_testbd) ? '1' : '0';
+    setDraft(nextDraft);
+  };
 
-          <div className="mt-3">
-            <p className="font-medium text-destructive">Cómo proceder:</p>
-            <ol className="mt-1 list-decimal space-y-1 pl-5 text-destructive">
-              {details.nextActions.map((action) => (
-                <li key={action}>{action}</li>
-              ))}
-            </ol>
+  const cancelEdit = () => {
+    setEditingRowKey(null);
+    setDraft({});
+  };
+
+  const saveEdit = async (row: ProductRow) => {
+    const identifier = getRowIdentifier(row);
+
+    if (!identifier) {
+      setError('No se puede editar: el artículo no tiene identificador (id/código).');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const payload: Record<string, unknown> = {};
+
+      Object.keys(draft).forEach((key) => {
+        if (key === 'id') {
+          return;
+        }
+
+        const originalValue = row[key];
+
+        if (key === 'mostrar_en_testbd') {
+          const nextVisibility = draft[key] === '1' ? 1 : 0;
+          const currentVisibility = isTruthyDbBoolean(originalValue) ? 1 : 0;
+
+          if (nextVisibility !== currentVisibility) {
+            payload[key] = nextVisibility;
+          }
+
+          return;
+        }
+
+        const nextValue = toUpdateValue(draft[key] ?? '', originalValue);
+
+        const normalizedCurrent = originalValue === null || originalValue === undefined ? '' : String(originalValue);
+        const normalizedNext = nextValue === null || nextValue === undefined ? '' : String(nextValue);
+
+        if (normalizedNext !== normalizedCurrent) {
+          payload[key] = nextValue;
+        }
+      });
+
+      if (Object.keys(payload).length === 0) {
+        setEditingRowKey(null);
+        setDraft({});
+        return;
+      }
+
+      const response = await fetch(buildIdentifierUrl(identifier), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !result?.success) {
+        const detail = (result as ApiResponse & { error?: string })?.error;
+        throw new Error(detail ? `${result?.message || 'No se pudo actualizar el artículo.'} (${detail})` : (result?.message || 'No se pudo actualizar el artículo.'));
+      }
+
+      setEditingRowKey(null);
+      setDraft({});
+      await loadRows();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Error al guardar cambios');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteRow = async (row: ProductRow) => {
+    const identifier = getRowIdentifier(row);
+
+    if (!identifier) {
+      setError('No se puede eliminar: el artículo no tiene identificador (id/código).');
+      return;
+    }
+
+    const confirmed = window.confirm('¿Seguro que querés eliminar este artículo?');
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(buildIdentifierUrl(identifier), {
+        method: 'DELETE',
+      });
+
+      const result = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'No se pudo eliminar el artículo.');
+      }
+
+      await loadRows();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Error al eliminar artículo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleVisibility = async (row: ProductRow, show: boolean) => {
+    const identifier = getRowIdentifier(row);
+
+    if (!identifier) {
+      setError('No se puede cambiar visibilidad: el artículo no tiene identificador (id/código).');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(buildIdentifierUrl(identifier), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mostrar_en_testbd: show ? 1 : 0 }),
+      });
+
+      const result = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || 'No se pudo actualizar la visibilidad.');
+      }
+
+      await loadRows();
+    } catch (toggleError) {
+      setError(toggleError instanceof Error ? toggleError.message : 'Error al actualizar visibilidad');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadImage = async (row: ProductRow, file: File) => {
+    const identifier = getRowIdentifier(row);
+
+    if (!identifier) {
+      setError('No se puede subir imagen: el artículo no tiene identificador (id/código).');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('articleId', identifier.value);
+      formData.append('file', file);
+
+      const uploadResponse = await fetch('/api/admin/articulos/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const uploadResult = (await uploadResponse.json()) as ApiResponse;
+
+      if (!uploadResponse.ok || !uploadResult?.publicUrl) {
+        throw new Error(uploadResult?.message || 'No se pudo subir la imagen a Supabase.');
+      }
+
+      const saveImageResponse = await fetch(buildIdentifierUrl(identifier), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagen: uploadResult.publicUrl }),
+      });
+
+      const saveImageResult = (await saveImageResponse.json()) as ApiResponse;
+
+      if (!saveImageResponse.ok || !saveImageResult?.success) {
+        throw new Error(saveImageResult?.message || 'No se pudo guardar la URL de imagen en la base local.');
+      }
+
+      await loadRows();
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Error al subir imagen');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-[1600px] space-y-6 p-6">
+      <section className="rounded-2xl border bg-card p-5 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight">Administrar artículos</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Desde acá podés ver, editar, agregar y eliminar artículos; además podés subir imagen a Supabase y decidir si se muestra en TestBD.
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Regla de visibilidad: por defecto <span className="font-medium">no se muestra ninguno</span> en TestBD.
+        </p>
+        <div className="mt-4">
+          <Link href="/admin/testbd" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
+            Ir al catálogo TestBD
+          </Link>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border bg-card p-5 shadow-sm">
+        <h2 className="text-lg font-semibold">Agregar artículo</h2>
+        <form onSubmit={handleCreate} className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-6">
+          <input
+            value={newArticle.codigo}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, codigo: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm"
+            placeholder="Código"
+          />
+          <input
+            value={newArticle.descripcion}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, descripcion: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
+            placeholder="Descripción"
+          />
+          <input
+            value={newArticle.cantidadUnidades}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, cantidadUnidades: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm"
+            placeholder="Stock"
+          />
+          <input
+            value={newArticle.precio}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, precio: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm"
+            placeholder="Precio"
+          />
+          <label className="inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm">
+            <input
+              type="checkbox"
+              checked={newArticle.mostrar_en_testbd}
+              onChange={(event) => setNewArticle((prev) => ({ ...prev, mostrar_en_testbd: event.target.checked }))}
+            />
+            Mostrar en TestBD
+          </label>
+
+          <div className="md:col-span-6">
+            <button
+              type="submit"
+              disabled={saving}
+              className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            >
+              Agregar artículo
+            </button>
           </div>
-        </section>
-      </main>
-    );
-  }
+        </form>
+      </section>
+
+      <section className="rounded-2xl border bg-card p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Listado de artículos ({totalRows})</h2>
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => void loadRows(currentPage - 1)}
+              disabled={loading || saving || currentPage <= 1}
+              className="rounded-md border px-3 py-1 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <span className="text-muted-foreground">
+              Página {currentPage} de {totalPages} · 30 por página
+            </span>
+            <button
+              type="button"
+              onClick={() => void loadRows(currentPage + 1)}
+              disabled={loading || saving || currentPage >= totalPages}
+              className="rounded-md border px-3 py-1 disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+
+        {error && uiError ? (
+          <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive space-y-3">
+            <p className="font-semibold">{uiError.title}</p>
+
+            <div>
+              <p className="font-medium">Posibles causas</p>
+              <ul className="mt-1 list-disc pl-5 space-y-1">
+                {uiError.causes.map((cause) => (
+                  <li key={cause}>{cause}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="font-medium">Cómo resolver</p>
+              <ul className="mt-1 list-disc pl-5 space-y-1">
+                {uiError.solutions.map((solution) => (
+                  <li key={solution}>{solution}</li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="text-xs opacity-90 break-all">Detalle técnico: {error}</p>
+          </div>
+        ) : null}
+
+        {loading ? (
+          <p className="mt-4 text-sm text-muted-foreground">Cargando artículos...</p>
+        ) : (
+          <>
+            <div ref={tableScrollRef} onScroll={syncFromTable} className="mt-4 overflow-auto rounded-lg border">
+              <table className="w-max min-w-full border-collapse text-sm leading-tight">
+              <thead className="bg-muted/60">
+                <tr>
+                  {columns.map((column) => (
+                    <th
+                      key={column}
+                      className={
+                        column === 'mostrar_en_testbd'
+                          ? 'sticky right-[220px] z-20 border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap'
+                          : 'border-b px-2 py-1 text-left font-medium whitespace-nowrap'
+                      }
+                    >
+                      {column}
+                    </th>
+                  ))}
+                  <th className="sticky right-0 z-30 min-w-[220px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => {
+                  const rowId = String(row.id ?? `row-${index}`);
+                  const isEditing = editingRowKey === rowId;
+                  const imageUrl = normalizeImageForPreview(row.imagen);
+                  const rowIdentifier = getRowIdentifier(row);
+                  const canUpload = Boolean(rowIdentifier);
+
+                  return (
+                    <tr key={rowId} className="align-top odd:bg-background even:bg-muted/20">
+                      {columns.map((column) => {
+                        if (isEditing && column !== 'id') {
+                          if (column === 'mostrar_en_testbd') {
+                            return (
+                              <td
+                                key={`${rowId}-${column}`}
+                                className="sticky right-[220px] z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle"
+                              >
+                                <label className="inline-flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={draft[column] === '1'}
+                                    onChange={(event) =>
+                                      setDraft((prev) => ({
+                                        ...prev,
+                                        [column]: event.target.checked ? '1' : '0',
+                                      }))
+                                    }
+                                  />
+                                  Mostrar
+                                </label>
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle">
+                              <input
+                                value={draft[column] ?? ''}
+                                onChange={(event) =>
+                                  setDraft((prev) => ({
+                                    ...prev,
+                                    [column]: event.target.value,
+                                  }))
+                                }
+                                className="h-8 rounded-md border bg-background px-2 text-xs"
+                                style={{ width: inputWidthFromValue(draft[column] ?? '') }}
+                              />
+                            </td>
+                          );
+                        }
+
+                        if (column === 'imagen') {
+                          return (
+                            <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle">
+                              {imageUrl ? (
+                                <div className="flex items-center gap-2">
+                                  <img src={imageUrl} alt="Imagen artículo" className="h-8 w-8 rounded border object-cover" />
+                                  <span title={imageUrl} className="block max-w-[170px] truncate text-xs text-muted-foreground">{imageUrl}</span>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">Sin imagen</span>
+                              )}
+                            </td>
+                          );
+                        }
+
+                        if (column === 'mostrar_en_testbd') {
+                          const checked = isTruthyDbBoolean(row[column]);
+                          return (
+                            <td
+                              key={`${rowId}-${column}`}
+                              className="sticky right-[220px] z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle"
+                            >
+                              <label className="inline-flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) => void toggleVisibility(row, event.target.checked)}
+                                  disabled={saving || !canUpload}
+                                />
+                                {checked ? 'Visible' : 'Oculto'}
+                              </label>
+                            </td>
+                          );
+                        }
+
+                        return (
+                          <td key={`${rowId}-${column}`} className="border-b px-2 py-1 whitespace-nowrap align-middle">
+                            {toCellValue(row[column])}
+                          </td>
+                        );
+                      })}
+
+                      <td className="sticky right-0 z-20 min-w-[220px] border-b bg-card px-2 py-1 align-middle whitespace-nowrap">
+                        <div className="flex flex-nowrap items-center gap-1 whitespace-nowrap">
+                          {!isEditing ? (
+                            <button
+                              type="button"
+                              onClick={() => startEdit(row, rowId)}
+                              className="rounded-md border px-2 py-0.5 text-xs hover:bg-muted"
+                            >
+                              Editar
+                            </button>
+                          ) : (
+                            <span className="rounded-md border px-2 py-0.5 text-xs text-muted-foreground">
+                              Editando
+                            </span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => void deleteRow(row)}
+                            disabled={saving || !canUpload}
+                            className="rounded-md border border-destructive/40 px-2 py-0.5 text-xs text-destructive disabled:opacity-60"
+                          >
+                            Eliminar
+                          </button>
+
+                          <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border px-2 py-0.5 text-xs hover:bg-muted">
+                            <span>Adjuntar imagen</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={saving || !canUpload}
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (file) {
+                                  void uploadImage(row, file);
+                                }
+
+                                event.currentTarget.value = '';
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              </table>
+            </div>
+
+            <div className="mt-3 flex items-center justify-end gap-2 text-sm">
+              <button
+                type="button"
+                onClick={() => void loadRows(currentPage - 1)}
+                disabled={loading || saving || currentPage <= 1}
+                className="rounded-md border px-3 py-1 disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => void loadRows(currentPage + 1)}
+                disabled={loading || saving || currentPage >= totalPages}
+                className="rounded-md border px-3 py-1 disabled:opacity-50"
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+
+      {showFloatingScrollbar ? (
+        <div className="pointer-events-none fixed bottom-3 left-0 right-0 z-40 px-6">
+          <div className="pointer-events-auto mx-auto w-full max-w-[1600px] rounded-md border bg-background/95 shadow-sm backdrop-blur-sm">
+            <div
+              ref={floatingScrollRef}
+              onScroll={syncFromFloating}
+              className="h-4 overflow-x-auto overflow-y-hidden"
+            >
+              <div style={{ width: floatingScrollWidth, height: 1 }} />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editingRow ? (
+        <div className={`fixed right-6 z-50 ${showFloatingScrollbar ? 'bottom-16' : 'bottom-6'}`}>
+          <div className="hidden items-center gap-4 md:flex">
+            <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={cancelEdit} disabled={saving}>
+              <Undo2 className="mr-2 h-5 w-5" />
+              Deshacer Cambios
+            </Button>
+            <Button type="button" size="lg" className="shadow-lg" onClick={() => void saveEdit(editingRow)} disabled={saving}>
+              <Check className="mr-2 h-5 w-5" />
+              {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+          </div>
+
+          <div className="flex flex-col gap-3 md:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-14 w-14 rounded-full border-2 bg-background shadow-lg"
+              onClick={cancelEdit}
+              disabled={saving}
+            >
+              <Undo2 className="h-6 w-6" />
+              <span className="sr-only">Deshacer Cambios</span>
+            </Button>
+            <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => void saveEdit(editingRow)} disabled={saving}>
+              <Check className="h-6 w-6" />
+              <span className="sr-only">Guardar Cambios</span>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </main>
+  );
 }
