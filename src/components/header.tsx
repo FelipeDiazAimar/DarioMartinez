@@ -59,6 +59,7 @@ const adminNavItems = [
   { href: "/admin/editar-preguntas-frecuentes", label: "Preguntas Frecuentes", icon: HelpCircle },
   { href: "/admin/articulos", label: "Articulos (Base de datos)", icon: Package },
   { href: "/admin/kardex", label: "Kardex (Base de datos)", icon: Package },
+  { href: "/admin/ventas", label: "Ventas", icon: Receipt },
   { href: "/", label: "Ver Sitio Web", icon: Eye },
 ];
 
@@ -105,7 +106,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container max-w-none flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="mr-6 flex items-center">
           <LoadingImage
             src="/LOGO1.png"
@@ -167,24 +168,24 @@ export function Header() {
               </Button>
             </div>
           ) : (
-            <>
+            <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <Link
                 href="/servicios"
-                className="transition-colors hover:text-primary"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
               >
                 Servicio Técnico
               </Link>
               
               <Link
                 href="/productos"
-                className="transition-colors hover:text-primary"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
               >
                 Productos
               </Link>
 
               <Link
                 href="/posberry"
-                className="flex items-center transition-colors hover:text-primary"
+                className="flex shrink-0 items-center whitespace-nowrap transition-colors hover:text-primary"
               >
                 <LoadingImage
                   src="/LOGOBOSBERRY3.png"
@@ -198,29 +199,29 @@ export function Header() {
 
               <Link
                 href="/controladores-fiscales"
-                className="transition-colors hover:text-primary"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
               >
                 Controladores Fiscales
               </Link>
               
               <Link
                 href="/sobre-nosotros"
-                className="transition-colors hover:text-primary"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
               >
                 Sobre Nosotros
               </Link>
               
               <Link
                 href="/contacto"
-                className="transition-colors hover:text-primary"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
               >
                 Contacto
               </Link>
-            </>
+            </div>
           )}
         </nav>
 
-        <div className="flex flex-1 items-center justify-end gap-2">
+        <div className="flex shrink-0 items-center justify-end gap-2">
           {!isAdmin && (
             <Button asChild className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
               <Link href={contactInfo.instagram} target="_blank">

@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { WhatsAppFloatButton } from '@/components/whatsapp-float-button';
+import { AdminCartWidget } from '@/components/admin-cart-widget';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default function RootLayout({
         </div>
         <Toaster />
         <WhatsAppFloatButton />
+        <AdminCartWidget />
       </body>
     </html>
   );

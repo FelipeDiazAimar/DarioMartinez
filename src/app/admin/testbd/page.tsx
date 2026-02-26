@@ -1,170 +1,6 @@
 import Link from 'next/link';
 import { LoadingImage } from '@/components/loading-image';
-
-type ProductRow = Record<string, unknown>;
-
-type CatalogItem = {
-  id: string;
-  title: string;
-  stock: number;
-  imageUrl: string;
-  visibleInTestbd: boolean;
-  subtitle?: string;
-};
-
-type ArticulosApiResponse = {
-  success?: boolean;
-  message?: string;
-  data?: ProductRow[];
-};
-
-function parseStock(value: unknown) {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  if (typeof value !== 'string') {
-    return 0;
-  }
-
-  const cleaned = value
-    .trim()
-    .replace(/\s+/g, '')
-    .replace(/,/g, '.')
-    .replace(/[^0-9.-]/g, '');
-
-  const parsed = Number.parseFloat(cleaned);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function parseVisibility(value: unknown) {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-
-  if (typeof value === 'number') {
-    return value === 1;
-  }
-
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase();
-    return normalized === '1' || normalized === 'true' || normalized === 'si' || normalized === 'sí';
-  }
-
-  return false;
-}
-
-function pickText(row: ProductRow, candidates: string[], fallback: string) {
-  for (const candidate of candidates) {
-    const value = row[candidate];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return fallback;
-}
-
-function normalizeImageUrl(value: unknown, apiBaseUrl: string) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-
-  const raw = value.trim();
-  if (!raw) {
-    return '';
-  }
-
-  if (/^https?:\/\//i.test(raw)) {
-    return raw;
-  }
-
-  if (/^\/\//.test(raw)) {
-    return `https:${raw}`;
-  }
-
-  if (/^file:\/\//i.test(raw)) {
-    return '';
-  }
-
-  if (/^[a-zA-Z]:\\/.test(raw) || raw.includes('\\')) {
-    return '';
-  }
-
-  if (raw.startsWith('/')) {
-    const base = apiBaseUrl.replace(/\/$/, '');
-    return `${base}${raw}`;
-  }
-
-  if (/^[a-zA-Z0-9][a-zA-Z0-9+.-]*:\/\//.test(raw)) {
-    return raw;
-  }
-
-  return '';
-}
-
-function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: string): CatalogItem {
-  const stock = parseStock(row.cantidadUnidades);
-  const imageUrl = normalizeImageUrl(row.imagen, apiBaseUrl);
-  const visibleInTestbd = parseVisibility(row.mostrar_en_testbd);
-
-  const title = pickText(row, ['descripcion', 'nombre', 'producto', 'articulo', 'denominacion', 'detalle'], `Artículo #${index + 1}`);
-  const subtitle = pickText(row, ['rubro', 'marca', 'codigo', 'categoria'], '');
-
-  const rawId = row.id ?? row.codigo ?? row.cod ?? row.sku ?? row.nroArticulo ?? row.articulo;
-  const id = rawId !== undefined && rawId !== null && String(rawId).trim() ? String(rawId) : `${title}-${index}`;
-
-  return {
-    id,
-    title,
-    stock,
-    imageUrl,
-    visibleInTestbd,
-    subtitle: subtitle || undefined,
-  };
-}
-
-function parseJsonSafely(rawText: string) {
-  const trimmed = rawText.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const sanitized = trimmed.replace(/^\)\]\}',?\s*/, '');
-  return JSON.parse(sanitized);
-}
-
-async function fetchArticulos(endpoint: string, apiToken: string) {
-  const response = await fetch(endpoint, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-    },
-    cache: 'no-store',
-  });
-
-  const rawText = await response.text();
-  let payload: ArticulosApiResponse | null = null;
-
-  try {
-    payload = parseJsonSafely(rawText) as ArticulosApiResponse | null;
-  } catch {
-    const preview = rawText.trim().slice(0, 180).replace(/\s+/g, ' ');
-    throw new Error(
-      `Respuesta no JSON desde API (${response.status}). Preview: ${preview || '[vacío]'}`,
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(payload?.message || `La API respondió ${response.status}.`);
-  }
-
-  if (!payload?.success || !Array.isArray(payload?.data)) {
-    throw new Error(payload?.message || 'La API no devolvió artículos válidos.');
-  }
-
-  return payload;
-}
+import { fetchCatalogItems } from './catalog-utils';
 
 export default async function AdminTestBdPage() {
   const apiBaseUrl = process.env.API_BASE_URL;
@@ -180,34 +16,12 @@ export default async function AdminTestBdPage() {
     );
   }
 
-  const primaryBase = apiBaseUrl.replace(/\/$/, '');
-  const primaryEndpoint = `${primaryBase}/articulos`;
-  const fallbackEndpoint = 'http://localhost:3001/articulos';
-  const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
-  let endpointUsed = primaryEndpoint;
+  let endpointUsed = `${apiBaseUrl.replace(/\/$/, '')}/articulos`;
 
   try {
-    let payload: ArticulosApiResponse | null = null;
-    let lastError: Error | null = null;
-
-    for (const endpoint of endpointsToTry) {
-      try {
-        payload = await fetchArticulos(endpoint, apiToken);
-        endpointUsed = endpoint;
-        break;
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-      }
-    }
-
-    if (!payload || !Array.isArray(payload.data)) {
-      throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
-    }
-
-    const allRows = payload.data as ProductRow[];
-    const inStockItems = allRows
-      .map((row, index) => mapCatalogItem(row, index, primaryBase))
-      .filter((item) => item.stock > 0 && item.visibleInTestbd);
+    const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
+    endpointUsed = catalogResult.endpointUsed;
+    const inStockItems = catalogResult.visibleInStockItems;
 
     return (
       <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
@@ -231,33 +45,36 @@ export default async function AdminTestBdPage() {
         ) : (
           <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {inStockItems.map((item) => (
-              <article
+              <Link
                 key={item.id}
+                href={`/admin/testbd/${encodeURIComponent(item.id)}`}
                 className="group overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="relative flex h-52 items-center justify-center overflow-hidden bg-muted/30 p-4">
-                  {item.imageUrl ? (
-                    <LoadingImage
-                      src={item.imageUrl}
-                      alt={item.title}
-                      width={500}
-                      height={400}
-                      className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      spinnerSizeClassName="h-8 w-8 border-2"
-                    />
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Sin imagen</div>
-                  )}
-                </div>
-
-                <div className="space-y-2 p-4">
-                  <h2 className="line-clamp-2 text-base font-semibold leading-tight">{item.title}</h2>
-                  {item.subtitle && <p className="line-clamp-1 text-xs text-muted-foreground">{item.subtitle}</p>}
-                  <div className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
-                    Stock disponible: {item.stock}
+                <article>
+                  <div className="relative flex h-52 items-center justify-center overflow-hidden bg-muted/30 p-4">
+                    {item.imageUrl ? (
+                      <LoadingImage
+                        src={item.imageUrl}
+                        alt={item.title}
+                        width={500}
+                        height={400}
+                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        spinnerSizeClassName="h-8 w-8 border-2"
+                      />
+                    ) : (
+                      <div className="text-sm text-muted-foreground">Sin imagen</div>
+                    )}
                   </div>
-                </div>
-              </article>
+
+                  <div className="space-y-2 p-4">
+                    <h2 className="line-clamp-2 text-base font-semibold leading-tight">{item.title}</h2>
+                    {item.descriptionAdditional && <p className="line-clamp-2 text-xs text-muted-foreground">{item.descriptionAdditional}</p>}
+                    <div className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-xs font-medium">
+                      Stock disponible: {item.stock}
+                    </div>
+                  </div>
+                </article>
+              </Link>
             ))}
           </section>
         )}
