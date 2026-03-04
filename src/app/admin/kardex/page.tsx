@@ -1,5 +1,8 @@
 import Link from 'next/link';
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 import { AdminScrollableTable } from '@/components/admin-scrollable-table';
+
+export const dynamic = 'force-dynamic';
 
 type ProductRow = Record<string, unknown>;
 
@@ -122,7 +125,7 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
     const query = resolvedSearchParams?.query?.trim();
     const order = resolvedSearchParams?.order ?? 'asc';
 
-    endpoint = `${apiBaseUrl.replace(/\/$/, '')}/kardex`;
+    endpoint = `${resolveApiBaseUrl(apiBaseUrl)}/kardex`;
     currentStep = '4) Consultando API de kardex';
     const response = await fetch(endpoint, {
       method: 'GET',

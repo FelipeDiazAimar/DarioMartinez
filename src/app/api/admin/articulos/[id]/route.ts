@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 
 type Params = {
   params: Promise<{
@@ -15,7 +16,7 @@ function getApiConfig() {
   }
 
   return {
-    apiBaseUrl: apiBaseUrl.replace(/\/$/, ''),
+    apiBaseUrl: resolveApiBaseUrl(apiBaseUrl),
     apiToken,
   };
 }

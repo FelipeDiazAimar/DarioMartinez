@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 
 function getApiConfig() {
   const apiBaseUrl = process.env.API_BASE_URL;
@@ -9,7 +10,7 @@ function getApiConfig() {
   }
 
   return {
-    apiBaseUrl: apiBaseUrl.replace(/\/$/, ''),
+    apiBaseUrl: resolveApiBaseUrl(apiBaseUrl),
     apiToken,
   };
 }

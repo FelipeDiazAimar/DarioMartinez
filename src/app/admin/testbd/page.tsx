@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { LoadingImage } from '@/components/loading-image';
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 import { fetchCatalogItems } from './catalog-utils';
 
 export default async function AdminTestBdPage() {
@@ -16,7 +17,7 @@ export default async function AdminTestBdPage() {
     );
   }
 
-  let endpointUsed = `${apiBaseUrl.replace(/\/$/, '')}/articulos`;
+  let endpointUsed = `${resolveApiBaseUrl(apiBaseUrl)}/articulos`;
 
   try {
     const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);

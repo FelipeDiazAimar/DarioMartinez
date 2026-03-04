@@ -1,3 +1,5 @@
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
+
 type ProductRow = Record<string, unknown>;
 
 export type CatalogItem = {
@@ -208,7 +210,7 @@ export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: strin
 }
 
 export async function fetchCatalogItems(apiBaseUrl: string, apiToken: string): Promise<CatalogFetchResult> {
-  const primaryBase = apiBaseUrl.replace(/\/$/, '');
+  const primaryBase = resolveApiBaseUrl(apiBaseUrl);
   const primaryEndpoint = `${primaryBase}/articulos`;
   const fallbackEndpoint = 'http://127.0.0.1:3001/articulos';
   const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
