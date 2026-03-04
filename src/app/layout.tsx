@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer';
 import { WhatsAppFloatButton } from '@/components/whatsapp-float-button';
 import { AdminCartWidget } from '@/components/admin-cart-widget';
 import { cn } from '@/lib/utils';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: 'Darío Martínez Computación',
@@ -42,6 +43,7 @@ export default function RootLayout({
         <Toaster />
         <WhatsAppFloatButton />
         <AdminCartWidget />
+        <SpeedInsights />
       </body>
     </html>
   );
