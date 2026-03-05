@@ -75,7 +75,7 @@ export default function ContactoPage() {
         id="contacto"
         className="w-full bg-white pt-12 pb-12 md:pt-24 md:pb-24 lg:pt-24 lg:pb-32"
       >
-        <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+          <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
             <LoadingImage
                 src="/LOGO1.png"

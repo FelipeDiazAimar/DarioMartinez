@@ -69,6 +69,7 @@ export function Header() {
   const adminNavScrollRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
+  const isAdminLogin = pathname === '/admin-login';
 
   const closeSheet = () => setSheetOpen(false);
 
@@ -119,110 +120,112 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex md:items-center md:gap-4 text-sm font-medium flex-1 min-w-0">
-          {isAdmin ? (
-            <div className="flex w-full items-center gap-2 min-w-0">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() => scrollAdminNav("left")}
-                aria-label="Desplazar navegación admin a la izquierda"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+        {!isAdminLogin && (
+          <nav className="hidden md:flex md:items-center md:gap-4 text-sm font-medium flex-1 min-w-0">
+            {isAdmin ? (
+              <div className="flex w-full items-center gap-2 min-w-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => scrollAdminNav("left")}
+                  aria-label="Desplazar navegación admin a la izquierda"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
 
-              <div
-                ref={adminNavScrollRef}
-                className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-              >
-                <div className="flex items-center gap-2 pr-2">
-                  {adminNavItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="shrink-0 rounded-lg border bg-background px-3 py-2 transition-colors hover:bg-muted"
-                      >
-                        <span className="flex items-center gap-2 text-xs font-medium">
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </span>
-                      </Link>
-                    );
-                  })}
+                <div
+                  ref={adminNavScrollRef}
+                  className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  <div className="flex items-center gap-2 pr-2">
+                    {adminNavItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="shrink-0 rounded-lg border bg-background px-3 py-2 transition-colors hover:bg-muted"
+                        >
+                          <span className="flex items-center gap-2 text-xs font-medium">
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => scrollAdminNav("right")}
+                  aria-label="Desplazar navegación admin a la derecha"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
               </div>
+            ) : (
+              <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <Link
+                  href="/servicios"
+                  className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  Servicio Técnico
+                </Link>
+                
+                <Link
+                  href="/productos"
+                  className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  Productos
+                </Link>
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() => scrollAdminNav("right")}
-                aria-label="Desplazar navegación admin a la derecha"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <Link
-                href="/servicios"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
-              >
-                Servicio Técnico
-              </Link>
-              
-              <Link
-                href="/productos"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
-              >
-                Productos
-              </Link>
+                <Link
+                  href="/posberry"
+                  className="flex shrink-0 items-center whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  <LoadingImage
+                    src="/LOGOBOSBERRY3.png"
+                    alt="Posberry"
+                    width={28}
+                    height={28}
+                    style={{ marginRight: '-2px' }}
+                  />
+                  Posberry
+                </Link>
 
-              <Link
-                href="/posberry"
-                className="flex shrink-0 items-center whitespace-nowrap transition-colors hover:text-primary"
-              >
-                <LoadingImage
-                  src="/LOGOBOSBERRY3.png"
-                  alt="Posberry"
-                  width={28}
-                  height={28}
-                  style={{ marginRight: '-2px' }}
-                />
-                Posberry
-              </Link>
-
-              <Link
-                href="/controladores-fiscales"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
-              >
-                Controladores Fiscales
-              </Link>
-              
-              <Link
-                href="/sobre-nosotros"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
-              >
-                Sobre Nosotros
-              </Link>
-              
-              <Link
-                href="/contacto"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
-              >
-                Contacto
-              </Link>
-            </div>
-          )}
-        </nav>
+                <Link
+                  href="/controladores-fiscales"
+                  className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  Controladores Fiscales
+                </Link>
+                
+                <Link
+                  href="/sobre-nosotros"
+                  className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  Sobre Nosotros
+                </Link>
+                
+                <Link
+                  href="/contacto"
+                  className="shrink-0 whitespace-nowrap transition-colors hover:text-primary"
+                >
+                  Contacto
+                </Link>
+              </div>
+            )}
+          </nav>
+        )}
 
         <div className="flex shrink-0 items-center justify-end gap-2">
-          {!isAdmin && (
+          {!isAdmin && !isAdminLogin && (
             <Button asChild className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
               <Link href={contactInfo.instagram} target="_blank">
                 <Instagram className="mr-2 h-5 w-5" />
@@ -230,14 +233,14 @@ export function Header() {
               </Link>
             </Button>
           )}
-          {!isAdmin && (
+          {!isAdmin && !isAdminLogin && (
             <Button asChild size="icon" className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
               <Link href="/admin-login" aria-label="Admin">
                 <Cog className="h-5 w-5" />
               </Link>
             </Button>
           )}
-          {isAdmin && (
+          {(isAdmin || isAdminLogin) && (
             <Button asChild size="icon" className="hidden rounded-full md:flex" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
               <Link href="/admin" aria-label="Dashboard de Admin">
                 <Cog className="h-5 w-5" />
@@ -246,121 +249,123 @@ export function Header() {
           )}
 
           {/* Mobile Navigation */}
-          <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Abrir menú</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="flex flex-col">
-              <div>
-                <SheetHeader>
-                  <SheetTitle>
-                    <Link href="/" onClick={closeSheet}>
-                      <LoadingImage
-                          src="/LOGO1.png"
-                          alt="Darío Martínez Computación"
-                          width={60}
-                          height={60}
-                          className="h-auto"
-                        />
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="grid gap-4 text-lg font-medium mt-8">
-                  {isAdmin ? (
-                    <>
-                      {adminNavItems.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                            onClick={closeSheet}
-                          >
-                            <Icon className="h-5 w-5" />
-                            {item.label}
-                          </Link>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/servicios"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        Servicio Técnico
-                      </Link>
-                      <Link
-                        href="/productos"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        Productos
-                      </Link>
-                      <Link
-                        href="/posberry"
-                        className="flex items-center px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
+          {!isAdminLogin && (
+            <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Abrir menú</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="flex flex-col">
+                <div>
+                  <SheetHeader>
+                    <SheetTitle>
+                      <Link href="/" onClick={closeSheet}>
                         <LoadingImage
-                          src="/LOGOBOSBERRY3.png"
-                          alt="Posberry"
-                          width={28}
-                          height={28}
-                          style={{ marginRight: '-2px' }}
-                        />
-                        Posberry
+                            src="/LOGO1.png"
+                            alt="Darío Martínez Computación"
+                            width={60}
+                            height={60}
+                            className="h-auto"
+                          />
                       </Link>
-                      <Link
-                        href="/controladores-fiscales"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        Controladores Fiscales
+                    </SheetTitle>
+                  </SheetHeader>
+                  <nav className="grid gap-4 text-lg font-medium mt-8">
+                    {isAdmin ? (
+                      <>
+                        {adminNavItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                              onClick={closeSheet}
+                            >
+                              <Icon className="h-5 w-5" />
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/servicios"
+                          className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          Servicio Técnico
+                        </Link>
+                        <Link
+                          href="/productos"
+                          className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          Productos
+                        </Link>
+                        <Link
+                          href="/posberry"
+                          className="flex items-center px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          <LoadingImage
+                            src="/LOGOBOSBERRY3.png"
+                            alt="Posberry"
+                            width={28}
+                            height={28}
+                            style={{ marginRight: '-2px' }}
+                          />
+                          Posberry
+                        </Link>
+                        <Link
+                          href="/controladores-fiscales"
+                          className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          Controladores Fiscales
+                        </Link>
+                        <Link
+                          href="/sobre-nosotros"
+                          className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          Sobre Nosotros
+                        </Link>
+                        <Link
+                          href="/contacto"
+                          className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
+                          onClick={closeSheet}
+                        >
+                          Contacto
+                        </Link>
+                      </>
+                    )}
+                  </nav>
+                </div>
+                <div className="mt-auto grid grid-cols-1 gap-4">
+                  {!isAdmin && (
+                    <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
+                      <Link href={contactInfo.instagram} target="_blank" onClick={closeSheet}>
+                        <Instagram className="mr-2 h-5 w-5" />
+                        Instagram
                       </Link>
-                      <Link
-                        href="/sobre-nosotros"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        Sobre Nosotros
-                      </Link>
-                      <Link
-                        href="/contacto"
-                        className="flex items-center gap-4 px-2.5 text-foreground hover:text-primary"
-                        onClick={closeSheet}
-                      >
-                        Contacto
-                      </Link>
-                    </>
+                    </Button>
                   )}
-                </nav>
-              </div>
-              <div className="mt-auto grid grid-cols-1 gap-4">
-                {!isAdmin && (
-                  <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
-                    <Link href={contactInfo.instagram} target="_blank" onClick={closeSheet}>
-                      <Instagram className="mr-2 h-5 w-5" />
-                      Instagram
-                    </Link>
-                  </Button>
-                )}
-                {!isAdmin && (
-                  <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
-                    <Link href="/admin-login" onClick={closeSheet}>
-                      <Cog className="mr-2 h-5 w-5" />
-                      Admin
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+                  {!isAdmin && (
+                    <Button asChild size="lg" className="w-full rounded-full" style={{ backgroundColor: 'hsl(220deg 100% 28% / 79%)' }}>
+                      <Link href="/admin-login" onClick={closeSheet}>
+                        <Cog className="mr-2 h-5 w-5" />
+                        Admin
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>

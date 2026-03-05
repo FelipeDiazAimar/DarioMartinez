@@ -431,15 +431,22 @@ export default function Home() {
         )}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
           <Link href="#inicio" aria-label="Bajar a la siguiente sección">
-            <ChevronDown className="h-12 w-12 text-primary animate-bounce rounded-full bg-background/70 p-2 backdrop-blur-sm" />
+            <ChevronDown className="h-12 w-12 text-primary animate-bounce rounded-full bg-background/20 p-2" style={{ backdropFilter: 'blur(0.5px)' }} />
           </Link>
         </div>
       </section>
 
-      <section ref={inicioRef} id="inicio" className="w-full py-12 md:py-20 lg:py-28">
-        <div className="container px-4 md:px-6">
+      <section
+        ref={inicioRef}
+        id="inicio"
+        className="w-full py-12 md:py-20 lg:py-28 relative"
+      >
+        {/* side bars at edges to keep central content visually bounded */}
+        <div className="absolute inset-y-0 left-0 w-1 bg-neutral-200" />
+        <div className="absolute inset-y-0 right-0 w-1 bg-neutral-200" />
+        <div className="w-full px-4 md:px-6">
           <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className={cn("w-full max-w-md mx-auto sm:max-w-none opacity-0", inicioInView && "animate-slide-in-from-left")}>
+            <div className={cn("w-full opacity-0", inicioInView && "animate-slide-in-from-left")}>
               <LoadingImage
               src={homeContent.hero_image_url || heroImage?.imageUrl || '/FOTOFRENTE.jpeg'}
               data-ai-hint={heroImage?.imageHint || "computer repair"}
@@ -477,9 +484,11 @@ export default function Home() {
       <section
         ref={serviciosRef}
         id="servicios"
-        className="w-full bg-muted py-12 md:py-24 lg:py-32"
+        className="w-full bg-muted py-12 md:py-24 lg:py-32 relative"
       >
-        <div className="container px-4 md:px-6">
+        <div className="absolute inset-y-0 left-0 w-1 bg-neutral-200" />
+        <div className="absolute inset-y-0 right-0 w-1 bg-neutral-200" />
+        <div className="w-full px-4 md:px-6">
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", serviciosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
@@ -494,7 +503,7 @@ export default function Home() {
             {services.map((service, index) => (
               <Link href="/servicios" key={service.title} className={cn("block h-full opacity-0", serviciosInView && "animate-slide-in-from-bottom")} style={{ animationDelay: `${index * 150}ms` }}>
                 <Card
-                  className="h-full transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
+                  className="h-full transform transition-transform duration-300 hover:scale-105 hover:shadow-xl rounded-2xl overflow-hidden"
                 >
                   <CardHeader className="flex flex-row items-center gap-4 p-4 sm:p-6">
                     <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground sm:h-16 sm:w-16">
@@ -520,8 +529,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section ref={productosRef} id="productos" className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container px-4 md:px-6">
+      <section
+        ref={productosRef}
+        id="productos"
+        className="w-full py-12 md:py-24 lg:py-32"
+      >
+        <div className="container mx-auto px-4 md:px-6">
+          {/* heading & description */}
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", productosInView && 'animate-fade-in')}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
@@ -565,11 +579,19 @@ export default function Home() {
                 );
             })}
           </div>
+          <div className={cn("mt-8 flex justify-center opacity-0", productosInView && "animate-fade-in")}>
+            <Button asChild size="lg" className="rounded-full">
+              <Link href="/productos">
+                Ver todos los productos
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
       <section ref={controladoresRef} className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="mx-auto grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12">
             <div className={cn("opacity-0", controladoresInView && "animate-slide-in-from-left")}>
               <LoadingImage
@@ -619,7 +641,7 @@ export default function Home() {
         id="sobre-nosotros"
         className="w-full py-12 md:py-24 lg:py-32"
       >
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className={cn("flex flex-col items-center justify-center space-y-4 text-center opacity-0", sobreNosotrosInView && "animate-fade-in")}>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
@@ -759,7 +781,7 @@ export default function Home() {
         id="donde-trabajamos"
         className={cn('w-full py-12 md:py-20 lg:py-24 opacity-0', coberturaInView && 'animate-fade-in')}
       >
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="mx-auto max-w-4xl space-y-3 text-center">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
               {homeContent.coverage_title}
@@ -835,7 +857,7 @@ export default function Home() {
         id="contacto"
         className={cn("w-full bg-muted pt-6 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32 opacity-0", contactoInView && "animate-fade-in")}
       >
-        <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+        <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
             <LoadingImage
                 src="/LOGO1.png"
