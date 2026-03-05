@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button';
 
 type ProductRow = Record<string, unknown>;
 
+type Categoria = {
+  id: string;
+  nombre: string;
+};
+
 type RowIdentifier = {
   field: string;
   value: string;
@@ -29,6 +34,18 @@ type ApiResponse = {
   pagination?: PaginationMeta;
 };
 
+type CategoriasResponse = {
+  success?: boolean;
+  message?: string;
+  data?: Categoria[];
+};
+
+type ArticuloCategoriaMapResponse = {
+  success?: boolean;
+  message?: string;
+  data?: Record<string, string | null>;
+};
+
 type UiErrorInfo = {
   title: string;
   causes: string[];
@@ -36,6 +53,42 @@ type UiErrorInfo = {
 };
 
 const PAGE_SIZE = 30;
+
+const HIDDEN_COLUMNS = new Set([
+  'modostock',
+  'modolinea',
+  'modorubro',
+  'modoarticulo',
+  'stockenlinea',
+  'stockenrubro',
+  'stockenarticulo',
+  'datovariable1',
+  'datovariable2',
+  'datovariable3',
+  'datovariable4',
+  'datovariable5',
+  'datovariable6',
+  'datovariable7',
+  'datovariable8',
+  'datovariable9',
+  'datovariable10',
+  'datovariable11',
+  'datovariable12',
+  'datovariable13',
+  'datovariable14',
+  'datovariable15',
+  'avisoentradamercaderias',
+  'avisocompras',
+  'avisocomprobantes',
+  'avisopedidos',
+  'avisoventas',
+  'tablacomisionventas',
+  'tablacomisioncobros',
+  'cuentacontable',
+  'inactivo',
+]);
+
+const ACTIONS_COLUMN_WIDTH = 280;
 
 type NewArticleForm = {
   codigo: string;
@@ -117,6 +170,19 @@ function getRowIdentifier(row: ProductRow): RowIdentifier | null {
   return null;
 }
 
+function getArticleNumber(row: ProductRow) {
+  const candidates = ['codigo', 'nroArticulo', 'articulo', 'sku', 'cod', 'id'];
+
+  for (const field of candidates) {
+    const value = row[field];
+    if (value !== null && value !== undefined && String(value).trim() !== '') {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+}
+
 function buildIdentifierUrl(identifier: RowIdentifier) {
   return `/api/admin/articulos/${encodeURIComponent(identifier.value)}?by=${encodeURIComponent(identifier.field)}`;
 }
@@ -136,6 +202,10 @@ function normalizeImageForPreview(value: unknown) {
   }
 
   return '';
+}
+
+function shouldHideColumn(column: string) {
+  return HIDDEN_COLUMNS.has(column.trim().toLowerCase());
 }
 
 function parseUiError(rawError: string): UiErrorInfo {
@@ -212,6 +282,9 @@ function parseUiError(rawError: string): UiErrorInfo {
 
 export default function AdminArticulosPage() {
   const [rows, setRows] = useState<ProductRow[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [articleCategoryByNumber, setArticleCategoryByNumber] = useState<Record<string, string | null>>({});
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -219,6 +292,7 @@ export default function AdminArticulosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState('');
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
@@ -233,12 +307,46 @@ export default function AdminArticulosPage() {
     const set = new Set<string>();
 
     rows.forEach((row) => {
-      Object.keys(row).forEach((key) => set.add(key));
+      Object.keys(row)
+        .filter((key) => !shouldHideColumn(key))
+        .forEach((key) => set.add(key));
     });
 
+    set.add('categoria');
     set.add('mostrar_en_testbd');
     return Array.from(set);
   }, [rows]);
+
+  const categoriesById = useMemo(() => {
+    const entries = categorias.map((categoria) => [categoria.id, categoria.nombre]);
+    return Object.fromEntries(entries);
+  }, [categorias]);
+
+  const filteredRows = useMemo(() => {
+    if (selectedCategoryFilter === 'all') {
+      return rows;
+    }
+
+    if (selectedCategoryFilter === '__none__') {
+      return rows.filter((row) => {
+        const articleNumber = getArticleNumber(row);
+        if (!articleNumber) {
+          return true;
+        }
+
+        return !articleCategoryByNumber[articleNumber];
+      });
+    }
+
+    return rows.filter((row) => {
+      const articleNumber = getArticleNumber(row);
+      if (!articleNumber) {
+        return false;
+      }
+
+      return articleCategoryByNumber[articleNumber] === selectedCategoryFilter;
+    });
+  }, [rows, articleCategoryByNumber, selectedCategoryFilter]);
 
   const editingRow = useMemo(() => {
     if (!editingRowKey) {
@@ -247,6 +355,53 @@ export default function AdminArticulosPage() {
 
     return rows.find((row, index) => String(row.id ?? `row-${index}`) === editingRowKey) ?? null;
   }, [rows, editingRowKey]);
+
+  const loadCategorias = async () => {
+    const response = await fetch('/api/admin/categorias', {
+      method: 'GET',
+      cache: 'no-store',
+    });
+
+    const payload = (await response.json()) as CategoriasResponse;
+
+    if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
+      throw new Error(payload?.message || 'No se pudieron cargar las categorías.');
+    }
+
+    setCategorias(payload.data);
+  };
+
+  const loadArticleCategories = async (targetRows: ProductRow[]) => {
+    const articleNumbers = Array.from(
+      new Set(
+        targetRows
+          .map((row) => getArticleNumber(row))
+          .filter(Boolean),
+      ),
+    );
+
+    if (articleNumbers.length === 0) {
+      setArticleCategoryByNumber({});
+      return;
+    }
+
+    const params = new URLSearchParams({
+      articulos: articleNumbers.join(','),
+    });
+
+    const response = await fetch(`/api/admin/categorias/articulos?${params.toString()}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+
+    const payload = (await response.json()) as ArticuloCategoriaMapResponse;
+
+    if (!response.ok || !payload?.success || !payload?.data) {
+      throw new Error(payload?.message || 'No se pudieron cargar categorías por artículo.');
+    }
+
+    setArticleCategoryByNumber(payload.data);
+  };
 
   const loadRows = async (targetPage = currentPage) => {
     setLoading(true);
@@ -280,6 +435,7 @@ export default function AdminArticulosPage() {
       const pages = Number(payload.pagination?.totalPages ?? 1);
       const total = Number(payload.pagination?.total ?? normalizedRows.length);
 
+      await loadArticleCategories(normalizedRows);
       setRows(normalizedRows);
       setCurrentPage(Number.isFinite(page) && page > 0 ? page : 1);
       setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
@@ -292,7 +448,17 @@ export default function AdminArticulosPage() {
   };
 
   useEffect(() => {
-    void loadRows(1);
+    const loadInitialData = async () => {
+      try {
+        await loadCategorias();
+      } catch (initialLoadError) {
+        setError(initialLoadError instanceof Error ? initialLoadError.message : 'Error al cargar categorías');
+      }
+
+      await loadRows(1);
+    };
+
+    void loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -393,7 +559,56 @@ export default function AdminArticulosPage() {
     }
   };
 
-  const startEdit = (row: ProductRow, rowKey: string) => {
+  const persistArticleCategory = async (articleNumber: string, categoriaId: string | null) => {
+    const categoryResponse = await fetch('/api/admin/categorias/articulos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        articuloNumero: articleNumber,
+        categoriaId,
+      }),
+    });
+
+    const categoryPayload = (await categoryResponse.json()) as { success?: boolean; message?: string };
+    if (!categoryResponse.ok || !categoryPayload?.success) {
+      throw new Error(categoryPayload?.message || 'No se pudo guardar la categoría del artículo.');
+    }
+
+    setArticleCategoryByNumber((prev) => ({
+      ...prev,
+      [articleNumber]: categoriaId,
+    }));
+  };
+
+  const startEdit = async (row: ProductRow, rowKey: string) => {
+    if (editingRowKey && editingRowKey !== rowKey && editingRow) {
+      const previousArticleNumber = getArticleNumber(editingRow);
+
+      if (previousArticleNumber) {
+        const previousCategoryId = articleCategoryByNumber[previousArticleNumber] ?? '';
+        const hasUnsavedCategoryChange = editingCategoryId !== previousCategoryId;
+
+        if (hasUnsavedCategoryChange) {
+          setSaving(true);
+          setError(null);
+
+          try {
+            await persistArticleCategory(previousArticleNumber, editingCategoryId || null);
+          } catch (persistError) {
+            setError(
+              persistError instanceof Error
+                ? persistError.message
+                : 'No se pudo guardar la categoría antes de cambiar de artículo.',
+            );
+            setSaving(false);
+            return;
+          } finally {
+            setSaving(false);
+          }
+        }
+      }
+    }
+
     setEditingRowKey(rowKey);
 
     const nextDraft: Record<string, string> = {};
@@ -402,16 +617,21 @@ export default function AdminArticulosPage() {
     });
 
     nextDraft.mostrar_en_testbd = isTruthyDbBoolean(row.mostrar_en_testbd) ? '1' : '0';
+
+    const articleNumber = getArticleNumber(row);
+    setEditingCategoryId(articleNumber ? (articleCategoryByNumber[articleNumber] ?? '') : '');
     setDraft(nextDraft);
   };
 
   const cancelEdit = () => {
     setEditingRowKey(null);
+    setEditingCategoryId('');
     setDraft({});
   };
 
   const saveEdit = async (row: ProductRow) => {
     const identifier = getRowIdentifier(row);
+    const articleNumber = getArticleNumber(row);
 
     if (!identifier) {
       setError('No se puede editar: el artículo no tiene identificador (id/código).');
@@ -423,6 +643,8 @@ export default function AdminArticulosPage() {
 
     try {
       const payload: Record<string, unknown> = {};
+      const previousCategoryId = articleNumber ? (articleCategoryByNumber[articleNumber] ?? '') : '';
+      const categoryChanged = Boolean(articleNumber) && editingCategoryId !== previousCategoryId;
 
       Object.keys(draft).forEach((key) => {
         if (key === 'id') {
@@ -452,26 +674,34 @@ export default function AdminArticulosPage() {
         }
       });
 
-      if (Object.keys(payload).length === 0) {
+      if (Object.keys(payload).length === 0 && !categoryChanged) {
         setEditingRowKey(null);
+        setEditingCategoryId('');
         setDraft({});
         return;
       }
 
-      const response = await fetch(buildIdentifierUrl(identifier), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      if (Object.keys(payload).length > 0) {
+        const response = await fetch(buildIdentifierUrl(identifier), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      const result = (await response.json()) as ApiResponse;
+        const result = (await response.json()) as ApiResponse;
 
-      if (!response.ok || !result?.success) {
-        const detail = (result as ApiResponse & { error?: string })?.error;
-        throw new Error(detail ? `${result?.message || 'No se pudo actualizar el artículo.'} (${detail})` : (result?.message || 'No se pudo actualizar el artículo.'));
+        if (!response.ok || !result?.success) {
+          const detail = (result as ApiResponse & { error?: string })?.error;
+          throw new Error(detail ? `${result?.message || 'No se pudo actualizar el artículo.'} (${detail})` : (result?.message || 'No se pudo actualizar el artículo.'));
+        }
+      }
+
+      if (categoryChanged) {
+        await persistArticleCategory(articleNumber, editingCategoryId || null);
       }
 
       setEditingRowKey(null);
+      setEditingCategoryId('');
       setDraft({});
       await loadRows();
     } catch (saveError) {
@@ -604,9 +834,14 @@ export default function AdminArticulosPage() {
           Regla de visibilidad: por defecto <span className="font-medium">no se muestra ninguno</span> en TestBD.
         </p>
         <div className="mt-4">
-          <Link href="/admin/testbd" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
-            Ir al catálogo TestBD
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/admin/testbd" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
+              Ir al catálogo TestBD
+            </Link>
+            <Link href="/admin/categorias" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
+              Administrar categorías
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -660,8 +895,21 @@ export default function AdminArticulosPage() {
 
       <section className="rounded-2xl border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Listado de artículos ({totalRows})</h2>
+          <h2 className="text-lg font-semibold">Listado de artículos ({filteredRows.length} visibles de {totalRows})</h2>
           <div className="flex items-center gap-2 text-sm">
+            <select
+              value={selectedCategoryFilter}
+              onChange={(event) => setSelectedCategoryFilter(event.target.value)}
+              className="h-8 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="all">Todas las categorías</option>
+              <option value="__none__">Sin categoría</option>
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.id}>
+                  {categoria.nombre}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={() => void loadRows(currentPage - 1)}
@@ -723,20 +971,23 @@ export default function AdminArticulosPage() {
                       key={column}
                       className={
                         column === 'mostrar_en_testbd'
-                          ? 'sticky right-[220px] z-20 border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap'
+                          ? `sticky z-20 border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap min-w-[170px]`
+                          : column === 'categoria'
+                            ? 'border-b px-2 py-1 text-left font-medium whitespace-nowrap min-w-[220px]'
                           : 'border-b px-2 py-1 text-left font-medium whitespace-nowrap'
                       }
+                      style={column === 'mostrar_en_testbd' ? { right: `${ACTIONS_COLUMN_WIDTH}px` } : undefined}
                     >
                       {column}
                     </th>
                   ))}
-                  <th className="sticky right-0 z-30 min-w-[220px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap">
+                  <th className="sticky right-0 z-30 min-w-[280px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, index) => {
+                {filteredRows.map((row, index) => {
                   const rowId = String(row.id ?? `row-${index}`);
                   const isEditing = editingRowKey === rowId;
                   const imageUrl = normalizeImageForPreview(row.imagen);
@@ -747,11 +998,31 @@ export default function AdminArticulosPage() {
                     <tr key={rowId} className="align-top odd:bg-background even:bg-muted/20">
                       {columns.map((column) => {
                         if (isEditing && column !== 'id') {
+                          if (column === 'categoria') {
+                            return (
+                              <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle min-w-[220px]">
+                                <select
+                                  value={editingCategoryId}
+                                  onChange={(event) => setEditingCategoryId(event.target.value)}
+                                  className="h-8 w-full min-w-[200px] rounded-md border bg-background px-2 text-xs"
+                                >
+                                  <option value="">Sin categoría</option>
+                                  {categorias.map((categoria) => (
+                                    <option key={categoria.id} value={categoria.id}>
+                                      {categoria.nombre}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                            );
+                          }
+
                           if (column === 'mostrar_en_testbd') {
                             return (
                               <td
                                 key={`${rowId}-${column}`}
-                                className="sticky right-[220px] z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle"
+                                className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle min-w-[170px]"
+                                style={{ right: `${ACTIONS_COLUMN_WIDTH}px` }}
                               >
                                 <label className="inline-flex items-center gap-2">
                                   <input
@@ -802,12 +1073,25 @@ export default function AdminArticulosPage() {
                           );
                         }
 
+                        if (column === 'categoria') {
+                          const articleNumber = getArticleNumber(row);
+                          const categoryId = articleNumber ? articleCategoryByNumber[articleNumber] ?? null : null;
+                          const categoryName = categoryId ? categoriesById[categoryId] : null;
+
+                          return (
+                            <td key={`${rowId}-${column}`} className="border-b px-2 py-1 whitespace-nowrap align-middle min-w-[220px]">
+                              {categoryName || <span className="text-muted-foreground">Sin categoría</span>}
+                            </td>
+                          );
+                        }
+
                         if (column === 'mostrar_en_testbd') {
                           const checked = isTruthyDbBoolean(row[column]);
                           return (
                             <td
                               key={`${rowId}-${column}`}
-                              className="sticky right-[220px] z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle"
+                              className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle min-w-[170px]"
+                              style={{ right: `${ACTIONS_COLUMN_WIDTH}px` }}
                             >
                               <label className="inline-flex items-center gap-2">
                                 <input
@@ -829,7 +1113,7 @@ export default function AdminArticulosPage() {
                         );
                       })}
 
-                      <td className="sticky right-0 z-20 min-w-[220px] border-b bg-card px-2 py-1 align-middle whitespace-nowrap">
+                      <td className="sticky right-0 z-20 min-w-[280px] border-b bg-card px-2 py-1 align-middle whitespace-nowrap">
                         <div className="flex flex-nowrap items-center gap-1 whitespace-nowrap">
                           {!isEditing ? (
                             <button
@@ -876,6 +1160,13 @@ export default function AdminArticulosPage() {
                     </tr>
                   );
                 })}
+                {filteredRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + 1} className="px-3 py-4 text-center text-sm text-muted-foreground">
+                      No hay artículos para el filtro seleccionado.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
               </table>
             </div>

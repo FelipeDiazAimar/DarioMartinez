@@ -1,9 +1,11 @@
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
+import { createClient } from '@supabase/supabase-js';
 
 type ProductRow = Record<string, unknown>;
 
 export type CatalogItem = {
   id: string;
+  articleNumber: string;
   title: string;
   stock: number;
   imageUrl: string;
@@ -26,6 +28,27 @@ type CatalogFetchResult = {
   allItems: CatalogItem[];
   visibleInStockItems: CatalogItem[];
 };
+
+export type CategoryOption = {
+  id: string;
+  nombre: string;
+};
+
+export type CatalogCategoryData = {
+  categories: CategoryOption[];
+  articleCategoryByNumber: Record<string, string>;
+};
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 function parseNumber(value: unknown) {
   if (typeof value === 'number') {
@@ -78,6 +101,15 @@ function normalizeOptionalText(value: unknown) {
   }
 
   return normalized;
+}
+
+function normalizeIdentifierText(value: unknown) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const normalized = String(value).trim();
+  return normalized ? normalized : undefined;
 }
 
 function pickText(row: ProductRow, candidates: string[], fallback: string) {
@@ -186,7 +218,22 @@ export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: strin
   const visibleInTestbd = parseVisibility(row.mostrar_en_testbd);
 
   const title = pickText(row, ['descripcion', 'nombre', 'producto', 'articulo', 'denominacion', 'detalle'], `Artículo #${index + 1}`);
-  const code = pickOptionalText(row, ['codigo', 'cod', 'sku', 'nroArticulo', 'articulo']);
+  const articleNumber =
+    normalizeIdentifierText(row.codigo) ??
+    normalizeIdentifierText(row.cod) ??
+    normalizeIdentifierText(row.sku) ??
+    normalizeIdentifierText(row.nroArticulo) ??
+    normalizeIdentifierText(row.articulo) ??
+    normalizeIdentifierText(row.id) ??
+    `articulo-${index}`;
+
+  const code =
+    normalizeIdentifierText(row.codigo) ??
+    normalizeIdentifierText(row.cod) ??
+    normalizeIdentifierText(row.sku) ??
+    normalizeIdentifierText(row.nroArticulo) ??
+    normalizeIdentifierText(row.articulo);
+
   const rawId = code ?? row.id;
   const id = rawId !== undefined && rawId !== null && String(rawId).trim() ? String(rawId).trim() : `${title}-${index}`;
 
@@ -197,6 +244,7 @@ export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: strin
 
   return {
     id,
+    articleNumber,
     title,
     stock,
     imageUrl,
@@ -240,5 +288,55 @@ export async function fetchCatalogItems(apiBaseUrl: string, apiToken: string): P
     endpointUsed,
     allItems,
     visibleInStockItems,
+  };
+}
+
+export async function fetchCatalogCategoryData(articleNumbers: string[]): Promise<CatalogCategoryData> {
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase) {
+    return {
+      categories: [],
+      articleCategoryByNumber: {},
+    };
+  }
+
+  const uniqueArticleNumbers = Array.from(new Set(articleNumbers.map((value) => value.trim()).filter(Boolean)));
+
+  const [categoriesResult, relationsResult] = await Promise.all([
+    supabase
+      .from('categorias_articulos')
+      .select('id, nombre')
+      .order('nombre', { ascending: true }),
+    uniqueArticleNumbers.length > 0
+      ? supabase
+          .from('articulos_categorias')
+          .select('articulo_numero, categoria_id')
+          .in('articulo_numero', uniqueArticleNumbers)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (categoriesResult.error) {
+    throw new Error(categoriesResult.error.message || 'No se pudieron cargar categorías.');
+  }
+
+  if (relationsResult.error) {
+    throw new Error(relationsResult.error.message || 'No se pudieron cargar asignaciones de categorías.');
+  }
+
+  const categories = (categoriesResult.data ?? []).map((item) => ({
+    id: String(item.id),
+    nombre: String(item.nombre),
+  }));
+
+  const articleCategoryByNumber = Object.fromEntries(
+    (relationsResult.data ?? [])
+      .filter((item) => item?.articulo_numero && item?.categoria_id)
+      .map((item) => [String(item.articulo_numero), String(item.categoria_id)]),
+  );
+
+  return {
+    categories,
+    articleCategoryByNumber,
   };
 }
