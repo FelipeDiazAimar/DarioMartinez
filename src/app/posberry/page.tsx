@@ -203,6 +203,7 @@ export default function PosberryPage() {
                 alt="POSBerry Logo"
                 width={200}
                 height={50}
+                priority
                 className="mx-auto lg:mx-0 h-auto w-auto"
               />
               <h1 className="text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl font-headline">
@@ -228,10 +229,12 @@ export default function PosberryPage() {
               <LoadingImage
                 src="/POSBERRY2.png"
                 alt="POSBerry en una computadora"
-                width={512}
-                height={384}
-                className="w-full max-w-lg mx-auto"
-                style={{ width: '100%', height: 'auto' }}
+                width={1024}
+                height={768}
+                priority
+                // inline styles ensure the image scales and caps height on desktop
+                className="w-full mx-auto"
+                style={{ width: '100%', height: '450px', maxHeight: '450px' }}
               />
             </div>
           </div>
