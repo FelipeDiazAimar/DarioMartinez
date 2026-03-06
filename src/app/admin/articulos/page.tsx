@@ -187,6 +187,10 @@ function buildIdentifierUrl(identifier: RowIdentifier) {
   return `/api/admin/articulos/${encodeURIComponent(identifier.value)}?by=${encodeURIComponent(identifier.field)}`;
 }
 
+function getStableRowKey(row: ProductRow, index: number) {
+  return String(row.id ?? `row-${index}`);
+}
+
 function normalizeImageForPreview(value: unknown) {
   if (typeof value !== 'string') {
     return '';
@@ -353,8 +357,15 @@ export default function AdminArticulosPage() {
       return null;
     }
 
-    return rows.find((row, index) => String(row.id ?? `row-${index}`) === editingRowKey) ?? null;
+    return rows.find((row, index) => getStableRowKey(row, index) === editingRowKey) ?? null;
   }, [rows, editingRowKey]);
+
+  const pendingRowKeys = useMemo(() => {
+    const keys = new Set<string>([...Object.keys(draftsByRow), ...Object.keys(editingCategoryByRow)]);
+    return Array.from(keys);
+  }, [draftsByRow, editingCategoryByRow]);
+
+  const hasPendingEdits = pendingRowKeys.length > 0;
 
   const loadCategorias = async () => {
     const response = await fetch('/api/admin/categorias', {
@@ -732,6 +743,130 @@ export default function AdminArticulosPage() {
     }
   };
 
+  const saveAllEdits = async () => {
+    if (pendingRowKeys.length === 0) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const failedRows: string[] = [];
+    const successfulRowKeys: string[] = [];
+
+    try {
+      for (const rowKey of pendingRowKeys) {
+        const row = rows.find((item, index) => getStableRowKey(item, index) === rowKey);
+        if (!row) {
+          continue;
+        }
+
+        const identifier = getRowIdentifier(row);
+        const articleNumber = getArticleNumber(row);
+        const rowDraft = draftsByRow[rowKey] ?? {};
+        const rowCategoryDraft = editingCategoryByRow[rowKey] ?? '';
+
+        if (!identifier) {
+          failedRows.push(rowKey);
+          continue;
+        }
+
+        try {
+          const payload: Record<string, unknown> = {};
+          const previousCategoryId = articleNumber ? (articleCategoryByNumber[articleNumber] ?? '') : '';
+          const categoryChanged = Boolean(articleNumber) && rowCategoryDraft !== previousCategoryId;
+
+          Object.keys(rowDraft).forEach((key) => {
+            if (key === 'id') {
+              return;
+            }
+
+            const originalValue = row[key];
+
+            if (key === 'mostrar_en_testbd') {
+              const nextVisibility = rowDraft[key] === '1' ? 1 : 0;
+              const currentVisibility = isTruthyDbBoolean(originalValue) ? 1 : 0;
+
+              if (nextVisibility !== currentVisibility) {
+                payload[key] = nextVisibility;
+              }
+
+              return;
+            }
+
+            const nextValue = toUpdateValue(rowDraft[key] ?? '', originalValue);
+
+            const normalizedCurrent = originalValue === null || originalValue === undefined ? '' : String(originalValue);
+            const normalizedNext = nextValue === null || nextValue === undefined ? '' : String(nextValue);
+
+            if (normalizedNext !== normalizedCurrent) {
+              payload[key] = nextValue;
+            }
+          });
+
+          if (Object.keys(payload).length > 0) {
+            const response = await fetch(buildIdentifierUrl(identifier), {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+
+            const result = (await response.json()) as ApiResponse;
+
+            if (!response.ok || !result?.success) {
+              const detail = (result as ApiResponse & { error?: string })?.error;
+              throw new Error(
+                detail
+                  ? `${result?.message || 'No se pudo actualizar el artículo.'} (${detail})`
+                  : (result?.message || 'No se pudo actualizar el artículo.'),
+              );
+            }
+          }
+
+          if (categoryChanged) {
+            await persistArticleCategory(articleNumber, rowCategoryDraft || null);
+          }
+
+          successfulRowKeys.push(rowKey);
+        } catch {
+          failedRows.push(rowKey);
+        }
+      }
+
+      if (successfulRowKeys.length > 0) {
+        setDraftsByRow((prev) => {
+          const next = { ...prev };
+          successfulRowKeys.forEach((key) => {
+            delete next[key];
+          });
+          return next;
+        });
+
+        setEditingCategoryByRow((prev) => {
+          const next = { ...prev };
+          successfulRowKeys.forEach((key) => {
+            delete next[key];
+          });
+          return next;
+        });
+      }
+
+      if (failedRows.length > 0) {
+        setError(`Se guardaron ${successfulRowKeys.length} artículos y fallaron ${failedRows.length}. Reintentá guardar nuevamente.`);
+      }
+
+      if (successfulRowKeys.length > 0) {
+        await loadRows(currentPage);
+      }
+
+      if (failedRows.length === 0) {
+        setEditingRowKey(null);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const deleteRow = async (row: ProductRow) => {
     const identifier = getRowIdentifier(row);
 
@@ -1009,7 +1144,7 @@ export default function AdminArticulosPage() {
               </thead>
               <tbody>
                 {filteredRows.map((row, index) => {
-                  const rowId = String(row.id ?? `row-${index}`);
+                  const rowId = getStableRowKey(row, index);
                   const isEditing = editingRowKey === rowId;
                   const rowDraft = draftsByRow[rowId] ?? {};
                   const rowCategoryDraft = editingCategoryByRow[rowId] ?? '';
@@ -1241,16 +1376,16 @@ export default function AdminArticulosPage() {
         </div>
       ) : null}
 
-      {editingRow ? (
+      {hasPendingEdits ? (
         <div className={`fixed right-6 z-50 ${showFloatingScrollbar ? 'bottom-16' : 'bottom-6'}`}>
           <div className="hidden items-center gap-4 md:flex">
             <Button type="button" variant="outline" size="lg" className="bg-background shadow-lg" onClick={cancelEdit} disabled={saving}>
               <Undo2 className="mr-2 h-5 w-5" />
-              Deshacer Cambios
+              Descartar fila actual
             </Button>
-            <Button type="button" size="lg" className="shadow-lg" onClick={() => void saveEdit(editingRow)} disabled={saving}>
+            <Button type="button" size="lg" className="shadow-lg" onClick={() => void saveAllEdits()} disabled={saving || !hasPendingEdits}>
               <Check className="mr-2 h-5 w-5" />
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? 'Guardando...' : `Guardar todos (${pendingRowKeys.length})`}
             </Button>
           </div>
 
@@ -1266,9 +1401,9 @@ export default function AdminArticulosPage() {
               <Undo2 className="h-6 w-6" />
               <span className="sr-only">Deshacer Cambios</span>
             </Button>
-            <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => void saveEdit(editingRow)} disabled={saving}>
+            <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => void saveAllEdits()} disabled={saving || !hasPendingEdits}>
               <Check className="h-6 w-6" />
-              <span className="sr-only">Guardar Cambios</span>
+              <span className="sr-only">Guardar todos los cambios</span>
             </Button>
           </div>
         </div>
