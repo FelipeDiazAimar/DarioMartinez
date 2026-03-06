@@ -292,8 +292,8 @@ export default function AdminArticulosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
-  const [editingCategoryId, setEditingCategoryId] = useState('');
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [editingCategoryByRow, setEditingCategoryByRow] = useState<Record<string, string>>({});
+  const [draftsByRow, setDraftsByRow] = useState<Record<string, Record<string, string>>>({});
   const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const floatingScrollRef = useRef<HTMLDivElement | null>(null);
@@ -581,57 +581,62 @@ export default function AdminArticulosPage() {
   };
 
   const startEdit = async (row: ProductRow, rowKey: string) => {
-    if (editingRowKey && editingRowKey !== rowKey && editingRow) {
-      const previousArticleNumber = getArticleNumber(editingRow);
-
-      if (previousArticleNumber) {
-        const previousCategoryId = articleCategoryByNumber[previousArticleNumber] ?? '';
-        const hasUnsavedCategoryChange = editingCategoryId !== previousCategoryId;
-
-        if (hasUnsavedCategoryChange) {
-          setSaving(true);
-          setError(null);
-
-          try {
-            await persistArticleCategory(previousArticleNumber, editingCategoryId || null);
-          } catch (persistError) {
-            setError(
-              persistError instanceof Error
-                ? persistError.message
-                : 'No se pudo guardar la categoría antes de cambiar de artículo.',
-            );
-            setSaving(false);
-            return;
-          } finally {
-            setSaving(false);
-          }
-        }
-      }
-    }
-
     setEditingRowKey(rowKey);
 
-    const nextDraft: Record<string, string> = {};
-    Object.entries(row).forEach(([key, value]) => {
-      nextDraft[key] = value === null || value === undefined ? '' : String(value);
+    setDraftsByRow((prev) => {
+      if (prev[rowKey]) {
+        return prev;
+      }
+
+      const nextDraft: Record<string, string> = {};
+      Object.entries(row).forEach(([key, value]) => {
+        nextDraft[key] = value === null || value === undefined ? '' : String(value);
+      });
+
+      nextDraft.mostrar_en_testbd = isTruthyDbBoolean(row.mostrar_en_testbd) ? '1' : '0';
+      return {
+        ...prev,
+        [rowKey]: nextDraft,
+      };
     });
 
-    nextDraft.mostrar_en_testbd = isTruthyDbBoolean(row.mostrar_en_testbd) ? '1' : '0';
-
     const articleNumber = getArticleNumber(row);
-    setEditingCategoryId(articleNumber ? (articleCategoryByNumber[articleNumber] ?? '') : '');
-    setDraft(nextDraft);
+    setEditingCategoryByRow((prev) => {
+      if (rowKey in prev) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [rowKey]: articleNumber ? (articleCategoryByNumber[articleNumber] ?? '') : '',
+      };
+    });
   };
 
   const cancelEdit = () => {
+    if (editingRowKey) {
+      setDraftsByRow((prev) => {
+        const next = { ...prev };
+        delete next[editingRowKey];
+        return next;
+      });
+
+      setEditingCategoryByRow((prev) => {
+        const next = { ...prev };
+        delete next[editingRowKey];
+        return next;
+      });
+    }
+
     setEditingRowKey(null);
-    setEditingCategoryId('');
-    setDraft({});
   };
 
   const saveEdit = async (row: ProductRow) => {
     const identifier = getRowIdentifier(row);
     const articleNumber = getArticleNumber(row);
+    const rowKey = editingRowKey ?? String(row.id ?? '');
+    const draft = draftsByRow[rowKey] ?? {};
+    const editingCategoryId = editingCategoryByRow[rowKey] ?? '';
 
     if (!identifier) {
       setError('No se puede editar: el artículo no tiene identificador (id/código).');
@@ -675,9 +680,17 @@ export default function AdminArticulosPage() {
       });
 
       if (Object.keys(payload).length === 0 && !categoryChanged) {
+        setDraftsByRow((prev) => {
+          const next = { ...prev };
+          delete next[rowKey];
+          return next;
+        });
+        setEditingCategoryByRow((prev) => {
+          const next = { ...prev };
+          delete next[rowKey];
+          return next;
+        });
         setEditingRowKey(null);
-        setEditingCategoryId('');
-        setDraft({});
         return;
       }
 
@@ -700,9 +713,17 @@ export default function AdminArticulosPage() {
         await persistArticleCategory(articleNumber, editingCategoryId || null);
       }
 
+      setDraftsByRow((prev) => {
+        const next = { ...prev };
+        delete next[rowKey];
+        return next;
+      });
+      setEditingCategoryByRow((prev) => {
+        const next = { ...prev };
+        delete next[rowKey];
+        return next;
+      });
       setEditingRowKey(null);
-      setEditingCategoryId('');
-      setDraft({});
       await loadRows();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Error al guardar cambios');
@@ -990,6 +1011,8 @@ export default function AdminArticulosPage() {
                 {filteredRows.map((row, index) => {
                   const rowId = String(row.id ?? `row-${index}`);
                   const isEditing = editingRowKey === rowId;
+                  const rowDraft = draftsByRow[rowId] ?? {};
+                  const rowCategoryDraft = editingCategoryByRow[rowId] ?? '';
                   const imageUrl = normalizeImageForPreview(row.imagen);
                   const rowIdentifier = getRowIdentifier(row);
                   const canUpload = Boolean(rowIdentifier);
@@ -1002,8 +1025,13 @@ export default function AdminArticulosPage() {
                             return (
                               <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle min-w-[220px]">
                                 <select
-                                  value={editingCategoryId}
-                                  onChange={(event) => setEditingCategoryId(event.target.value)}
+                                  value={rowCategoryDraft}
+                                  onChange={(event) =>
+                                    setEditingCategoryByRow((prev) => ({
+                                      ...prev,
+                                      [rowId]: event.target.value,
+                                    }))
+                                  }
                                   className="h-8 w-full min-w-[200px] rounded-md border bg-background px-2 text-xs"
                                 >
                                   <option value="">Sin categoría</option>
@@ -1027,11 +1055,14 @@ export default function AdminArticulosPage() {
                                 <label className="inline-flex items-center gap-2">
                                   <input
                                     type="checkbox"
-                                    checked={draft[column] === '1'}
+                                    checked={rowDraft[column] === '1'}
                                     onChange={(event) =>
-                                      setDraft((prev) => ({
+                                      setDraftsByRow((prev) => ({
                                         ...prev,
-                                        [column]: event.target.checked ? '1' : '0',
+                                        [rowId]: {
+                                          ...(prev[rowId] ?? {}),
+                                          [column]: event.target.checked ? '1' : '0',
+                                        },
                                       }))
                                     }
                                   />
@@ -1044,15 +1075,18 @@ export default function AdminArticulosPage() {
                           return (
                             <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle">
                               <input
-                                value={draft[column] ?? ''}
+                                value={rowDraft[column] ?? ''}
                                 onChange={(event) =>
-                                  setDraft((prev) => ({
+                                  setDraftsByRow((prev) => ({
                                     ...prev,
-                                    [column]: event.target.value,
+                                    [rowId]: {
+                                      ...(prev[rowId] ?? {}),
+                                      [column]: event.target.value,
+                                    },
                                   }))
                                 }
                                 className="h-8 rounded-md border bg-background px-2 text-xs"
-                                style={{ width: inputWidthFromValue(draft[column] ?? '') }}
+                                style={{ width: inputWidthFromValue(rowDraft[column] ?? '') }}
                               />
                             </td>
                           );
