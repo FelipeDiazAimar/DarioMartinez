@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Check, Undo2 } from 'lucide-react';
+import { Check, Undo2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type ProductRow = Record<string, unknown>;
@@ -298,12 +298,17 @@ export default function AdminArticulosPage() {
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
   const [editingCategoryByRow, setEditingCategoryByRow] = useState<Record<string, string>>({});
   const [draftsByRow, setDraftsByRow] = useState<Record<string, Record<string, string>>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const floatingScrollRef = useRef<HTMLDivElement | null>(null);
   const syncingScrollRef = useRef(false);
   const [showFloatingScrollbar, setShowFloatingScrollbar] = useState(false);
   const [floatingScrollWidth, setFloatingScrollWidth] = useState(0);
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
 
   const uiError = useMemo(() => (error ? parseUiError(error) : null), [error]);
 
@@ -414,7 +419,7 @@ export default function AdminArticulosPage() {
     setArticleCategoryByNumber(payload.data);
   };
 
-  const loadRows = async (targetPage = currentPage) => {
+  const loadRows = async (targetPage = currentPage, search = searchTerm) => {
     setLoading(true);
     setError(null);
 
@@ -423,6 +428,10 @@ export default function AdminArticulosPage() {
         page: String(targetPage),
         pageSize: String(PAGE_SIZE),
       });
+
+      if (search.trim()) {
+        params.set('search', search.trim());
+      }
 
       const response = await fetch(`/api/admin/articulos?${params.toString()}`, {
         method: 'GET',
@@ -504,6 +513,29 @@ export default function AdminArticulosPage() {
     };
   }, [rows, loading, editingRowKey]);
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    // Only for touch or middle-button — don't hijack normal clicks
+    if (e.pointerType !== 'touch') return;
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragScrollLeftRef.current = el.scrollLeft;
+    el.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const dx = e.clientX - dragStartXRef.current;
+    el.scrollLeft = dragScrollLeftRef.current - dx;
+  };
+
+  const handlePointerUp = () => {
+    isDraggingRef.current = false;
+  };
+
   const syncFromTable = () => {
     const tableContainer = tableScrollRef.current;
     const floatingContainer = floatingScrollRef.current;
@@ -562,13 +594,23 @@ export default function AdminArticulosPage() {
       }
 
       setNewArticle(initialNewArticle);
-      await loadRows();
+      await loadRows(1, searchTerm);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Error al crear artículo');
     } finally {
       setSaving(false);
     }
   };
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+    searchTimerRef.current = setTimeout(() => {
+      void loadRows(1, value);
+    }, 400);
+  }, []);
 
   const persistArticleCategory = async (articleNumber: string, categoriaId: string | null) => {
     const categoryResponse = await fetch('/api/admin/categorias/articulos', {
@@ -980,9 +1022,9 @@ export default function AdminArticulosPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] space-y-6 p-6">
-      <section className="rounded-2xl border bg-card p-5 shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">Administrar artículos</h1>
+    <main className="mx-auto w-full max-w-[1600px] space-y-4 p-3 sm:space-y-6 sm:p-6">
+      <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Administrar artículos</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Desde acá podés ver, editar, agregar y eliminar artículos; además podés subir imagen a Supabase y decidir si se muestra en TestBD.
         </p>
@@ -1001,9 +1043,9 @@ export default function AdminArticulosPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border bg-card p-5 shadow-sm">
-        <h2 className="text-lg font-semibold">Agregar artículo</h2>
-        <form onSubmit={handleCreate} className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-6">
+      <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
+        <h2 className="text-base font-semibold sm:text-lg">Agregar artículo</h2>
+        <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:gap-3 md:grid-cols-6">
           <input
             value={newArticle.codigo}
             onChange={(event) => setNewArticle((prev) => ({ ...prev, codigo: event.target.value }))}
@@ -1049,14 +1091,33 @@ export default function AdminArticulosPage() {
         </form>
       </section>
 
-      <section className="rounded-2xl border bg-card p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Listado de artículos ({filteredRows.length} visibles de {totalRows})</h2>
-          <div className="flex items-center gap-2 text-sm">
+      <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <h2 className="text-base font-semibold sm:text-lg">Listado de artículos ({filteredRows.length} visibles de {totalRows})</h2>
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Buscar por código o descripción..."
+                className="h-8 w-full rounded-md border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:w-64"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
             <select
               value={selectedCategoryFilter}
               onChange={(event) => setSelectedCategoryFilter(event.target.value)}
-              className="h-8 rounded-md border bg-background px-2 text-sm"
+              className="h-8 w-full rounded-md border bg-background px-2 text-sm sm:w-auto"
             >
               <option value="all">Todas las categorías</option>
               <option value="__none__">Sin categoría</option>
@@ -1066,25 +1127,27 @@ export default function AdminArticulosPage() {
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              onClick={() => void loadRows(currentPage - 1)}
-              disabled={loading || saving || currentPage <= 1}
-              className="rounded-md border px-3 py-1 disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <span className="text-muted-foreground">
-              Página {currentPage} de {totalPages} · 30 por página
-            </span>
-            <button
-              type="button"
-              onClick={() => void loadRows(currentPage + 1)}
-              disabled={loading || saving || currentPage >= totalPages}
-              className="rounded-md border px-3 py-1 disabled:opacity-50"
-            >
-              Siguiente
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void loadRows(currentPage - 1)}
+                disabled={loading || saving || currentPage <= 1}
+                className="rounded-md border px-3 py-1 disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <span className="text-muted-foreground whitespace-nowrap">
+                Pág. {currentPage}/{totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => void loadRows(currentPage + 1)}
+                disabled={loading || saving || currentPage >= totalPages}
+                className="rounded-md border px-3 py-1 disabled:opacity-50"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1118,7 +1181,16 @@ export default function AdminArticulosPage() {
           <p className="mt-4 text-sm text-muted-foreground">Cargando artículos...</p>
         ) : (
           <>
-            <div ref={tableScrollRef} onScroll={syncFromTable} className="mt-4 overflow-auto rounded-lg border">
+            <div
+              ref={tableScrollRef}
+              onScroll={syncFromTable}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              className="mt-4 overflow-auto rounded-lg border touch-pan-y cursor-grab active:cursor-grabbing"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               <table className="w-max min-w-full border-collapse text-sm leading-tight">
               <thead className="bg-muted/60">
                 <tr>
@@ -1137,7 +1209,7 @@ export default function AdminArticulosPage() {
                       {column}
                     </th>
                   ))}
-                  <th className="sticky right-0 z-30 min-w-[280px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap">
+                  <th className="sticky right-0 z-30 min-w-[140px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap sm:min-w-[280px]">
                     Acciones
                   </th>
                 </tr>
@@ -1282,8 +1354,8 @@ export default function AdminArticulosPage() {
                         );
                       })}
 
-                      <td className="sticky right-0 z-20 min-w-[280px] border-b bg-card px-2 py-1 align-middle whitespace-nowrap">
-                        <div className="flex flex-nowrap items-center gap-1 whitespace-nowrap">
+                      <td className="sticky right-0 z-20 min-w-[140px] border-b bg-card px-2 py-1 align-middle whitespace-nowrap sm:min-w-[280px]">
+                        <div className="flex flex-wrap items-center gap-1 sm:flex-nowrap">
                           {!isEditing ? (
                             <button
                               type="button"

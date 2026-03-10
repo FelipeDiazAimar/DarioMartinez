@@ -1,0 +1,1352 @@
+[
+  {
+    "linea": " 37",
+    "rubro": "4",
+    "codigo": "7907",
+    "desc": "Tinta Epson T1954"
+  },
+  {
+    "linea": "16",
+    "rubro": "1",
+    "codigo": "7621",
+    "desc": "TONER KYOCERA TK-172 - PREMIUM"
+  },
+  {
+    "linea": "16",
+    "rubro": "2",
+    "codigo": "6614",
+    "desc": "TONER KYOCERA TK-1122   FS1060 (3000c)  "
+  },
+  {
+    "linea": "20",
+    "rubro": "10",
+    "codigo": "6705",
+    "desc": "TONER SAMSUNG  115L  BJ -NEW CHIP-3000cp"
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "111",
+    "desc": "TINTA PARA SELLO NEGRA 30cc"
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "2444",
+    "desc": "TINTA TRABI P/MARCADOR PIZARRA NEGRO    "
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "5430",
+    "desc": "TINTA TRABI RECARGA PARA SELLOS NEGRA   "
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "5434",
+    "desc": "TINTA EDDING P/MARC T25 agua"
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "6911",
+    "desc": "TINTA PELIKAN P/SELLO  azul-frasco 30ml "
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "6912",
+    "desc": "TINTA PELIKAN P/SELLO  verde-frasco 30cc"
+  },
+  {
+    "linea": "20",
+    "rubro": "63",
+    "codigo": "8836",
+    "desc": "TINTA PARA SELLO PAGODA NEGRA- 30cc     "
+  },
+  {
+    "linea": "37",
+    "rubro": "1",
+    "codigo": "2474",
+    "desc": "TINTA HP 667XL color Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "2",
+    "codigo": "5627",
+    "desc": "CARTUCHO TINTA R. IMPRESORA "
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "18400",
+    "desc": "TINTA BROTHER PACK TRES COLORES"
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "18401",
+    "desc": "TINTA BROTHER NEGRO 420"
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "2262",
+    "desc": "TINTA BROTHER BT D100 M "
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "2265",
+    "desc": "TINTA BROTHER BT D100 BK"
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "5479",
+    "desc": "TINTA BROTHER BT D100 C "
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "5534",
+    "desc": "TINTA BROTHER BT D100 Y "
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "5623",
+    "desc": "TINTA COPRINT UNIVERSAL 100 ml MAGENTA  "
+  },
+  {
+    "linea": "37",
+    "rubro": "3",
+    "codigo": "7612",
+    "desc": "TINTA COPRINT UNIVERSAL 100ml AMARILLO  "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "1998",
+    "desc": "TINTA EPSON T2061 -negra - BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "2013",
+    "desc": "TINTA EPSON T2064 - amarillo - BJ       "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "2267",
+    "desc": "TINTA EPSON T1333 magenta COPRINT       "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "2271",
+    "desc": "TINTA EPSON T641 NEGRO BJ 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "2468",
+    "desc": "TINTA EPSON T2062 - cyan - BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "4297",
+    "desc": "TINTA EPSON T2063 - magenta BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "604",
+    "desc": "TINTA EPSON T544 - negra - LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "605",
+    "desc": "TINTA EPSON T544C LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "606",
+    "desc": "TINTA EPSON T544 - magenta -  LEON      "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "607",
+    "desc": "TINTA EPSON T544 - amarillo -  LEON     "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6334",
+    "desc": "TINTA EPSON T1332 cyan COPRINT"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6472",
+    "desc": "TINTA EPSON T543 MAGENTA BJ 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6473",
+    "desc": "TINTA EPSON T542 CYAN NEGRO BJ 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6474",
+    "desc": "TINTA EPSON T644 AMARILLO BJ 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6475",
+    "desc": "TINTA EPSON T541 NEGRO BJ  - 70ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6557",
+    "desc": "TINTA EPSON T0734 amarillo BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6558",
+    "desc": "TINTA EPSON T643 MAGENTA BJ 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6793",
+    "desc": "TINTA EPSON 195 ORIGIAL magenta"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6794",
+    "desc": "TINTA EPSON 195 ORIGINAL amarilla"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6931",
+    "desc": "TINTA EPSON T0733  magenta BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6952",
+    "desc": "TINTA EPSON T642 - cyan - BJ - 70mi     "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "6953",
+    "desc": "TINTA EPSON T296  cyan - LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7046",
+    "desc": "TINTA EPSON T544- amarillo -BJ - 70ml   "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7088",
+    "desc": "TINTA EPSON T664 - negra- LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7445",
+    "desc": "TINTA EPSON 296 ORIGINAL amarilla"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7886",
+    "desc": "TINTA EPSON T2963  magenta BJ -13 ml    "
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7940",
+    "desc": "TINTA EPSON 504  CYAN ORIGINAL 70ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7941",
+    "desc": "TINTA EPSON 504  MAGENTA ORIGINAL 70ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "4",
+    "codigo": "7942",
+    "desc": "TINTA EPSON 504  AMARILLO ORIGINAL 70 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "1644",
+    "desc": "TINTA HP T52Y -amarillo - BJ - 70 ml    "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "2184",
+    "desc": "TINTA HP 667XL negro GNEISS"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "2190",
+    "desc": "TINTA HP 662XL negro BLOW INK - 22ml    "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "2228",
+    "desc": "TINTA HP 667XL negro Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "2291",
+    "desc": "TINTA HP 667XL color GLOBAL"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "4290",
+    "desc": "TINTA HP T52M - magenta-BJ -70 ml       "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "5853",
+    "desc": "TINTA HP T51B- negro - BJ - 90 ml       "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6040",
+    "desc": "TINTA HP 60XL negro LEON "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6041",
+    "desc": "TINTA HP 60XL color LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6044",
+    "desc": "TINTA HP M615A negro BJ - 42mm"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6047",
+    "desc": "TINTA HP 664XL negro Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6088",
+    "desc": "TINTA HP 662XL negro Office 18ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6173",
+    "desc": "TINTA HP 122XL negro Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6289",
+    "desc": "TINTA HP 60XL negro GTC"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "6772",
+    "desc": "TINTA HP 664XL color GLOBAL -chip nuevo "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7387",
+    "desc": "TINTA HP 662XL color LEON"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7512",
+    "desc": "TINTA HP 664XL color Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7746",
+    "desc": "TINTA HP 662XL negro  -Leon"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7749",
+    "desc": "TINTA HP 662XL color BJ 10ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7855",
+    "desc": "TINTA HP 22XL color BJ - 20 ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7857",
+    "desc": "TINTA HP 667XL color BJ - 21ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7858",
+    "desc": "TINTA HP 664XL negro BJ 14 ml-new chip  "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7875",
+    "desc": "TINTA HP 60XL negro BJ 18ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7891",
+    "desc": "TINTA HP 60XL color  BJ  - 21 ml        "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7903",
+    "desc": "TINTA HP T52C-cyan- BJ - 70ml"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7908",
+    "desc": "TINTA HP 662XL negro BJ - nuevo chip    "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "7911",
+    "desc": "TINTA HP 122XL color BJ"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "8028",
+    "desc": "TINTA HP 664XL color BJ 12ml-new chip   "
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "8314",
+    "desc": "TINTA UNIVERSAL 1 Litro Negro"
+  },
+  {
+    "linea": "37",
+    "rubro": "6",
+    "codigo": "8811",
+    "desc": "TINTA HP 667XL negro BJ - 22ML"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "18367",
+    "desc": "DRUM HP 314D  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2161",
+    "desc": "TONER HP 350U - negro - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2223",
+    "desc": "TONER HP U613 -13A/24A/15A BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2226",
+    "desc": "TONER HP 105A  con chip LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2296",
+    "desc": "TONER HP M512  yellow  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2300",
+    "desc": "TONER HP 230  - Con/chip - LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "2332",
+    "desc": "TONER HP 255A - LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5486",
+    "desc": "TONER HP 150A con chip BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5487",
+    "desc": "TONER HP 105 sin chip - LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5555",
+    "desc": "TONER HP 1103A-c/chip-NEVERSTOP-BJ      "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5679",
+    "desc": "TONER HP 285/435A/436A -Leon       "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5848",
+    "desc": "TONER HP 283A leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "5948",
+    "desc": "TONER HP 255A - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6091",
+    "desc": "TONER HP 150A - sin chip LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6115",
+    "desc": "TONER HP 1103 NEVERSTOP-RECARGA"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6179",
+    "desc": "POLVO DE TONER M683 120gr"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6192",
+    "desc": "TONER HP M510F negro BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6248",
+    "desc": "TONER HP 258A - con chip - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6290",
+    "desc": "TONER HP 352U - amarillo - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6344",
+    "desc": "TONER HP 217A - con chip LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6345",
+    "desc": "TONER HP 258A  -sin chip -LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6490",
+    "desc": "TONER HP M511F cyan  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6544",
+    "desc": "TONER HP 351U - cian -  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6546",
+    "desc": "TONER HP 287A (9K)  leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6574",
+    "desc": "TONER HP 150W sin chip BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6657",
+    "desc": "TONER HP 136W - sin chip- BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6670",
+    "desc": "TONER HP 289A BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6686",
+    "desc": "TONER HP 226A - LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "6802",
+    "desc": "TONER HP 285-435-436   Office        "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7103",
+    "desc": "TONER HP 226A - Office  3,1 K"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7245",
+    "desc": "TONER HP U435A-436A-285A PREMIUM        "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7247",
+    "desc": "TONER HP 105  con chip 1k Office        "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7348",
+    "desc": "TONER HP 2612A LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7493",
+    "desc": "TONER HP 283X LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7671",
+    "desc": "TONER HP 279A (1k) Leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7681",
+    "desc": "TONER HP 226X -9000 copias - LEON      "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7720",
+    "desc": "TONER HP 353U - magenta -BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7862",
+    "desc": "TONER HP U505 (505A/280A) BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7863",
+    "desc": "TONER HP 217A - con chip BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7876",
+    "desc": "TONER HP 285/35/36/78  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7888",
+    "desc": "TONER HP 283X  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7889",
+    "desc": "TONER HP 2612A - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7912",
+    "desc": "TONER HP 279A  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "7917",
+    "desc": "TONER HP 226A - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8219",
+    "desc": "TONER HP 248 - con chip- LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8263",
+    "desc": "DRUM HP  219D  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8279",
+    "desc": "TONER HP 248A - con chip - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8320",
+    "desc": "TONER HP 230A  con chip BJ - negro      "
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8349",
+    "desc": "TONER HP 287A - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8484",
+    "desc": "TONER HP 258W -sin chip-negro-BJ (3000 c"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8486",
+    "desc": "DRUM HP  232D BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "1",
+    "codigo": "8854",
+    "desc": "TONER HP 105A  con chip - BJ -2K        "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "18316",
+    "desc": "TONER SAMSUNG 111LNC NEW CHIP 1 8 K LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "18348",
+    "desc": "TONER SAMSUNG 2850"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "414",
+    "desc": "TONER SAMSUNG  108  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "6026",
+    "desc": "TONER SAMSUNG 111NC Leon (nuevo chip)  "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "6466",
+    "desc": "TONER SAMSUNG  101  Office  1 8k        "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "6513",
+    "desc": "TONER SAMSUNG  103 BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "6577",
+    "desc": "TONER SAMSUNG  101 LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "6606",
+    "desc": "TONER SAMSUNG  104  Leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7105",
+    "desc": "TONER SAMSUNG  115.V2 NUEVA VERSION LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7142",
+    "desc": "TONER SAMSUNG  203L  BJ - 5000 copias   "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7527",
+    "desc": "TONER SAMSUNG  115L  AB"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7864",
+    "desc": "TONER SAMSUNG  101S BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7865",
+    "desc": "TONER SAMSUNG  104 BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "7943",
+    "desc": "TONER SAMSUNG  205L  BJ - 5000 copias   "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "8128",
+    "desc": "TONER SAMSUNG  209S  BJ - 5000 copias   "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "8182",
+    "desc": "TONER SAMSUNG  116L - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "8255",
+    "desc": "TONER SAMSUNG  111L  BJ c/new chip      "
+  },
+  {
+    "linea": "50",
+    "rubro": "10",
+    "codigo": "8402",
+    "desc": "TONER SAMSUNG  111L  OFFICE   1.8K "
+  },
+  {
+    "linea": "50",
+    "rubro": "11",
+    "codigo": "429",
+    "desc": "TONER XEROX 1025 KT-NEW CHIP-VERSION 2  "
+  },
+  {
+    "linea": "50",
+    "rubro": "11",
+    "codigo": "7060",
+    "desc": "TONER XEROX 3020 / 3025 New chip- LEON  "
+  },
+  {
+    "linea": "50",
+    "rubro": "11",
+    "codigo": "7971",
+    "desc": "TONER XEROX 3020X c/chip BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "11",
+    "codigo": "8555",
+    "desc": "TONER"
+  },
+  {
+    "linea": "50",
+    "rubro": "2",
+    "codigo": "2132",
+    "desc": "TONER RICOH 3710 - negro - LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "2",
+    "codigo": "6317",
+    "desc": "TONER HP M513F magenta BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "2",
+    "codigo": "6613",
+    "desc": "TONER KYOCERA TK-1112"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "406",
+    "desc": "TONER KYOCERA TK-1122 (3K) LG"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "408",
+    "desc": "TONER KYOCERA - 1KG- B2  4200/4300/3550 "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "4298",
+    "desc": "TONER REC"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "431",
+    "desc": "TONER KYOCERA TK-1175 -LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "433",
+    "desc": "TONER KYOCERA R. TK 137 -7200 copias    "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "443",
+    "desc": "TONER IBH BOTELLA B1- 290 grs"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "5870",
+    "desc": "TONER KYOCERA - 1KG- 1370-2810-1500     "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6025",
+    "desc": "TONER KYOCERA TK-137 KM-2810  7200 pag  "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6083",
+    "desc": "TONER KYOCERA TK-162   FS-1120D 2500pag "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6180",
+    "desc": "TONER KYOCERA TK-437 180/81 -15000 pag  "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6457",
+    "desc": "TONER KYOCERA TK-132- 1300/1350/2810 esp"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6708",
+    "desc": "TONER KYOCERA TK-172 FS-1370-2135       "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6721",
+    "desc": "TONER KYOCERA R. TK 1112"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6722",
+    "desc": "TONER KYOCERA R. TK 1122"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6830",
+    "desc": "TONER KYOCERA TK-3122 FS-4200  21000pag "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "6882",
+    "desc": "TONER KYOCERA TK-130-132-134-137-1      "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7009",
+    "desc": "TONER KYOCERA TK-1132 -FS1030-(3000c)   "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7023",
+    "desc": "TONER KYOCERA R. TK 1147 - 7200  copias "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7033",
+    "desc": "TONER KYOCERA TK-137-2810 alt"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7067",
+    "desc": "TONER KYOCERA TK-162 FS-1120D 2500p C/CH"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7231",
+    "desc": "TONER KYOCERA R. TK 162"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7334",
+    "desc": "TONER KYOCERA TK-1112  LEON-(2 5K)      "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7388",
+    "desc": "TONER KYOCERA R. TK 3122 - 21000 copias "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7501",
+    "desc": "TONER KYOCERA R. TK 3211"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7839",
+    "desc": "TONER KYOCERA R. TK 172"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7840",
+    "desc": "TONER KYOCERA R. TK 1132 - 7200 copias  "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7916",
+    "desc": "TONER KYOCERA TK-3182- Ecosys P3055dn   "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7936",
+    "desc": "TONER KYOCERA R. TK 1152 /1175 -1162    "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "7970",
+    "desc": "TONER IBH BOTELLA B3 -290 grs"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8054",
+    "desc": "TONER IBH BOTELLA B2 -290 grs"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8258",
+    "desc": "TONER KYOCERA TK-1152  3K Leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8305",
+    "desc": "TONER KYOCERA R. TK 3182 - 21000 copias "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8307",
+    "desc": "TONER KYOCERA R. TK 132 - 7200 copias   "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8355",
+    "desc": "TONER KYOCERA TK-1175 PREMIUM-2040      "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8356",
+    "desc": "TONER IBH KYO TK-1132 (1030MFP/2030     "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8376",
+    "desc": "TONER KYOCERA TK-1162  -7 2K- Leon      "
+  },
+  {
+    "linea": "50",
+    "rubro": "4",
+    "codigo": "8794",
+    "desc": "TONER IBH KYO TK-1162 (P/2040)"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "2181",
+    "desc": "TONER PANTUM KIT P2500/M6550 (chip y ton"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8470",
+    "desc": "TONER PANTUM R. P2500"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8495",
+    "desc": "TONER PANTUM BOTELLA P2500/M6550 -160grs"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8735",
+    "desc": "TONER PANTUM PD- 219 (1600 pag)"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8736",
+    "desc": "TONER PANTUM KIT RK-219"
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8817",
+    "desc": "TONER PANTUM PB- 211-PB210 - LEON       "
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8825",
+    "desc": "TONER PANTUM PD- 219  (1 6) Leon        "
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8853",
+    "desc": "TONER PANTUM M219P  BJ (1600 pag) "
+  },
+  {
+    "linea": "50",
+    "rubro": "8",
+    "codigo": "8864",
+    "desc": "TONER PANTUM M211P - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "417",
+    "desc": "DRUM BROTHER   880  - Unidad de imagen- Leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "5766",
+    "desc": "TONER BROTHER TN- 880 BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "600",
+    "desc": "DRUM BROTHER DR 630/660"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "6671",
+    "desc": "TONER BROTHER TN-3619XL (25K) c/chip    "
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "6739",
+    "desc": "TONER BROTHER TN- 660 - Leon"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "6894",
+    "desc": "TONER BROTHER TN- 750 BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7138",
+    "desc": "DRUM BROTHER   820D BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7234",
+    "desc": "TONER BROTHER TN- 580-550-620-650 leon  "
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7292",
+    "desc": "TONER BROTHER TN- 2370"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7293",
+    "desc": "TONER BROTHER TN- 1060  1k  office "
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7386",
+    "desc": "DRUM BROTHER   1060 -  LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7479",
+    "desc": "TONER BROTHER TN- 880 LEON 12k"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7634",
+    "desc": "DRUM BROTHER   420 - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7774",
+    "desc": "TONER BROTHER TN-3619 LEON c/chi"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7866",
+    "desc": "TONER BROTHER TN- 650  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7890",
+    "desc": "TONER BROTHER TN- 1060  BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7914",
+    "desc": "TONER BROTHER TN- 450  BJ - 2 6"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "7937",
+    "desc": "TONER BROTHER TN- 660U - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "8396",
+    "desc": "DRUM BROTHER   1060 - BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "8496",
+    "desc": "DRUM BROTHER   620 BJ"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "8547",
+    "desc": "TONER BROTHER TN- 1060 LEON"
+  },
+  {
+    "linea": "50",
+    "rubro": "9",
+    "codigo": "8819",
+    "desc": "DRUM BROTHER   630D BJ"
+  }
+]

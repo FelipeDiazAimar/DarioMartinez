@@ -36,6 +36,8 @@ export async function GET(request: Request) {
       ? Math.min(Math.max(requestedPageSize, 1), 200)
       : 30;
 
+    const search = requestUrl.searchParams.get('search');
+
     const backendUrl = new URL(`${apiBaseUrl}/articulos`);
 
     if (page) {
@@ -44,6 +46,10 @@ export async function GET(request: Request) {
 
     if (pageSize) {
       backendUrl.searchParams.set('pageSize', pageSize);
+    }
+
+    if (search) {
+      backendUrl.searchParams.set('search', search);
     }
 
     targetUrl = backendUrl.toString();
