@@ -19,6 +19,7 @@ import {
     Package,
     Database,
     Tags,
+    DollarSign,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -37,6 +38,7 @@ const sections = [
     { title: 'Articulos (Base de datos)', href: '/admin/articulos', icon: <Package className="h-8 w-8" /> },
     { title: 'Categorías', href: '/admin/categorias', icon: <Tags className="h-8 w-8" /> },
     { title: 'Kardex (Base de datos)', href: '/admin/kardex', icon: <Package className="h-8 w-8" /> },
+    { title: 'Precios (Base de datos)', href: '/admin/precios', icon: <DollarSign className="h-8 w-8" /> },
     { title: 'TestBD', href: '/admin/testbd', icon: <Database className="h-8 w-8" /> },
 ];
 
