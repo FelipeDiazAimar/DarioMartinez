@@ -40,12 +40,11 @@ export async function GET(request: Request) {
 
     const backendUrl = new URL(`${apiBaseUrl}/articulos`);
 
-    if (page) {
-      backendUrl.searchParams.set('page', page);
-    }
-
-    if (pageSize) {
-      backendUrl.searchParams.set('pageSize', pageSize);
+    // When searching, fetch all rows so we can filter locally
+    // (the remote backend may not support the search param)
+    if (!search) {
+      if (page) backendUrl.searchParams.set('page', page);
+      if (pageSize) backendUrl.searchParams.set('pageSize', pageSize);
     }
 
     if (search) {
@@ -67,6 +66,28 @@ export async function GET(request: Request) {
     }
 
     const data = Array.isArray(payload?.data) ? payload.data : [];
+
+    // If we have a search term, always filter + paginate locally
+    if (search) {
+      const term = search.toLowerCase();
+      const filtered = data.filter((row: any) => {
+        const desc = String(row.descripcion ?? '').toLowerCase();
+        const code = String(row.codigo ?? '').toLowerCase();
+        return desc.includes(term) || code.includes(term);
+      });
+
+      const total = filtered.length;
+      const totalPages = total > 0 ? Math.ceil(total / safePageSize) : 1;
+      const normalizedPage = Math.min(Math.max(safePage, 1), totalPages);
+      const offset = (normalizedPage - 1) * safePageSize;
+      const paginatedData = filtered.slice(offset, offset + safePageSize);
+
+      return NextResponse.json({
+        success: true,
+        data: paginatedData,
+        pagination: { page: normalizedPage, pageSize: safePageSize, total, totalPages },
+      });
+    }
 
     const backendHasPagination =
       payload?.pagination &&

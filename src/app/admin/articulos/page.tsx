@@ -299,6 +299,7 @@ export default function AdminArticulosPage() {
   const [editingCategoryByRow, setEditingCategoryByRow] = useState<Record<string, string>>({});
   const [draftsByRow, setDraftsByRow] = useState<Record<string, Record<string, string>>>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const searchTermRef = useRef('');
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
@@ -419,7 +420,7 @@ export default function AdminArticulosPage() {
     setArticleCategoryByNumber(payload.data);
   };
 
-  const loadRows = async (targetPage = currentPage, search = searchTerm) => {
+  const loadRows = async (targetPage = currentPage) => {
     setLoading(true);
     setError(null);
 
@@ -429,8 +430,9 @@ export default function AdminArticulosPage() {
         pageSize: String(PAGE_SIZE),
       });
 
-      if (search.trim()) {
-        params.set('search', search.trim());
+      const currentSearch = searchTermRef.current.trim();
+      if (currentSearch) {
+        params.set('search', currentSearch);
       }
 
       const response = await fetch(`/api/admin/articulos?${params.toString()}`, {
@@ -594,7 +596,7 @@ export default function AdminArticulosPage() {
       }
 
       setNewArticle(initialNewArticle);
-      await loadRows(1, searchTerm);
+      await loadRows(1);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Error al crear artículo');
     } finally {
@@ -604,11 +606,12 @@ export default function AdminArticulosPage() {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);
+    searchTermRef.current = value;
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
     }
     searchTimerRef.current = setTimeout(() => {
-      void loadRows(1, value);
+      void loadRows(1);
     }, 400);
   }, []);
 
