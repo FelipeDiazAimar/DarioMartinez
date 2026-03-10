@@ -120,12 +120,31 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
     currentStep = '3) Procesando parámetros de búsqueda';
     const resolvedSearchParams = await searchParams;
     const requestedPage = Number(resolvedSearchParams?.page ?? '1');
-    const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '200');
+    const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '30');
     const selectedColumn = resolvedSearchParams?.column?.trim();
     const query = resolvedSearchParams?.query?.trim();
     const order = resolvedSearchParams?.order ?? 'asc';
 
-    endpoint = `${resolveApiBaseUrl(apiBaseUrl)}/kardex`;
+    const safePageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? Math.min(Math.floor(requestedPageSize), 200) : 30;
+    const safePage = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1;
+
+    const endpointUrl = new URL(`${resolveApiBaseUrl(apiBaseUrl)}/kardex`);
+    endpointUrl.searchParams.set('page', String(safePage));
+    endpointUrl.searchParams.set('pageSize', String(safePageSize));
+
+    if (selectedColumn) {
+      endpointUrl.searchParams.set('column', selectedColumn);
+    }
+
+    if (query) {
+      endpointUrl.searchParams.set('query', query);
+    }
+
+    if (order) {
+      endpointUrl.searchParams.set('order', order);
+    }
+
+    endpoint = endpointUrl.toString();
     currentStep = '4) Consultando API de kardex';
     const response = await fetch(endpoint, {
       method: 'GET',
@@ -145,6 +164,7 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
 
     currentStep = '7) Preparando datos para mostrar en tabla';
     const allRows = payload.data as ProductRow[];
+    const apiPagination = payload?.pagination;
     const columns = Array.from(
       allRows.reduce((acc, row) => {
         Object.keys(row).forEach((key) => acc.add(key));
@@ -154,31 +174,12 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
 
     const searchColumn = selectedColumn && columns.includes(selectedColumn) ? selectedColumn : undefined;
     const searchTerm = query && query.length > 0 ? query : undefined;
-    const shouldFilter = Boolean(searchColumn && searchTerm);
 
-    const filteredRows = shouldFilter
-      ? allRows.filter((row) => String(row[searchColumn! as keyof ProductRow] ?? '').toLowerCase().includes(searchTerm!.toLowerCase()))
-      : allRows;
-
-    const direction = order === 'desc' ? -1 : 1;
-    const sortedRows = searchColumn
-      ? [...filteredRows].sort((a, b) => {
-          const aValue = String(a[searchColumn as keyof ProductRow] ?? '').toLowerCase();
-          const bValue = String(b[searchColumn as keyof ProductRow] ?? '').toLowerCase();
-
-          if (aValue < bValue) return -1 * direction;
-          if (aValue > bValue) return 1 * direction;
-          return 0;
-        })
-      : filteredRows;
-
-    const safePageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? Math.min(Math.floor(requestedPageSize), 500) : 200;
-    const total = sortedRows.length;
-    const totalPages = total > 0 ? Math.ceil(total / safePageSize) : 1;
-    const currentPage = Math.min(Math.max(Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1, 1), totalPages);
-    const offset = (currentPage - 1) * safePageSize;
-    const products = sortedRows.slice(offset, offset + safePageSize);
-    const currentPageSize = safePageSize;
+    const total = Number(apiPagination?.total ?? allRows.length);
+    const totalPages = Number(apiPagination?.totalPages ?? 1);
+    const currentPage = Number(apiPagination?.page ?? safePage);
+    const currentPageSize = Number(apiPagination?.pageSize ?? safePageSize);
+    const products = allRows;
     const schema = 'api';
     const tableName = 'kardex';
 

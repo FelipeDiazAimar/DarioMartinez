@@ -324,7 +324,21 @@ export default function AdminArticulosPage() {
 
     set.add('categoria');
     set.add('mostrar_en_testbd');
-    return Array.from(set);
+    const ordered = Array.from(set);
+
+    const cantidadKey = ordered.find((column) => column.toLowerCase() === 'cantidadunidades');
+    const descripcionAdicionalIndex = ordered.findIndex((column) => column.toLowerCase() === 'descripcionadicional');
+
+    if (cantidadKey && descripcionAdicionalIndex >= 0) {
+      const cantidadIndex = ordered.findIndex((column) => column === cantidadKey);
+      if (cantidadIndex >= 0 && cantidadIndex !== descripcionAdicionalIndex - 1) {
+        ordered.splice(cantidadIndex, 1);
+        const targetIndex = ordered.findIndex((column) => column.toLowerCase() === 'descripcionadicional');
+        ordered.splice(targetIndex, 0, cantidadKey);
+      }
+    }
+
+    return ordered;
   }, [rows]);
 
   const categoriesById = useMemo(() => {
