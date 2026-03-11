@@ -62,6 +62,8 @@ const HIDDEN_COLUMNS = new Set([
   'stockenlinea',
   'stockenrubro',
   'stockenarticulo',
+  'descripcionadicional',
+  'anotaciones',
   'datovariable1',
   'datovariable2',
   'datovariable3',
@@ -86,6 +88,23 @@ const HIDDEN_COLUMNS = new Set([
   'tablacomisioncobros',
   'cuentacontable',
   'inactivo',
+  // ocultas solicitadas
+  'medidaunidad',
+  'proveedor',
+  'codigodelproveedor',
+  'codigobarras',
+  'rubroingresosbrutos',
+  'alicuotaiva',
+  'tipoimpuestointerno',
+  'impuestointerno',
+  'costoorigen',
+  'costoproveedor',
+  'costobase',
+  'costorecdto1',
+  'costorecdto2',
+  'costorecdto3',
+  'costorecdto4',
+  'costorecdto5',
 ]);
 
 const ACTIONS_COLUMN_WIDTH = 280;
@@ -93,6 +112,8 @@ const ACTIONS_COLUMN_WIDTH = 280;
 type NewArticleForm = {
   codigo: string;
   descripcion: string;
+  descripcionWeb: string;
+  anotacionesWeb: string;
   cantidadUnidades: string;
   precio: string;
   imagen: string;
@@ -102,6 +123,8 @@ type NewArticleForm = {
 const initialNewArticle: NewArticleForm = {
   codigo: '',
   descripcion: '',
+  descripcionWeb: '',
+  anotacionesWeb: '',
   cantidadUnidades: '',
   precio: '',
   imagen: '',
@@ -337,6 +360,27 @@ export default function AdminArticulosPage() {
         ordered.splice(targetIndex, 0, cantidadKey);
       }
     }
+
+    const moveBefore = (columnName: string, beforeColumnName: string) => {
+      const from = ordered.findIndex((column) => column.toLowerCase() === columnName.toLowerCase());
+      const to = ordered.findIndex((column) => column.toLowerCase() === beforeColumnName.toLowerCase());
+
+      if (from < 0 || to < 0 || from === to) {
+        return;
+      }
+
+      const [item] = ordered.splice(from, 1);
+      const target = ordered.findIndex((column) => column.toLowerCase() === beforeColumnName.toLowerCase());
+      ordered.splice(target, 0, item);
+    };
+
+    // volver visibles las columnas web y colocarlas antes de imagen
+    moveBefore('DescripcionWeb', 'imagen');
+    moveBefore('AnotacionesWeb', 'imagen');
+
+    // datovariable1/2 siguen incluidos pero ya ocultos; orden no importante
+    moveBefore('datovariable2', 'imagen');
+    moveBefore('datovariable1', 'imagen');
 
     return ordered;
   }, [rows]);
@@ -591,6 +635,8 @@ export default function AdminArticulosPage() {
       const payload: Record<string, unknown> = {
         codigo: newArticle.codigo.trim(),
         descripcion: newArticle.descripcion.trim(),
+        descripcionWeb: newArticle.descripcionWeb.trim(),
+        anotacionesWeb: newArticle.anotacionesWeb.trim(),
         cantidadUnidades: Number(newArticle.cantidadUnidades || '0'),
         precio: Number(newArticle.precio || '0'),
         imagen: newArticle.imagen.trim(),
@@ -1062,7 +1108,7 @@ export default function AdminArticulosPage() {
 
       <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
         <h2 className="text-base font-semibold sm:text-lg">Agregar artículo</h2>
-        <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:gap-3 md:grid-cols-6">
+        <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:gap-3 md:grid-cols-8">
           <input
             value={newArticle.codigo}
             onChange={(event) => setNewArticle((prev) => ({ ...prev, codigo: event.target.value }))}
@@ -1074,6 +1120,18 @@ export default function AdminArticulosPage() {
             onChange={(event) => setNewArticle((prev) => ({ ...prev, descripcion: event.target.value }))}
             className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
             placeholder="Descripción"
+          />
+          <input
+            value={newArticle.descripcionWeb}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, descripcionWeb: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
+            placeholder="Descripción web"
+          />
+          <input
+            value={newArticle.anotacionesWeb}
+            onChange={(event) => setNewArticle((prev) => ({ ...prev, anotacionesWeb: event.target.value }))}
+            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
+            placeholder="Anotaciones web"
           />
           <input
             value={newArticle.cantidadUnidades}

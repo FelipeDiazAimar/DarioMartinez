@@ -124,12 +124,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
 
             <section className="rounded-xl border bg-muted/10 p-4">
-              <h2 className="text-sm font-semibold">Descripción (Descripción adicional en BD)</h2>
+              <h2 className="text-sm font-semibold">Descripción (DescripcionWeb en BD)</h2>
               <p className="mt-2 text-sm text-muted-foreground">{item.descriptionAdditional || 'Sin descripción cargada.'}</p>
             </section>
 
             <section className="rounded-xl border bg-muted/10 p-4">
-              <h2 className="text-sm font-semibold">Descripción adicional (Anotaciones en BD)</h2>
+              <h2 className="text-sm font-semibold">Descripción adicional (AnotacionesWeb en BD)</h2>
               <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.notes || 'Sin anotaciones cargadas.'}</p>
             </section>
           </div>

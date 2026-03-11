@@ -4,6 +4,8 @@ import { AdminScrollableTable } from '@/components/admin-scrollable-table';
 
 export const dynamic = 'force-dynamic';
 
+const KARDEX_PAGE_SIZE = 30;
+
 type ProductRow = Record<string, unknown>;
 
 type LoadErrorDetails = {
@@ -120,12 +122,11 @@ export default async function AdminKardexPage({ searchParams }: AdminKardexPageP
     currentStep = '3) Procesando parámetros de búsqueda';
     const resolvedSearchParams = await searchParams;
     const requestedPage = Number(resolvedSearchParams?.page ?? '1');
-    const requestedPageSize = Number(resolvedSearchParams?.pageSize ?? '30');
     const selectedColumn = resolvedSearchParams?.column?.trim();
     const query = resolvedSearchParams?.query?.trim();
     const order = resolvedSearchParams?.order ?? 'asc';
 
-    const safePageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? Math.min(Math.floor(requestedPageSize), 200) : 30;
+    const safePageSize = KARDEX_PAGE_SIZE;
     const safePage = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1;
 
     const endpointUrl = new URL(`${resolveApiBaseUrl(apiBaseUrl)}/kardex`);

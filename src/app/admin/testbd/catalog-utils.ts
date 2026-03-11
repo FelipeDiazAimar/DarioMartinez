@@ -238,8 +238,8 @@ export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: strin
   const id = rawId !== undefined && rawId !== null && String(rawId).trim() ? String(rawId).trim() : `${title}-${index}`;
 
   const price = parseNumber(row.precio ?? row.costo ?? row.costoBase);
-  const descriptionAdditional = pickOptionalText(row, ['descripcionAdicional']);
-  const notes = pickOptionalText(row, ['anotaciones']);
+  const descriptionAdditional = pickOptionalText(row, ['DescripcionWeb', 'descripcionweb', 'descripcionAdicional']);
+  const notes = pickOptionalText(row, ['AnotacionesWeb', 'anotacionesweb', 'anotaciones']);
   const priceCurrency = pickOptionalText(row, ['moneda', 'costoMoneda']);
 
   return {
