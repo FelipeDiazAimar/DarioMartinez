@@ -46,6 +46,11 @@ type ArticuloCategoriaMapResponse = {
   data?: Record<string, string | null>;
 };
 
+type StockKardexResponse = {
+  success?: boolean;
+  data?: Record<string, { entradas: number; salidas: number; stock: number }>;
+};
+
 type UiErrorInfo = {
   title: string;
   causes: string[];
@@ -105,6 +110,7 @@ const HIDDEN_COLUMNS = new Set([
   'costorecdto3',
   'costorecdto4',
   'costorecdto5',
+  'cantidadunidades',
 ]);
 
 const ACTIONS_COLUMN_WIDTH = 280;
@@ -114,7 +120,6 @@ type NewArticleForm = {
   descripcion: string;
   descripcionWeb: string;
   anotacionesWeb: string;
-  cantidadUnidades: string;
   precio: string;
   imagen: string;
   mostrar_en_testbd: boolean;
@@ -125,7 +130,6 @@ const initialNewArticle: NewArticleForm = {
   descripcion: '',
   descripcionWeb: '',
   anotacionesWeb: '',
-  cantidadUnidades: '',
   precio: '',
   imagen: '',
   mostrar_en_testbd: false,
@@ -311,6 +315,7 @@ export default function AdminArticulosPage() {
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [articleCategoryByNumber, setArticleCategoryByNumber] = useState<Record<string, string | null>>({});
+  const [stockByArticle, setStockByArticle] = useState<Record<string, number>>({});
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -377,6 +382,9 @@ export default function AdminArticulosPage() {
     // volver visibles las columnas web y colocarlas antes de imagen
     moveBefore('DescripcionWeb', 'imagen');
     moveBefore('AnotacionesWeb', 'imagen');
+
+    // ubicar stockKardex (stock calculado desde la tabla kardex) antes de DescripcionWeb
+    moveBefore('stockKardex', 'DescripcionWeb');
 
     // datovariable1/2 siguen incluidos pero ya ocultos; orden no importante
     moveBefore('datovariable2', 'imagen');
@@ -478,6 +486,28 @@ export default function AdminArticulosPage() {
     setArticleCategoryByNumber(payload.data);
   };
 
+  const loadStockKardex = async (): Promise<Record<string, number>> => {
+    try {
+      const response = await fetch('/api/admin/articulos/stock', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      const payload = (await response.json()) as StockKardexResponse;
+
+      if (response.ok && payload?.success && payload?.data) {
+        const map: Record<string, number> = {};
+        for (const [codigo, info] of Object.entries(payload.data)) {
+          map[codigo] = info.stock;
+        }
+        return map;
+      }
+    } catch {
+      // Stock from kardex is supplementary — don't block the page on failure
+    }
+    return {};
+  };
+
   const loadRows = async (targetPage = currentPage) => {
     setLoading(true);
     setError(null);
@@ -493,29 +523,37 @@ export default function AdminArticulosPage() {
         params.set('search', currentSearch);
       }
 
-      const response = await fetch(`/api/admin/articulos?${params.toString()}`, {
-        method: 'GET',
-        cache: 'no-store',
-      });
+      const [articulosResponse, stockMap] = await Promise.all([
+        fetch(`/api/admin/articulos?${params.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+        }),
+        loadStockKardex(),
+      ]);
 
-      const payload = (await response.json()) as ApiResponse;
+      const payload = (await articulosResponse.json()) as ApiResponse;
 
-      if (!response.ok || !payload?.success || !Array.isArray(payload?.data)) {
+      if (!articulosResponse.ok || !payload?.success || !Array.isArray(payload?.data)) {
         const detail = payload?.error ? ` (${payload.error})` : '';
         const target = payload?.targetUrl ? ` [API: ${payload.targetUrl}]` : '';
         throw new Error(`${payload?.message || 'No se pudieron obtener los artículos.'}${detail}${target}`);
       }
 
-      const normalizedRows = payload.data.map((row) => ({
-        ...row,
-        mostrar_en_testbd: isTruthyDbBoolean(row.mostrar_en_testbd) ? 1 : 0,
-      }));
+      const normalizedRows = payload.data.map((row) => {
+        const codigo = String(row.codigo ?? '');
+        return {
+          ...row,
+          mostrar_en_testbd: isTruthyDbBoolean(row.mostrar_en_testbd) ? 1 : 0,
+          stockKardex: stockMap[codigo] ?? 0,
+        };
+      });
 
       const page = Number(payload.pagination?.page ?? targetPage);
       const pages = Number(payload.pagination?.totalPages ?? 1);
       const total = Number(payload.pagination?.total ?? normalizedRows.length);
 
       await loadArticleCategories(normalizedRows);
+      setStockByArticle(stockMap);
       setRows(normalizedRows);
       setCurrentPage(Number.isFinite(page) && page > 0 ? page : 1);
       setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
@@ -637,7 +675,6 @@ export default function AdminArticulosPage() {
         descripcion: newArticle.descripcion.trim(),
         descripcionWeb: newArticle.descripcionWeb.trim(),
         anotacionesWeb: newArticle.anotacionesWeb.trim(),
-        cantidadUnidades: Number(newArticle.cantidadUnidades || '0'),
         precio: Number(newArticle.precio || '0'),
         imagen: newArticle.imagen.trim(),
         mostrar_en_testbd: newArticle.mostrar_en_testbd ? 1 : 0,
@@ -768,7 +805,7 @@ export default function AdminArticulosPage() {
       const categoryChanged = Boolean(articleNumber) && editingCategoryId !== previousCategoryId;
 
       Object.keys(draft).forEach((key) => {
-        if (key === 'id') {
+        if (key === 'id' || key === 'stockKardex') {
           return;
         }
 
@@ -882,7 +919,7 @@ export default function AdminArticulosPage() {
           const categoryChanged = Boolean(articleNumber) && rowCategoryDraft !== previousCategoryId;
 
           Object.keys(rowDraft).forEach((key) => {
-            if (key === 'id') {
+            if (key === 'id' || key === 'stockKardex') {
               return;
             }
 
@@ -1134,12 +1171,6 @@ export default function AdminArticulosPage() {
             placeholder="Anotaciones web"
           />
           <input
-            value={newArticle.cantidadUnidades}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, cantidadUnidades: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm"
-            placeholder="Stock"
-          />
-          <input
             value={newArticle.precio}
             onChange={(event) => setNewArticle((prev) => ({ ...prev, precio: event.target.value }))}
             className="h-10 rounded-md border bg-background px-3 text-sm"
@@ -1350,6 +1381,14 @@ export default function AdminArticulosPage() {
                                   />
                                   Mostrar
                                 </label>
+                              </td>
+                            );
+                          }
+
+                          if (column === 'stockKardex') {
+                            return (
+                              <td key={`${rowId}-${column}`} className="border-b px-2 py-1 whitespace-nowrap align-middle text-muted-foreground">
+                                {toCellValue(row[column])}
                               </td>
                             );
                           }
