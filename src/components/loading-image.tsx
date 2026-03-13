@@ -74,7 +74,7 @@ export function LoadingImage({
       {isExternalUrl ? (
         <img
           ref={externalImgRef}
-          src={typeof runtimeSrc === 'string' ? runtimeSrc : ''}
+          src={typeof runtimeSrc === 'string' && runtimeSrc ? runtimeSrc : undefined}
           alt={alt}
           className={cn(className, props.fill ? 'absolute inset-0 h-full w-full' : undefined)}
           width={props.fill ? undefined : props.width}
@@ -83,7 +83,7 @@ export function LoadingImage({
           loading={props.priority ? 'eager' : props.loading}
           onLoad={(event) => {
             setIsLoaded(true);
-            if (typeof runtimeSrc === 'string') {
+            if (typeof runtimeSrc === 'string' && runtimeSrc) {
               console.info('[LoadingImage] loaded', {
                 alt,
                 src: runtimeSrc,
@@ -93,7 +93,7 @@ export function LoadingImage({
             onLoad?.(event as unknown as Parameters<NonNullable<typeof onLoad>>[0]);
           }}
           onError={(event) => {
-            const currentSrc = typeof runtimeSrc === 'string' ? runtimeSrc : '';
+            const currentSrc = typeof runtimeSrc === 'string' ? runtimeSrc : undefined;
 
             if (!proxyAttempted && typeof proxySrc === 'string') {
               setProxyAttempted(true);

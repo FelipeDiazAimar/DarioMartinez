@@ -23,6 +23,12 @@ type ArticulosApiResponse = {
   data?: ProductRow[];
 };
 
+type StockApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: Record<string, { stock?: unknown }>;
+};
+
 type CatalogFetchResult = {
   endpointUsed: string;
   allItems: CatalogItem[];
@@ -134,6 +140,22 @@ function pickOptionalText(row: ProductRow, candidates: string[]) {
   return undefined;
 }
 
+function pickRowValue(row: ProductRow, candidates: string[]) {
+  for (const candidate of candidates) {
+    if (Object.prototype.hasOwnProperty.call(row, candidate)) {
+      return row[candidate];
+    }
+
+    const lowered = candidate.toLowerCase();
+    const match = Object.keys(row).find((key) => key.toLowerCase() === lowered);
+    if (match) {
+      return row[match];
+    }
+  }
+
+  return undefined;
+}
+
 function normalizeImageUrl(value: unknown, apiBaseUrl: string) {
   if (typeof value !== 'string') {
     return '';
@@ -212,10 +234,39 @@ async function fetchArticulos(endpoint: string, apiToken: string) {
   return payload;
 }
 
+async function fetchStockMap(endpoint: string, apiToken: string): Promise<Record<string, number>> {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    const rawText = await response.text();
+    const payload = parseJsonSafely(rawText) as StockApiResponse | null;
+
+    if (!response.ok || !payload?.success || !payload.data || typeof payload.data !== 'object') {
+      return {};
+    }
+
+    const entries = Object.entries(payload.data).map(([code, info]) => [code, parseNumber(info?.stock)]);
+    return Object.fromEntries(entries);
+  } catch {
+    return {};
+  }
+}
+
 export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: string): CatalogItem {
-  const stock = parseNumber(row.cantidadUnidades);
+  // El catálogo en stock se determina por la columna stockkardex (con variantes de nombre/casing).
+  const stock = parseNumber(
+    pickRowValue(row, ['stockKardex', 'stockkardex', 'stock_kardex', 'stock_kardex_total']) ?? 0,
+  );
   const imageUrl = normalizeImageUrl(row.imagen, apiBaseUrl);
-  const visibleInTestbd = parseVisibility(row.mostrar_en_testbd);
+  const visibleInTestbd = parseVisibility(
+    pickRowValue(row, ['mostrar_en_testbd', 'mostrarEnTestbd', 'mostrarentestbd']) ?? 0,
+  );
 
   const title = pickText(row, ['descripcion', 'nombre', 'producto', 'articulo', 'denominacion', 'detalle'], `Artículo #${index + 1}`);
   const articleNumber =
@@ -260,8 +311,11 @@ export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: strin
 export async function fetchCatalogItems(apiBaseUrl: string, apiToken: string): Promise<CatalogFetchResult> {
   const primaryBase = resolveApiBaseUrl(apiBaseUrl);
   const primaryEndpoint = `${primaryBase}/articulos`;
+  const primaryStockEndpoint = `${primaryBase}/articulos/stock`;
   const fallbackEndpoint = 'http://127.0.0.1:3001/articulos';
+  const fallbackStockEndpoint = 'http://127.0.0.1:3001/articulos/stock';
   const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
+  const stockEndpointsToTry = Array.from(new Set([primaryStockEndpoint, fallbackStockEndpoint]));
 
   let endpointUsed = primaryEndpoint;
   let payload: ArticulosApiResponse | null = null;
@@ -281,7 +335,24 @@ export async function fetchCatalogItems(apiBaseUrl: string, apiToken: string): P
     throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
   }
 
-  const allItems = payload.data.map((row, index) => mapCatalogItem(row, index, primaryBase));
+  let stockByCode: Record<string, number> = {};
+  for (const stockEndpoint of stockEndpointsToTry) {
+    stockByCode = await fetchStockMap(stockEndpoint, apiToken);
+    if (Object.keys(stockByCode).length > 0) {
+      break;
+    }
+  }
+
+  const allItems = payload.data.map((row, index) => {
+    const mapped = mapCatalogItem(row, index, primaryBase);
+    const normalizedCode = mapped.code?.trim() ?? mapped.articleNumber.trim();
+    const stockFromMap = normalizedCode ? stockByCode[normalizedCode] : undefined;
+
+    return {
+      ...mapped,
+      stock: Number.isFinite(stockFromMap) ? (stockFromMap as number) : mapped.stock,
+    };
+  });
   const visibleInStockItems = allItems.filter((item) => item.stock > 0 && item.visibleInTestbd);
 
   return {

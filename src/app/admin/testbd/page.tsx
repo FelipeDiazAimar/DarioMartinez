@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 import { LoadingImage } from '@/components/loading-image';
+import { Footer } from '@/components/footer';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 import { fetchCatalogCategoryData, fetchCatalogItems } from './catalog-utils';
 
@@ -8,6 +10,7 @@ export const dynamic = 'force-dynamic';
 type AdminTestBdPageProps = {
   searchParams?: Promise<{
     cat?: string;
+    q?: string;
   }>;
 };
 
@@ -30,6 +33,7 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
   try {
     const resolvedSearchParams = await searchParams;
     const selectedCategoryId = typeof resolvedSearchParams?.cat === 'string' ? resolvedSearchParams.cat : 'all';
+    const searchTerm = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
 
     const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
     endpointUsed = catalogResult.endpointUsed;
@@ -42,36 +46,66 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     const articleCategoryByNumber = categoryData.articleCategoryByNumber;
     const categoriesById = Object.fromEntries(categories.map((category) => [category.id, category.nombre]));
 
-    const filteredItems =
+    const filteredByCategoryItems =
       selectedCategoryId === 'all'
         ? inStockItems
         : inStockItems.filter((item) => {
             return articleCategoryByNumber[item.articleNumber] === selectedCategoryId;
           });
 
+    const normalizedSearchTerm = searchTerm.toLowerCase();
+    const filteredItems =
+      normalizedSearchTerm.length === 0
+        ? filteredByCategoryItems
+        : filteredByCategoryItems.filter((item) => {
+            const searchableText = [item.title, item.descriptionAdditional, item.articleNumber].filter(Boolean).join(' ').toLowerCase();
+            return searchableText.includes(normalizedSearchTerm);
+          });
+
     return (
-      <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
-        <section className="rounded-2xl border bg-card p-6 shadow-sm">
-          <h1 className="text-3xl font-bold tracking-tight">TestBD · Catálogo en stock</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Mostrando únicamente productos con <span className="font-medium">cantidadUnidades &gt; 0</span> y marcados para visibilidad.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">Endpoint: {endpointUsed}</p>
-          <div className="mt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href="/admin/articulos" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
-                Ver tabla completa de artículos
-              </Link>
-              <Link href="/admin/categorias" className="rounded-md border px-3 py-2 text-sm hover:bg-muted">
-                Administrar categorías
-              </Link>
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
+          <section className="rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Nuestros Productos</h1>
+              <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Equipamiento tecnológico para potenciar tu hogar o empresa.
+              </p>
             </div>
           </div>
-        </section>
 
-        <section className="relative">
-          <aside className="hidden lg:block absolute top-0 left-0 w-56">
-            <div className="sticky top-24 rounded-2xl border bg-card p-4 shadow-sm">
+          <form method="get" className="mt-8 flex justify-center">
+            {selectedCategoryId !== 'all' ? <input type="hidden" name="cat" value={selectedCategoryId} /> : null}
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                name="q"
+                defaultValue={searchTerm}
+                placeholder="Buscar productos..."
+                className="h-12 w-full rounded-full border bg-white pl-12 pr-24 text-base shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted"
+              >
+                Buscar
+              </button>
+            </div>
+          </form>
+          {(searchTerm || selectedCategoryId !== 'all') && (
+            <div className="mt-3 flex justify-center">
+              <Link href="/admin/testbd" className="rounded-full border bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted">
+                Quitar filtros
+              </Link>
+            </div>
+          )}
+          </section>
+
+          <section className="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 rounded-2xl border bg-white p-4 shadow-sm">
               <h3 className="mb-3 border-b pb-2 text-lg font-semibold">Categorías</h3>
               <ul className="space-y-1">
                 <li>
@@ -102,13 +136,17 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
             </div>
           </aside>
 
-          <div className="lg:ml-64">
+          <div>
             {inStockItems.length === 0 ? (
-              <section className="rounded-2xl border bg-card p-6 text-center text-muted-foreground">
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
                 No hay productos con stock disponible en este momento.
               </section>
+            ) : searchTerm && filteredItems.length === 0 ? (
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
+                No encontramos resultados para "{searchTerm}".
+              </section>
             ) : filteredItems.length === 0 ? (
-              <section className="rounded-2xl border bg-card p-6 text-center text-muted-foreground">
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
                 No hay productos en esta categoría.
               </section>
             ) : (
@@ -121,10 +159,10 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
                     <Link
                       key={item.id}
                       href={`/admin/testbd/${encodeURIComponent(item.id)}`}
-                      className="group overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                      className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                     >
                       <article>
-                        <div className="relative flex h-52 items-center justify-center overflow-hidden bg-muted/30 p-4">
+                        <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white p-4">
                           {item.imageUrl ? (
                             <LoadingImage
                               src={item.imageUrl}
@@ -158,20 +196,27 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
               </section>
             )}
           </div>
-        </section>
-      </main>
+          </section>
+
+        </main>
+        <Footer forceShow />
+      </div>
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
 
     return (
-      <main className="mx-auto w-full max-w-6xl p-6">
-        <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-          <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
-          <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
-          <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
-        </section>
-      </main>
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <main className="mx-auto w-full max-w-6xl p-6">
+          <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+            <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
+            <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
+            <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
+          </section>
+
+        </main>
+        <Footer forceShow />
+      </div>
     );
   }
 }

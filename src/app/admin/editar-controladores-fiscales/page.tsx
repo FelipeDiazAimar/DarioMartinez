@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Receipt, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { LoadingImage } from '@/components/loading-image';
 import { supabase } from '@/lib/supabase-client';
 
 const serviceSchema = z.object({
@@ -741,11 +742,25 @@ export default function EditControladoresFiscalesPage() {
                   )} />
                   <p className="text-sm text-muted-foreground">Imagen actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                   {heroBackgroundPreviewUrl ? (
-                    <img src={heroBackgroundPreviewUrl} alt="Preview hero" className="h-40 w-full rounded-md object-cover" />
+                    <LoadingImage
+                      src={heroBackgroundPreviewUrl}
+                      alt="Preview hero"
+                      width={800}
+                      height={400}
+                      className="h-40 w-full rounded-md object-cover"
+                      spinnerSizeClassName="h-8 w-8"
+                    />
                   ) : null}
                   <p className="text-sm text-muted-foreground">Imagen móvil actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                   {heroBackgroundMobilePreviewUrl ? (
-                    <img src={heroBackgroundMobilePreviewUrl} alt="Preview hero móvil" className="h-40 w-full rounded-md object-cover" />
+                    <LoadingImage
+                      src={heroBackgroundMobilePreviewUrl}
+                      alt="Preview hero móvil"
+                      width={800}
+                      height={400}
+                      className="h-40 w-full rounded-md object-cover"
+                      spinnerSizeClassName="h-8 w-8"
+                    />
                   ) : null}
                 </div>
 
@@ -804,7 +819,14 @@ export default function EditControladoresFiscalesPage() {
                   )} />
                   <p className="text-sm text-muted-foreground">Imagen actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                   {featuresBackgroundPreviewUrl ? (
-                    <img src={featuresBackgroundPreviewUrl} alt="Preview fondo características" className="h-40 w-full rounded-md object-cover" />
+                    <LoadingImage
+                      src={featuresBackgroundPreviewUrl}
+                      alt="Preview fondo características"
+                      width={800}
+                      height={400}
+                      className="h-40 w-full rounded-md object-cover"
+                      spinnerSizeClassName="h-8 w-8"
+                    />
                   ) : null}
                   <FormField control={form.control} name="featuresTitle" render={({ field }) => (
                     <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -870,7 +892,14 @@ export default function EditControladoresFiscalesPage() {
                       )} />
                       <p className="text-sm text-muted-foreground">Logo actual cargado. Solo seleccioná archivo si querés reemplazarlo.</p>
                       {brandLogoPreviewUrls[brandIndex] ? (
-                        <img src={brandLogoPreviewUrls[brandIndex]} alt={`Preview logo ${brandIndex + 1}`} className="h-20 w-20 rounded object-contain" />
+                        <LoadingImage
+                          src={brandLogoPreviewUrls[brandIndex]}
+                          alt={`Preview logo ${brandIndex + 1}`}
+                          width={80}
+                          height={80}
+                          className="h-20 w-20 rounded object-contain"
+                          spinnerSizeClassName="h-5 w-5"
+                        />
                       ) : null}
                       <FormField control={form.control} name={imageFileFieldByBrand[brandIndex].controllerField} render={({ field }) => (
                         <FormItem>
@@ -900,7 +929,14 @@ export default function EditControladoresFiscalesPage() {
                       )} />
                       <p className="text-sm text-muted-foreground">Imagen de controlador actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                       {brandControllerPreviewUrls[brandIndex] ? (
-                        <img src={brandControllerPreviewUrls[brandIndex]} alt={`Preview controlador ${brandIndex + 1}`} className="h-24 w-24 rounded object-contain" />
+                        <LoadingImage
+                          src={brandControllerPreviewUrls[brandIndex]}
+                          alt={`Preview controlador ${brandIndex + 1}`}
+                          width={96}
+                          height={96}
+                          className="h-24 w-24 rounded object-contain"
+                          spinnerSizeClassName="h-5 w-5"
+                        />
                       ) : null}
                       <FormField control={form.control} name={`brands.${brandIndex}.description`} render={({ field }) => (
                         <FormItem><FormLabel>Marca {brandIndex + 1} - Descripción</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
@@ -953,7 +989,14 @@ export default function EditControladoresFiscalesPage() {
                   )} />
                   <p className="text-sm text-muted-foreground">Imagen actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                   {benefitsImagePreviewUrl ? (
-                    <img src={benefitsImagePreviewUrl} alt="Preview beneficios" className="h-40 w-full rounded-md object-cover" />
+                    <LoadingImage
+                      src={benefitsImagePreviewUrl}
+                      alt="Preview beneficios"
+                      width={800}
+                      height={400}
+                      className="h-40 w-full rounded-md object-cover"
+                      spinnerSizeClassName="h-8 w-8"
+                    />
                   ) : null}
                   <FormField control={form.control} name="benefitsBackgroundImageFile" render={({ field }) => (
                     <FormItem>
@@ -979,7 +1022,14 @@ export default function EditControladoresFiscalesPage() {
                   )} />
                   <p className="text-sm text-muted-foreground">Imagen actual cargada. Solo seleccioná archivo si querés reemplazarla.</p>
                   {benefitsBackgroundPreviewUrl ? (
-                    <img src={benefitsBackgroundPreviewUrl} alt="Preview fondo beneficios" className="h-40 w-full rounded-md object-cover" />
+                    <LoadingImage
+                      src={benefitsBackgroundPreviewUrl}
+                      alt="Preview fondo beneficios"
+                      width={800}
+                      height={400}
+                      className="h-40 w-full rounded-md object-cover"
+                      spinnerSizeClassName="h-8 w-8"
+                    />
                   ) : null}
                   <FormField control={form.control} name="benefitsBadge" render={({ field }) => (
                     <FormItem><FormLabel>Badge</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

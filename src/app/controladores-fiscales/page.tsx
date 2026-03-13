@@ -538,27 +538,31 @@ export default function ControladoresFiscalesPage() {
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3">
             {content.brands.map((brand, index) => (
-              <Card key={`${brand.name}-${index}`} className={cn('relative opacity-0 h-full flex flex-col', modelsInView && 'animate-slide-in-from-bottom')} style={{ animationDelay: `${index * 150}ms` }}>
+              <Card
+                key={`${brand.name}-${index}`}
+                className={cn('relative opacity-0 flex flex-col', modelsInView && 'animate-slide-in-from-bottom')}
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
                 <CardHeader className="text-center">
-                  <div className="mx-auto h-[120px] w-[120px] overflow-hidden">
+                  <div className="mx-auto h-[120px] w-[120px] flex items-center justify-center">
                     <LoadingImage
                       src={brand.logoUrl}
                       alt={`${brand.name} logo`}
                       width={120}
                       height={120}
-                      className="h-full w-full object-contain"
+                      className="max-h-full max-w-full object-contain"
                     />
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col justify-between h-full">
+                <CardContent className="flex flex-col justify-between flex-1">
                   <div className="space-y-4">
-                    <div className="mx-auto h-32 w-32 overflow-hidden">
+                    <div className="mx-auto h-32 w-32 flex items-center justify-center">
                       <LoadingImage
                         src={brand.controllerImageUrl}
                         alt={`${brand.name} controlador`}
                         width={128}
                         height={128}
-                        className="h-full w-full object-contain mb-4"
+                        className="max-h-full max-w-full object-contain mb-4"
                       />
                     </div>
                     <p className="text-sm text-muted-foreground text-center">

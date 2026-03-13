@@ -60,7 +60,7 @@ const faqs = [
   },
 ];
 
-export function Footer() {
+export function Footer({ forceShow }: { forceShow?: boolean } = {}) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
 
@@ -97,7 +97,7 @@ export function Footer() {
     return defaultMapEmbedUrl;
   }, [contactInfo.google_maps]);
 
-  if (isAdmin) {
+  if (isAdmin && !forceShow) {
     return null;
   }
 

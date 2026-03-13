@@ -328,6 +328,12 @@ export default function AdminArticulosPage() {
   const [draftsByRow, setDraftsByRow] = useState<Record<string, Record<string, string>>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const searchTermRef = useRef('');
+  const [searchField, setSearchField] = useState('all');
+  const searchFieldRef = useRef('all');
+  const [sortBy, setSortBy] = useState('descripcion');
+  const sortByRef = useRef('descripcion');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const sortDirectionRef = useRef<'asc' | 'desc'>('asc');
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [newArticle, setNewArticle] = useState<NewArticleForm>(initialNewArticle);
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
@@ -397,6 +403,12 @@ export default function AdminArticulosPage() {
     const entries = categorias.map((categoria) => [categoria.id, categoria.nombre]);
     return Object.fromEntries(entries);
   }, [categorias]);
+
+  const searchColumnOptions = useMemo(() => {
+    const baseColumns = ['codigo', 'descripcion', 'DescripcionWeb', 'AnotacionesWeb', 'stockKardex'];
+    const merged = Array.from(new Set([...baseColumns, ...columns]));
+    return merged.filter((column) => column !== 'mostrar_en_testbd' && column !== 'categoria');
+  }, [columns]);
 
   const filteredRows = useMemo(() => {
     if (selectedCategoryFilter === 'all') {
@@ -521,6 +533,21 @@ export default function AdminArticulosPage() {
       const currentSearch = searchTermRef.current.trim();
       if (currentSearch) {
         params.set('search', currentSearch);
+      }
+
+      const currentSearchField = searchFieldRef.current.trim();
+      if (currentSearchField) {
+        params.set('searchField', currentSearchField);
+      }
+
+      const currentSortBy = sortByRef.current.trim();
+      if (currentSortBy) {
+        params.set('sortBy', currentSortBy);
+      }
+
+      const currentSortDirection = sortDirectionRef.current;
+      if (currentSortDirection) {
+        params.set('sortDirection', currentSortDirection);
       }
 
       const [articulosResponse, stockMap] = await Promise.all([
@@ -711,6 +738,24 @@ export default function AdminArticulosPage() {
       void loadRows(1);
     }, 400);
   }, []);
+
+  const handleSearchFieldChange = (value: string) => {
+    setSearchField(value);
+    searchFieldRef.current = value;
+    void loadRows(1);
+  };
+
+  const handleSortByChange = (value: string) => {
+    setSortBy(value);
+    sortByRef.current = value;
+    void loadRows(1);
+  };
+
+  const handleSortDirectionChange = (value: 'asc' | 'desc') => {
+    setSortDirection(value);
+    sortDirectionRef.current = value;
+    void loadRows(1);
+  };
 
   const persistArticleCategory = async (articleNumber: string, categoriaId: string | null) => {
     const categoryResponse = await fetch('/api/admin/categorias/articulos', {
@@ -1042,7 +1087,7 @@ export default function AdminArticulosPage() {
     }
   };
 
-  const toggleVisibility = async (row: ProductRow, show: boolean) => {
+  const stageVisibilityChange = (row: ProductRow, rowId: string, show: boolean) => {
     const identifier = getRowIdentifier(row);
 
     if (!identifier) {
@@ -1050,28 +1095,27 @@ export default function AdminArticulosPage() {
       return;
     }
 
-    setSaving(true);
-    setError(null);
+    const currentVisibility = isTruthyDbBoolean(row.mostrar_en_testbd) ? '1' : '0';
+    const nextVisibility = show ? '1' : '0';
 
-    try {
-      const response = await fetch(buildIdentifierUrl(identifier), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mostrar_en_testbd: show ? 1 : 0 }),
-      });
+    setDraftsByRow((prev) => {
+      const next = { ...prev };
+      const rowDraft = { ...(next[rowId] ?? {}) };
 
-      const result = (await response.json()) as ApiResponse;
-
-      if (!response.ok || !result?.success) {
-        throw new Error(result?.message || 'No se pudo actualizar la visibilidad.');
+      if (nextVisibility === currentVisibility) {
+        delete rowDraft.mostrar_en_testbd;
+      } else {
+        rowDraft.mostrar_en_testbd = nextVisibility;
       }
 
-      await loadRows();
-    } catch (toggleError) {
-      setError(toggleError instanceof Error ? toggleError.message : 'Error al actualizar visibilidad');
-    } finally {
-      setSaving(false);
-    }
+      if (Object.keys(rowDraft).length === 0) {
+        delete next[rowId];
+      } else {
+        next[rowId] = rowDraft;
+      }
+
+      return next;
+    });
   };
 
   const uploadImage = async (row: ProductRow, file: File) => {
@@ -1143,87 +1187,73 @@ export default function AdminArticulosPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
-        <h2 className="text-base font-semibold sm:text-lg">Agregar artículo</h2>
-        <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:gap-3 md:grid-cols-8">
-          <input
-            value={newArticle.codigo}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, codigo: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm"
-            placeholder="Código"
-          />
-          <input
-            value={newArticle.descripcion}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, descripcion: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
-            placeholder="Descripción"
-          />
-          <input
-            value={newArticle.descripcionWeb}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, descripcionWeb: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
-            placeholder="Descripción web"
-          />
-          <input
-            value={newArticle.anotacionesWeb}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, anotacionesWeb: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2"
-            placeholder="Anotaciones web"
-          />
-          <input
-            value={newArticle.precio}
-            onChange={(event) => setNewArticle((prev) => ({ ...prev, precio: event.target.value }))}
-            className="h-10 rounded-md border bg-background px-3 text-sm"
-            placeholder="Precio"
-          />
-          <label className="inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm">
-            <input
-              type="checkbox"
-              checked={newArticle.mostrar_en_testbd}
-              onChange={(event) => setNewArticle((prev) => ({ ...prev, mostrar_en_testbd: event.target.checked }))}
-            />
-            Mostrar en TestBD
-          </label>
-
-          <div className="md:col-span-6">
-            <button
-              type="submit"
-              disabled={saving}
-              className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+      <section className="rounded-2xl bg-card p-4 shadow-sm sm:p-6">
+        <div className="w-full">
+          <h2 className="text-base font-semibold sm:text-lg">Buscar artículos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Elegí columna de búsqueda y orden para explorar como quieras.</p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-start">
+            <select
+              value={searchField}
+              onChange={(event) => handleSearchFieldChange(event.target.value)}
+              className="flex-1 min-w-[170px] h-10 rounded-2xl border bg-background px-3 text-sm"
             >
-              Agregar artículo
-            </button>
+              <option value="all">Buscar en: Todas las columnas</option>
+              {searchColumnOptions.map((column) => (
+                <option key={column} value={column}>
+                  Buscar en: {column}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(event) => handleSortByChange(event.target.value)}
+              className="flex-1 min-w-[170px] h-10 rounded-2xl border bg-background px-3 text-sm"
+            >
+              {searchColumnOptions.map((column) => (
+                <option key={column} value={column}>
+                  Ordenar por: {column}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortDirection}
+              onChange={(event) => handleSortDirectionChange(event.target.value === 'desc' ? 'desc' : 'asc')}
+              className="flex-1 min-w-[170px] h-10 rounded-2xl border bg-background px-3 text-sm"
+            >
+              <option value="asc">Orden: Ascendente</option>
+              <option value="desc">Orden: Descendente</option>
+            </select>
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Buscar por código o descripción..."
+                className="h-11 w-full rounded-2xl border bg-background pl-10 pr-10 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
-        </form>
+        </div>
       </section>
 
       <section className="rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <h2 className="text-base font-semibold sm:text-lg">Listado de artículos ({filteredRows.length} visibles de {totalRows})</h2>
           <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Buscar por código o descripción..."
-                className="h-8 w-full rounded-md border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:w-64"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
             <select
               value={selectedCategoryFilter}
               onChange={(event) => setSelectedCategoryFilter(event.target.value)}
-              className="h-8 w-full rounded-md border bg-background px-2 text-sm sm:w-auto"
+              className="h-10 w-full rounded-2xl border bg-background px-3 text-sm sm:w-auto"
             >
               <option value="all">Todas las categorías</option>
               <option value="__none__">Sin categoría</option>
@@ -1345,7 +1375,7 @@ export default function AdminArticulosPage() {
                                       [rowId]: event.target.value,
                                     }))
                                   }
-                                  className="h-8 w-full min-w-[200px] rounded-md border bg-background px-2 text-xs"
+                                  className="h-9 w-full min-w-[200px] rounded-xl border bg-background px-2 text-xs"
                                 >
                                   <option value="">Sin categoría</option>
                                   {categorias.map((categoria) => (
@@ -1406,7 +1436,7 @@ export default function AdminArticulosPage() {
                                     },
                                   }))
                                 }
-                                className="h-8 rounded-md border bg-background px-2 text-xs"
+                                className="h-9 rounded-xl border bg-background px-2 text-xs"
                                 style={{ width: inputWidthFromValue(rowDraft[column] ?? '') }}
                               />
                             </td>
@@ -1418,7 +1448,14 @@ export default function AdminArticulosPage() {
                             <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle">
                               {imageUrl ? (
                                 <div className="flex items-center gap-2">
-                                  <img src={imageUrl} alt="Imagen artículo" className="h-8 w-8 rounded border object-cover" />
+                                  <LoadingImage
+                                    src={imageUrl}
+                                    alt="Imagen artículo"
+                                    width={32}
+                                    height={32}
+                                    className="h-8 w-8 rounded border object-cover"
+                                    spinnerSizeClassName="h-4 w-4"
+                                  />
                                   <span title={imageUrl} className="block max-w-[170px] truncate text-xs text-muted-foreground">{imageUrl}</span>
                                 </div>
                               ) : (
@@ -1441,7 +1478,10 @@ export default function AdminArticulosPage() {
                         }
 
                         if (column === 'mostrar_en_testbd') {
-                          const checked = isTruthyDbBoolean(row[column]);
+                          const draftVisibility = draftsByRow[rowId]?.mostrar_en_testbd;
+                          const checked = draftVisibility
+                            ? draftVisibility === '1'
+                            : isTruthyDbBoolean(row[column]);
                           return (
                             <td
                               key={`${rowId}-${column}`}
@@ -1452,7 +1492,7 @@ export default function AdminArticulosPage() {
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  onChange={(event) => void toggleVisibility(row, event.target.checked)}
+                                  onChange={(event) => stageVisibilityChange(row, rowId, event.target.checked)}
                                   disabled={saving || !canUpload}
                                 />
                                 {checked ? 'Visible' : 'Oculto'}

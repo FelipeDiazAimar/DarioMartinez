@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LoadingImage } from '@/components/loading-image';
 import { AdminBuyButton } from '@/components/admin-buy-button';
-import { fetchCatalogItems } from '../catalog-utils';
+import { Footer } from '@/components/footer';
+import { fetchCatalogCategoryData, fetchCatalogItems } from '../catalog-utils';
+import { RelatedProductsCarousel } from './related-products-carousel';
 
 type ProductDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -23,6 +25,19 @@ function formatPrice(value?: number, currency?: string) {
   }
 
   return `$ ${amount}`;
+}
+
+function shuffleItems<T>(items: T[]) {
+  const copy = [...items];
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const temp = copy[index];
+    copy[index] = copy[swapIndex];
+    copy[swapIndex] = temp;
+  }
+
+  return copy;
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -48,32 +63,47 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       notFound();
     }
 
-    const relatedItems = catalogResult.visibleInStockItems
-      .filter((candidate) => candidate.id !== item.id)
-      .filter((candidate) => {
-        if (item.descriptionAdditional && candidate.descriptionAdditional) {
-          return candidate.descriptionAdditional.toLowerCase() === item.descriptionAdditional.toLowerCase();
-        }
+    const articleNumbers = Array.from(new Set(catalogResult.allItems.map((candidate) => candidate.articleNumber).filter(Boolean)));
+    const categoryData = await fetchCatalogCategoryData(articleNumbers);
+    const articleCategoryByNumber = categoryData.articleCategoryByNumber;
+    const categoriesById = Object.fromEntries(categoryData.categories.map((category) => [category.id, category.nombre]));
 
-        if (item.code && candidate.code) {
-          return candidate.code.slice(0, 2) === item.code.slice(0, 2);
-        }
+    const pool = catalogResult.visibleInStockItems.filter((candidate) => candidate.id !== item.id);
+    const itemCategoryId = articleCategoryByNumber[item.articleNumber];
 
-        return true;
-      })
-      .slice(0, 8);
+    const sameCategoryItems = itemCategoryId
+      ? pool.filter((candidate) => articleCategoryByNumber[candidate.articleNumber] === itemCategoryId)
+      : [];
+
+    const relatedItems = (sameCategoryItems.length > 0 ? sameCategoryItems : shuffleItems(pool)).slice(0, 20);
+    const relatedItemsWithCategory = relatedItems.map((related) => {
+      const categoryId = articleCategoryByNumber[related.articleNumber];
+      return {
+        ...related,
+        categoryName: categoryId ? categoriesById[categoryId] : undefined,
+      };
+    });
 
     return (
-      <main className="mx-auto w-full max-w-6xl space-y-6 p-6">
-        <section className="rounded-2xl border bg-card p-4 shadow-sm">
-          <Link href="/admin/testbd" className="text-sm text-muted-foreground hover:underline">
-            ← Volver al catálogo en stock
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgba(217, 225, 242, 0.3)' }}>
+        <main className="mx-auto w-full max-w-6xl space-y-6 p-6">
+          <section className="rounded-2xl border bg-white p-4 shadow-sm">
+          <Link
+            href="/admin/testbd"
+            className="inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Volver al catálogo
           </Link>
-          <p className="mt-2 text-xs text-muted-foreground">Endpoint: {catalogResult.endpointUsed}</p>
-        </section>
+          </section>
 
-        <section className="grid gap-6 rounded-2xl border bg-card p-6 shadow-sm lg:grid-cols-[1.15fr,1fr]">
-          <div className="flex min-h-[360px] items-center justify-center rounded-xl border bg-muted/30 p-5">
+          <section
+            className="grid gap-6 rounded-2xl border bg-white p-6 shadow-sm lg:grid-cols-[1.15fr,1fr]"
+            style={{ backgroundColor: 'rgba(217, 225, 242, 0.3)' }}
+          >
+          <div className="flex min-h-[360px] items-center justify-center rounded-xl border bg-white p-5">
             {item.imageUrl ? (
               <LoadingImage
                 src={item.imageUrl}
@@ -95,15 +125,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border bg-muted/20 p-3">
+              <div className="rounded-xl border bg-white p-3">
                 <p className="text-xs text-muted-foreground">Precio</p>
                 <p className="text-lg font-semibold">{formatPrice(item.price, item.priceCurrency)}</p>
               </div>
-              <div className="rounded-xl border bg-muted/20 p-3">
+              <div className="rounded-xl border bg-white p-3">
                 <p className="text-xs text-muted-foreground">Stock</p>
                 <p className="text-lg font-semibold">{item.stock}</p>
               </div>
-              <div className="rounded-xl border bg-muted/20 p-3">
+              <div className="rounded-xl border bg-white p-3">
                 <p className="text-xs text-muted-foreground">Código</p>
                 <p className="text-lg font-semibold">{item.code || 'Sin código'}</p>
               </div>
@@ -123,76 +153,56 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               />
             </div>
 
-            <section className="rounded-xl border bg-muted/10 p-4">
+            <section className="rounded-xl border bg-white p-4">
               <h2 className="text-sm font-semibold">Descripción (DescripcionWeb en BD)</h2>
               <p className="mt-2 text-sm text-muted-foreground">{item.descriptionAdditional || 'Sin descripción cargada.'}</p>
             </section>
 
-            <section className="rounded-xl border bg-muted/10 p-4">
+            <section className="rounded-xl border bg-white p-4">
               <h2 className="text-sm font-semibold">Descripción adicional (AnotacionesWeb en BD)</h2>
               <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.notes || 'Sin anotaciones cargadas.'}</p>
             </section>
           </div>
-        </section>
+          </section>
 
-        <section className="rounded-2xl border bg-card p-6 shadow-sm">
+          <section
+            className="rounded-2xl border bg-white p-6 shadow-sm"
+            style={{ backgroundColor: 'rgba(217, 225, 242, 0.3)' }}
+          >
           <h2 className="text-xl font-semibold tracking-tight">Productos relacionados</h2>
           <p className="mt-1 text-sm text-muted-foreground">Más opciones para seguir comprando.</p>
 
           {relatedItems.length === 0 ? (
-            <div className="mt-4 rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
-              No encontramos productos relacionados por el momento.
+            <div
+              className="mt-4 rounded-xl border bg-white p-4 text-sm text-muted-foreground"
+              style={{ backgroundColor: 'rgba(217, 225, 242, 0.3)' }}
+            >
+              <p>No encontramos productos relacionados por el momento.</p>
+              <Link href="/admin/testbd" className="mt-3 inline-flex rounded-full border bg-white px-4 py-2 text-sm font-medium hover:bg-muted">
+                Ver todo el catálogo
+              </Link>
             </div>
           ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedItems.map((related) => (
-                <Link
-                  key={related.id}
-                  href={`/admin/testbd/${encodeURIComponent(related.id)}`}
-                  className="overflow-hidden rounded-xl border bg-card transition-transform duration-200 hover:-translate-y-1 hover:shadow-md"
-                >
-                  <article>
-                    <div className="flex h-36 items-center justify-center bg-muted/20 p-3">
-                      {related.imageUrl ? (
-                        <LoadingImage
-                          src={related.imageUrl}
-                          alt={related.title}
-                          width={220}
-                          height={180}
-                          className="h-full w-full object-contain"
-                          spinnerSizeClassName="h-5 w-5 border-2"
-                        />
-                      ) : (
-                        <div className="text-xs text-muted-foreground">Sin imagen</div>
-                      )}
-                    </div>
-                    <div className="space-y-1 p-3">
-                      <p className="line-clamp-2 text-sm font-semibold leading-tight">{related.title}</p>
-                      <p className="text-xs text-muted-foreground">Stock: {related.stock}</p>
-                      <p className="text-sm font-medium">
-                        {related.price && related.price > 0
-                          ? `$ ${new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(related.price)}`
-                          : 'Precio no disponible'}
-                      </p>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+            <RelatedProductsCarousel items={relatedItemsWithCategory} />
           )}
-        </section>
-      </main>
+          </section>
+        </main>
+        <Footer forceShow />
+      </div>
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
 
     return (
-      <main className="mx-auto w-full max-w-6xl p-6">
-        <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-          <h1 className="text-lg font-semibold text-destructive">No se pudo cargar el detalle del producto.</h1>
-          <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
-        </section>
-      </main>
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgba(217, 225, 242, 0.3)' }}>
+        <main className="mx-auto w-full max-w-6xl p-6">
+          <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+            <h1 className="text-lg font-semibold text-destructive">No se pudo cargar el detalle del producto.</h1>
+            <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
+          </section>
+        </main>
+        <Footer forceShow />
+      </div>
     );
   }
 }
