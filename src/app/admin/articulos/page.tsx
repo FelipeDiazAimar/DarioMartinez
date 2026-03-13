@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Check, Undo2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LoadingImage } from '@/components/loading-image';
 
 type ProductRow = Record<string, unknown>;
 
