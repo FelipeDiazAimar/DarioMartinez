@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent } from 'react';
 import Link from 'next/link';
 import { Check, Undo2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -115,6 +115,20 @@ const HIDDEN_COLUMNS = new Set([
 ]);
 
 const ACTIONS_COLUMN_WIDTH = 280;
+
+function areStringArraysEqual(a: string[], b: string[]) {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 type NewArticleForm = {
   codigo: string;
@@ -345,10 +359,13 @@ export default function AdminArticulosPage() {
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
   const dragScrollLeftRef = useRef(0);
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const uiError = useMemo(() => (error ? parseUiError(error) : null), [error]);
 
-  const columns = useMemo(() => {
+  const defaultColumns = useMemo(() => {
     const set = new Set<string>();
 
     rows.forEach((row) => {
@@ -397,8 +414,103 @@ export default function AdminArticulosPage() {
     moveBefore('datovariable2', 'imagen');
     moveBefore('datovariable1', 'imagen');
 
-    return ordered;
+    const preferredStart = [
+      'categoria',
+      'mostrar_en_testbd',
+      'descripcion',
+      'imagen',
+      'linea',
+      'rubro',
+      'codigo',
+      'stockkardex',
+    ];
+
+    const prioritized = preferredStart
+      .map((name) => ordered.find((column) => column.toLowerCase() === name.toLowerCase()) ?? null)
+      .filter((column): column is string => Boolean(column));
+
+    const uniquePrioritized = Array.from(new Set(prioritized));
+    const remaining = ordered.filter((column) => !uniquePrioritized.includes(column));
+
+    return [...uniquePrioritized, ...remaining];
   }, [rows]);
+
+  useEffect(() => {
+    setColumnOrder((prev) => {
+      const validPrevious = prev.filter((column) => defaultColumns.includes(column));
+      const missingColumns = defaultColumns.filter((column) => !validPrevious.includes(column));
+      const mergedOrder = [...validPrevious, ...missingColumns];
+
+      if (areStringArraysEqual(prev, mergedOrder)) {
+        return prev;
+      }
+
+      return mergedOrder;
+    });
+  }, [defaultColumns]);
+
+  const columns = useMemo(() => {
+    if (columnOrder.length === 0) {
+      return defaultColumns;
+    }
+
+    const validCustomOrder = columnOrder.filter((column) => defaultColumns.includes(column));
+    const missingColumns = defaultColumns.filter((column) => !validCustomOrder.includes(column));
+    return [...validCustomOrder, ...missingColumns];
+  }, [defaultColumns, columnOrder]);
+
+  const handleColumnDragStart = useCallback((column: string) => {
+    if (column === 'mostrar_en_testbd') {
+      return;
+    }
+
+    setDraggedColumn(column);
+    setDragOverColumn(null);
+  }, []);
+
+  const handleColumnDragOver = useCallback((event: DragEvent<HTMLTableCellElement>, column: string) => {
+    if (!draggedColumn || draggedColumn === column || column === 'mostrar_en_testbd') {
+      return;
+    }
+
+    event.preventDefault();
+    if (dragOverColumn !== column) {
+      setDragOverColumn(column);
+    }
+  }, [dragOverColumn, draggedColumn]);
+
+  const handleColumnDrop = useCallback((event: DragEvent<HTMLTableCellElement>, targetColumn: string) => {
+    event.preventDefault();
+
+    if (!draggedColumn || draggedColumn === targetColumn || targetColumn === 'mostrar_en_testbd') {
+      setDraggedColumn(null);
+      setDragOverColumn(null);
+      return;
+    }
+
+    setColumnOrder((prev) => {
+      const fromIndex = prev.indexOf(draggedColumn);
+      const targetIndex = prev.indexOf(targetColumn);
+
+      if (fromIndex < 0 || targetIndex < 0 || fromIndex === targetIndex) {
+        return prev;
+      }
+
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      const insertAt = next.indexOf(targetColumn);
+      next.splice(insertAt, 0, moved);
+      return next;
+    });
+
+    setDraggedColumn(null);
+    setDragOverColumn(null);
+  }, [draggedColumn]);
+
+  const handleColumnDragEnd = useCallback(() => {
+    setDraggedColumn(null);
+    setDragOverColumn(null);
+  }, []);
 
   const categoriesById = useMemo(() => {
     const entries = categorias.map((categoria) => [categoria.id, categoria.nombre]);
@@ -1334,16 +1446,25 @@ export default function AdminArticulosPage() {
                   {columns.map((column) => (
                     <th
                       key={column}
+                      draggable={column !== 'mostrar_en_testbd'}
+                      onDragStart={() => handleColumnDragStart(column)}
+                      onDragOver={(event) => handleColumnDragOver(event, column)}
+                      onDrop={(event) => handleColumnDrop(event, column)}
+                      onDragEnd={handleColumnDragEnd}
+                      title={column === 'mostrar_en_testbd' ? 'Columna fija' : 'Arrastrá para reordenar'}
                       className={
                         column === 'mostrar_en_testbd'
-                          ? `sticky z-20 border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap min-w-[170px]`
+                          ? `sticky z-20 border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap w-[92px]`
                           : column === 'categoria'
-                            ? 'border-b px-2 py-1 text-left font-medium whitespace-nowrap min-w-[220px]'
-                          : 'border-b px-2 py-1 text-left font-medium whitespace-nowrap'
+                            ? `border-b px-2 py-1 text-left font-medium whitespace-nowrap ${draggedColumn === column ? 'cursor-grabbing opacity-50' : 'cursor-grab'} ${dragOverColumn === column ? 'bg-primary/10' : ''}`
+                          : `border-b px-2 py-1 text-left font-medium whitespace-nowrap ${draggedColumn === column ? 'cursor-grabbing opacity-50' : 'cursor-grab'} ${dragOverColumn === column ? 'bg-primary/10' : ''}`
                       }
                       style={column === 'mostrar_en_testbd' ? { right: `${ACTIONS_COLUMN_WIDTH}px` } : undefined}
                     >
-                      {column}
+                      <div className="inline-flex items-center gap-1">
+                        <span>{column === 'mostrar_en_testbd' ? 'Mostrar' : column}</span>
+                        {column !== 'mostrar_en_testbd' ? <span className="text-xs text-muted-foreground">::</span> : null}
+                      </div>
                     </th>
                   ))}
                   <th className="sticky right-0 z-30 min-w-[140px] border-b bg-muted px-2 py-1 text-left font-medium whitespace-nowrap sm:min-w-[280px]">
@@ -1367,7 +1488,7 @@ export default function AdminArticulosPage() {
                         if (isEditing && column !== 'id') {
                           if (column === 'categoria') {
                             return (
-                              <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle min-w-[220px]">
+                              <td key={`${rowId}-${column}`} className="border-b px-2 py-1 align-middle whitespace-nowrap">
                                 <select
                                   value={rowCategoryDraft}
                                   onChange={(event) =>
@@ -1376,7 +1497,7 @@ export default function AdminArticulosPage() {
                                       [rowId]: event.target.value,
                                     }))
                                   }
-                                  className="h-9 w-full min-w-[200px] rounded-xl border bg-background px-2 text-xs"
+                                  className="h-9 rounded-xl border bg-background px-2 text-xs"
                                 >
                                   <option value="">Sin categoría</option>
                                   {categorias.map((categoria) => (
@@ -1393,7 +1514,7 @@ export default function AdminArticulosPage() {
                             return (
                               <td
                                 key={`${rowId}-${column}`}
-                                className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle min-w-[170px]"
+                                className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle w-[92px]"
                                 style={{ right: `${ACTIONS_COLUMN_WIDTH}px` }}
                               >
                                 <label className="inline-flex items-center gap-2">
@@ -1472,7 +1593,7 @@ export default function AdminArticulosPage() {
                           const categoryName = categoryId ? categoriesById[categoryId] : null;
 
                           return (
-                            <td key={`${rowId}-${column}`} className="border-b px-2 py-1 whitespace-nowrap align-middle min-w-[220px]">
+                            <td key={`${rowId}-${column}`} className="border-b px-2 py-1 whitespace-nowrap align-middle">
                               {categoryName || <span className="text-muted-foreground">Sin categoría</span>}
                             </td>
                           );
@@ -1486,7 +1607,7 @@ export default function AdminArticulosPage() {
                           return (
                             <td
                               key={`${rowId}-${column}`}
-                              className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle min-w-[170px]"
+                              className="sticky z-10 border-b bg-card px-2 py-1 whitespace-nowrap align-middle w-[92px]"
                               style={{ right: `${ACTIONS_COLUMN_WIDTH}px` }}
                             >
                               <label className="inline-flex items-center gap-2">
