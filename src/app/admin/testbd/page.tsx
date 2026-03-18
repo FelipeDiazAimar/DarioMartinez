@@ -11,8 +11,59 @@ type AdminTestBdPageProps = {
   searchParams?: Promise<{
     cat?: string;
     q?: string;
+    page?: string;
+    visible?: string;
   }>;
 };
+
+const INITIAL_VISIBLE = 30;
+const MAX_VISIBLE_PER_PAGE = 60;
+
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? '', 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return parsed;
+}
+
+function normalizeVisible(value: number) {
+  if (value <= INITIAL_VISIBLE) {
+    return INITIAL_VISIBLE;
+  }
+  return MAX_VISIBLE_PER_PAGE;
+}
+
+function buildCatalogHref(options: {
+  page?: number;
+  visible?: number;
+  cat?: string;
+  q?: string;
+}) {
+  const params = new URLSearchParams();
+
+  const page = options.page ?? 1;
+  const visible = options.visible ?? INITIAL_VISIBLE;
+
+  if (options.cat && options.cat !== 'all') {
+    params.set('cat', options.cat);
+  }
+
+  if (options.q && options.q.trim().length > 0) {
+    params.set('q', options.q.trim());
+  }
+
+  if (page > 1) {
+    params.set('page', String(page));
+  }
+
+  if (visible > INITIAL_VISIBLE) {
+    params.set('visible', String(normalizeVisible(visible)));
+  }
+
+  const query = params.toString();
+  return query ? `/admin/testbd?${query}` : '/admin/testbd';
+}
 
 export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageProps) {
   const apiBaseUrl = process.env.API_BASE_URL;
@@ -34,6 +85,8 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     const resolvedSearchParams = await searchParams;
     const selectedCategoryId = typeof resolvedSearchParams?.cat === 'string' ? resolvedSearchParams.cat : 'all';
     const searchTerm = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
+    const currentPage = parsePositiveInt(resolvedSearchParams?.page, 1);
+    const visibleRequested = parsePositiveInt(resolvedSearchParams?.visible, INITIAL_VISIBLE);
 
     const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
     endpointUsed = catalogResult.endpointUsed;
@@ -62,6 +115,62 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
             return searchableText.includes(normalizedSearchTerm);
           });
 
+    const totalPages = Math.max(1, Math.ceil(filteredItems.length / MAX_VISIBLE_PER_PAGE));
+    const effectivePage = Math.min(currentPage, totalPages);
+    const pageWindowStart = (effectivePage - 1) * MAX_VISIBLE_PER_PAGE;
+    const pageWindowEnd = pageWindowStart + MAX_VISIBLE_PER_PAGE;
+    const pageItemsWindow = filteredItems.slice(pageWindowStart, pageWindowEnd);
+    const normalizedVisible = normalizeVisible(visibleRequested);
+    const currentVisible = Math.min(normalizedVisible, pageItemsWindow.length || INITIAL_VISIBLE);
+    const paginatedItems = pageItemsWindow.slice(0, currentVisible);
+    const hasPreviousPage = effectivePage > 1;
+    const hasMoreWithinPage = currentVisible < Math.min(MAX_VISIBLE_PER_PAGE, pageItemsWindow.length);
+    const hasNextPage = effectivePage < totalPages;
+    const showLoadMoreOnly = hasMoreWithinPage;
+    const showPageNavigation = !hasMoreWithinPage && totalPages > 1;
+
+    const previousPageHref = buildCatalogHref({
+      page: Math.max(1, effectivePage - 1),
+      visible: INITIAL_VISIBLE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
+
+    const nextPageHref = buildCatalogHref({
+      page: Math.min(totalPages, effectivePage + 1),
+      visible: INITIAL_VISIBLE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
+
+    const loadMoreHref = buildCatalogHref({
+      page: effectivePage,
+      visible: MAX_VISIBLE_PER_PAGE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
+
+    const pageNumberLinks = Array.from({ length: totalPages }, (_, index) => {
+      const page = index + 1;
+      return {
+        page,
+        href: buildCatalogHref({
+          page,
+          visible: INITIAL_VISIBLE,
+          cat: selectedCategoryId,
+          q: searchTerm,
+        }),
+      };
+    });
+
+    const categoryHref = (categoryId: string) =>
+      buildCatalogHref({
+        page: 1,
+        visible: INITIAL_VISIBLE,
+        cat: categoryId,
+        q: searchTerm,
+      });
+
     return (
       <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
         <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
@@ -77,6 +186,8 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
 
           <form method="get" className="mt-8 flex justify-center">
             {selectedCategoryId !== 'all' ? <input type="hidden" name="cat" value={selectedCategoryId} /> : null}
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="visible" value={String(INITIAL_VISIBLE)} />
             <div className="relative w-full max-w-md">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -110,7 +221,7 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
               <ul className="space-y-1">
                 <li>
                   <Link
-                    href="/admin/testbd"
+                    href={categoryHref('all')}
                     className={`block rounded-md px-2 py-1 text-sm transition-colors ${
                       selectedCategoryId === 'all' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:text-foreground'
                     }`}
@@ -121,7 +232,7 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
                 {categories.map((category) => (
                   <li key={category.id}>
                     <Link
-                      href={`/admin/testbd?cat=${encodeURIComponent(category.id)}`}
+                      href={categoryHref(category.id)}
                       className={`block rounded-md px-2 py-1 text-sm transition-colors ${
                         selectedCategoryId === category.id
                           ? 'bg-primary/10 font-semibold text-primary'
@@ -150,8 +261,9 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
                 No hay productos en esta categoría.
               </section>
             ) : (
-              <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredItems.map((item) => {
+              <>
+                <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {paginatedItems.map((item) => {
                   const categoryId = articleCategoryByNumber[item.articleNumber];
                   const categoryName = categoryId ? categoriesById[categoryId] : undefined;
 
@@ -193,7 +305,60 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
                     </Link>
                   );
                 })}
-              </section>
+                </section>
+
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedItems.length} de {pageItemsWindow.length} en esta página. Página {effectivePage} de {totalPages}.
+                  </p>
+                  {showLoadMoreOnly ? (
+                    <Link
+                      href={loadMoreHref}
+                      scroll={false}
+                      className="rounded-full border border-blue-600 bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    >
+                      Ver más
+                    </Link>
+                  ) : showPageNavigation ? (
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {hasPreviousPage ? (
+                        <Link
+                          href={previousPageHref}
+                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                        >
+                          Anterior página
+                        </Link>
+                      ) : null}
+
+                      <div className="flex flex-wrap items-center justify-center gap-1">
+                        {pageNumberLinks.map((item) => (
+                          <Link
+                            key={item.page}
+                            href={item.href}
+                            className={`min-w-9 rounded-full border px-3 py-2 text-center text-sm font-medium transition-colors ${
+                              item.page === effectivePage
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50'
+                            }`}
+                            aria-current={item.page === effectivePage ? 'page' : undefined}
+                          >
+                            {item.page}
+                          </Link>
+                        ))}
+                      </div>
+
+                      {hasNextPage ? (
+                        <Link
+                          href={nextPageHref}
+                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                        >
+                          Siguiente página
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              </>
             )}
           </div>
           </section>
