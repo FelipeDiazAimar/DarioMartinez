@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Check, Undo2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingImage } from '@/components/loading-image';
@@ -115,6 +116,11 @@ const HIDDEN_COLUMNS = new Set([
 ]);
 
 const ACTIONS_COLUMN_WIDTH = 280;
+
+function parsePageQueryParam(rawValue: string | null) {
+  const parsed = Number.parseInt(rawValue ?? '1', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
 
 function areStringArraysEqual(a: string[], b: string[]) {
   if (a.length !== b.length) {
@@ -327,6 +333,10 @@ function parseUiError(rawError: string): UiErrorInfo {
 }
 
 export default function AdminArticulosPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initializedRef = useRef(false);
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [articleCategoryByNumber, setArticleCategoryByNumber] = useState<Record<string, string | null>>({});
@@ -691,13 +701,28 @@ export default function AdminArticulosPage() {
       const page = Number(payload.pagination?.page ?? targetPage);
       const pages = Number(payload.pagination?.totalPages ?? 1);
       const total = Number(payload.pagination?.total ?? normalizedRows.length);
+      const safePage = Number.isFinite(page) && page > 0 ? page : 1;
 
       await loadArticleCategories(normalizedRows);
       setStockByArticle(stockMap);
       setRows(normalizedRows);
-      setCurrentPage(Number.isFinite(page) && page > 0 ? page : 1);
+      setCurrentPage(safePage);
       setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
       setTotalRows(Number.isFinite(total) && total >= 0 ? total : 0);
+
+      const urlParams = new URLSearchParams(searchParams.toString());
+      if (safePage <= 1) {
+        urlParams.delete('page');
+      } else {
+        urlParams.set('page', String(safePage));
+      }
+
+      const nextQuery = urlParams.toString();
+      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+      if (nextUrl !== currentUrl) {
+        router.replace(nextUrl, { scroll: false });
+      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Error desconocido');
     } finally {
@@ -707,17 +732,28 @@ export default function AdminArticulosPage() {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      const requestedPage = parsePageQueryParam(searchParams.get('page'));
+
       try {
         await loadCategorias();
       } catch (initialLoadError) {
         setError(initialLoadError instanceof Error ? initialLoadError.message : 'Error al cargar categorías');
       }
 
-      await loadRows(1);
+      await loadRows(requestedPage);
     };
 
-    void loadInitialData();
-  }, []);
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      void loadInitialData();
+      return;
+    }
+
+    const requestedPage = parsePageQueryParam(searchParams.get('page'));
+    if (requestedPage !== currentPage) {
+      void loadRows(requestedPage);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const updateFloatingScrollbar = () => {
