@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Check, Undo2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingImage } from '@/components/loading-image';
@@ -333,9 +332,6 @@ function parseUiError(rawError: string): UiErrorInfo {
 }
 
 export default function AdminArticulosPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const initializedRef = useRef(false);
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -710,18 +706,22 @@ export default function AdminArticulosPage() {
       setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
       setTotalRows(Number.isFinite(total) && total >= 0 ? total : 0);
 
-      const urlParams = new URLSearchParams(searchParams.toString());
-      if (safePage <= 1) {
-        urlParams.delete('page');
-      } else {
-        urlParams.set('page', String(safePage));
-      }
+      if (typeof window !== 'undefined') {
+        const currentUrl = new URL(window.location.href);
+        const urlParams = new URLSearchParams(currentUrl.search);
 
-      const nextQuery = urlParams.toString();
-      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-      const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
-      if (nextUrl !== currentUrl) {
-        router.replace(nextUrl, { scroll: false });
+        if (safePage <= 1) {
+          urlParams.delete('page');
+        } else {
+          urlParams.set('page', String(safePage));
+        }
+
+        const currentQuery = currentUrl.search.startsWith('?') ? currentUrl.search.slice(1) : currentUrl.search;
+        const nextQuery = urlParams.toString();
+        if (nextQuery !== currentQuery) {
+          const nextUrl = nextQuery ? `${currentUrl.pathname}?${nextQuery}` : currentUrl.pathname;
+          window.history.replaceState(window.history.state, '', nextUrl);
+        }
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Error desconocido');
@@ -732,7 +732,8 @@ export default function AdminArticulosPage() {
 
   useEffect(() => {
     const loadInitialData = async () => {
-      const requestedPage = parsePageQueryParam(searchParams.get('page'));
+      const requestedPage =
+        typeof window === 'undefined' ? 1 : parsePageQueryParam(new URLSearchParams(window.location.search).get('page'));
 
       try {
         await loadCategorias();
@@ -746,14 +747,23 @@ export default function AdminArticulosPage() {
     if (!initializedRef.current) {
       initializedRef.current = true;
       void loadInitialData();
-      return;
     }
+  }, []);
 
-    const requestedPage = parsePageQueryParam(searchParams.get('page'));
-    if (requestedPage !== currentPage) {
-      void loadRows(requestedPage);
-    }
-  }, [searchParams]);
+  useEffect(() => {
+    const handlePopState = () => {
+      const requestedPage = parsePageQueryParam(new URLSearchParams(window.location.search).get('page'));
+      if (requestedPage !== currentPage) {
+        void loadRows(requestedPage);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentPage]);
 
   useEffect(() => {
     const updateFloatingScrollbar = () => {
