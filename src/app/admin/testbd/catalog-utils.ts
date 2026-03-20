@@ -21,6 +21,12 @@ type ArticulosApiResponse = {
   success?: boolean;
   message?: string;
   data?: ProductRow[];
+  pagination?: {
+    page?: number;
+    pageSize?: number;
+    total?: number;
+    totalPages?: number;
+  };
 };
 
 type StockApiResponse = {
@@ -31,6 +37,16 @@ type StockApiResponse = {
 
 type CatalogFetchResult = {
   endpointUsed: string;
+  allItems: CatalogItem[];
+  visibleInStockItems: CatalogItem[];
+};
+
+export type CatalogPageFetchResult = {
+  endpointUsed: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
   allItems: CatalogItem[];
   visibleInStockItems: CatalogItem[];
 };
@@ -234,6 +250,25 @@ async function fetchArticulos(endpoint: string, apiToken: string) {
   return payload;
 }
 
+function normalizePagination(payload: ArticulosApiResponse | null, fallbackPage: number, fallbackPageSize: number) {
+  const total = Number(payload?.pagination?.total);
+  const pageSize = Number(payload?.pagination?.pageSize);
+  const page = Number(payload?.pagination?.page);
+
+  const safeTotal = Number.isFinite(total) && total >= 0 ? total : Array.isArray(payload?.data) ? payload.data.length : 0;
+  const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : fallbackPageSize;
+  const safeTotalPages = safeTotal > 0 ? Math.ceil(safeTotal / safePageSize) : 1;
+  const safePageRaw = Number.isFinite(page) && page > 0 ? page : fallbackPage;
+  const safePage = Math.min(Math.max(safePageRaw, 1), safeTotalPages);
+
+  return {
+    page: safePage,
+    pageSize: safePageSize,
+    total: safeTotal,
+    totalPages: safeTotalPages,
+  };
+}
+
 async function fetchStockMap(endpoint: string, apiToken: string): Promise<Record<string, number>> {
   try {
     const response = await fetch(endpoint, {
@@ -409,5 +444,79 @@ export async function fetchCatalogCategoryData(articleNumbers: string[]): Promis
   return {
     categories,
     articleCategoryByNumber,
+  };
+}
+
+export async function fetchCatalogItemsPage(
+  apiBaseUrl: string,
+  apiToken: string,
+  options: { page: number; pageSize: number; searchTerm?: string },
+): Promise<CatalogPageFetchResult> {
+  const primaryBase = resolveApiBaseUrl(apiBaseUrl);
+  const primaryEndpoint = `${primaryBase}/articulos`;
+  const primaryStockEndpoint = `${primaryBase}/articulos/stock`;
+  const fallbackEndpoint = 'http://127.0.0.1:3001/articulos';
+  const fallbackStockEndpoint = 'http://127.0.0.1:3001/articulos/stock';
+  const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
+  const stockEndpointsToTry = Array.from(new Set([primaryStockEndpoint, fallbackStockEndpoint]));
+
+  const safePage = Number.isFinite(options.page) && options.page > 0 ? Math.floor(options.page) : 1;
+  const safePageSize = Number.isFinite(options.pageSize) && options.pageSize > 0 ? Math.min(Math.floor(options.pageSize), 200) : 60;
+  const normalizedSearch = options.searchTerm?.trim() ?? '';
+
+  let endpointUsed = primaryEndpoint;
+  let payload: ArticulosApiResponse | null = null;
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpointsToTry) {
+    try {
+      const url = new URL(endpoint);
+      url.searchParams.set('page', String(safePage));
+      url.searchParams.set('pageSize', String(safePageSize));
+      if (normalizedSearch) {
+        url.searchParams.set('search', normalizedSearch);
+      }
+
+      payload = await fetchArticulos(url.toString(), apiToken);
+      endpointUsed = url.toString();
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  if (!payload || !Array.isArray(payload.data)) {
+    throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
+  }
+
+  let stockByCode: Record<string, number> = {};
+  for (const stockEndpoint of stockEndpointsToTry) {
+    stockByCode = await fetchStockMap(stockEndpoint, apiToken);
+    if (Object.keys(stockByCode).length > 0) {
+      break;
+    }
+  }
+
+  const allItems = payload.data.map((row, index) => {
+    const mapped = mapCatalogItem(row, index, primaryBase);
+    const normalizedCode = mapped.code?.trim() ?? mapped.articleNumber.trim();
+    const stockFromMap = normalizedCode ? stockByCode[normalizedCode] : undefined;
+
+    return {
+      ...mapped,
+      stock: Number.isFinite(stockFromMap) ? (stockFromMap as number) : mapped.stock,
+    };
+  });
+  const visibleInStockItems = allItems.filter((item) => item.stock > 0 && item.visibleInTestbd);
+  const pagination = normalizePagination(payload, safePage, safePageSize);
+
+  return {
+    endpointUsed,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    total: pagination.total,
+    totalPages: pagination.totalPages,
+    allItems,
+    visibleInStockItems,
   };
 }

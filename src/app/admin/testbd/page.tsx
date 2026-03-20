@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { LoadingImage } from '@/components/loading-image';
 import { Footer } from '@/components/footer';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
-import { fetchCatalogCategoryData, fetchCatalogItems } from './catalog-utils';
+import { fetchCatalogCategoryData, fetchCatalogItems, fetchCatalogItemsPage } from './catalog-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,39 +87,63 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     const searchTerm = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
     const currentPage = parsePositiveInt(resolvedSearchParams?.page, 1);
     const visibleRequested = parsePositiveInt(resolvedSearchParams?.visible, INITIAL_VISIBLE);
+    const useFastMode = selectedCategoryId === 'all';
 
-    const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
-    endpointUsed = catalogResult.endpointUsed;
-    const inStockItems = catalogResult.visibleInStockItems;
+    let inStockItems: Awaited<ReturnType<typeof fetchCatalogItems>>['visibleInStockItems'] = [];
+    let filteredItems: typeof inStockItems = [];
+    let totalPages = 1;
+    let effectivePage = 1;
+    let pageItemsWindow: typeof inStockItems = [];
 
-    const articleNumbers = inStockItems.map((item) => item.articleNumber).filter(Boolean);
+    if (useFastMode) {
+      const catalogPageResult = await fetchCatalogItemsPage(apiBaseUrl, apiToken, {
+        page: currentPage,
+        pageSize: MAX_VISIBLE_PER_PAGE,
+        searchTerm: searchTerm || undefined,
+      });
+
+      endpointUsed = catalogPageResult.endpointUsed;
+      inStockItems = catalogPageResult.visibleInStockItems;
+      filteredItems = inStockItems;
+      totalPages = Math.max(1, catalogPageResult.totalPages);
+      effectivePage = Math.min(catalogPageResult.page, totalPages);
+      pageItemsWindow = filteredItems;
+    } else {
+      const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
+      endpointUsed = catalogResult.endpointUsed;
+      inStockItems = catalogResult.visibleInStockItems;
+
+      const articleNumbersForCategoryFilter = inStockItems.map((item) => item.articleNumber).filter(Boolean);
+      const categoryDataForFilter = await fetchCatalogCategoryData(articleNumbersForCategoryFilter);
+      const articleCategoryMapForFilter = categoryDataForFilter.articleCategoryByNumber;
+
+      const filteredByCategoryItems = inStockItems.filter((item) => {
+        return articleCategoryMapForFilter[item.articleNumber] === selectedCategoryId;
+      });
+
+      const normalizedSearchTerm = searchTerm.toLowerCase();
+      filteredItems =
+        normalizedSearchTerm.length === 0
+          ? filteredByCategoryItems
+          : filteredByCategoryItems.filter((item) => {
+              const searchableText = [item.title, item.descriptionAdditional, item.articleNumber].filter(Boolean).join(' ').toLowerCase();
+              return searchableText.includes(normalizedSearchTerm);
+            });
+
+      totalPages = Math.max(1, Math.ceil(filteredItems.length / MAX_VISIBLE_PER_PAGE));
+      effectivePage = Math.min(currentPage, totalPages);
+      const pageWindowStart = (effectivePage - 1) * MAX_VISIBLE_PER_PAGE;
+      const pageWindowEnd = pageWindowStart + MAX_VISIBLE_PER_PAGE;
+      pageItemsWindow = filteredItems.slice(pageWindowStart, pageWindowEnd);
+    }
+
+    const articleNumbers = pageItemsWindow.map((item) => item.articleNumber).filter(Boolean);
 
     const categoryData = await fetchCatalogCategoryData(articleNumbers);
     const categories = categoryData.categories;
     const articleCategoryByNumber = categoryData.articleCategoryByNumber;
     const categoriesById = Object.fromEntries(categories.map((category) => [category.id, category.nombre]));
 
-    const filteredByCategoryItems =
-      selectedCategoryId === 'all'
-        ? inStockItems
-        : inStockItems.filter((item) => {
-            return articleCategoryByNumber[item.articleNumber] === selectedCategoryId;
-          });
-
-    const normalizedSearchTerm = searchTerm.toLowerCase();
-    const filteredItems =
-      normalizedSearchTerm.length === 0
-        ? filteredByCategoryItems
-        : filteredByCategoryItems.filter((item) => {
-            const searchableText = [item.title, item.descriptionAdditional, item.articleNumber].filter(Boolean).join(' ').toLowerCase();
-            return searchableText.includes(normalizedSearchTerm);
-          });
-
-    const totalPages = Math.max(1, Math.ceil(filteredItems.length / MAX_VISIBLE_PER_PAGE));
-    const effectivePage = Math.min(currentPage, totalPages);
-    const pageWindowStart = (effectivePage - 1) * MAX_VISIBLE_PER_PAGE;
-    const pageWindowEnd = pageWindowStart + MAX_VISIBLE_PER_PAGE;
-    const pageItemsWindow = filteredItems.slice(pageWindowStart, pageWindowEnd);
     const normalizedVisible = normalizeVisible(visibleRequested);
     const currentVisible = Math.min(normalizedVisible, pageItemsWindow.length || INITIAL_VISIBLE);
     const paginatedItems = pageItemsWindow.slice(0, currentVisible);
