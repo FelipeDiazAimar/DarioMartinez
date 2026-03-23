@@ -262,6 +262,8 @@ export default function Home() {
         .filter((client: { name: string; src: string }) => client.name.length > 0 && client.src.length > 0)
     : defaultClientLogos;
 
+  const mobileClientRepeatCount = Math.max(2, Math.ceil(12 / Math.max(clientsToRender.length, 1)));
+
   React.useEffect(() => {
     const loadHomeContent = async () => {
       try {
@@ -717,7 +719,7 @@ export default function Home() {
       <section
         ref={clientesRef}
         id="nuestros-clientes"
-        className={cn('w-full bg-muted/40 py-12 md:py-20 lg:py-24 opacity-0', clientesInView && 'animate-fade-in')}
+        className={cn('hidden w-full bg-muted/40 py-12 md:py-20 lg:py-24 opacity-0', clientesInView && 'animate-fade-in')}
       >
         <div className="w-full">
           <div className="mx-auto max-w-3xl space-y-2 px-4 text-center md:px-6">
@@ -729,7 +731,52 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 space-y-4">
+          <div className="mt-10 space-y-4 md:hidden">
+            {Array.from({ length: 3 }).map((_, rowIndex) => {
+              const isRightDirection = rowIndex % 2 !== 0;
+              const logos = isRightDirection ? [...clientsToRender].reverse() : clientsToRender;
+              const infiniteLogos = repeatItems(logos, mobileClientRepeatCount);
+
+              return (
+                <div
+                  key={`client-row-mobile-${rowIndex}`}
+                  className="overflow-x-hidden overflow-y-visible px-4 py-1"
+                >
+                  <div
+                    className={cn(
+                      isRightDirection ? 'clients-marquee-right' : 'clients-marquee-left',
+                      'flex w-max items-center will-change-transform'
+                    )}
+                  >
+                    {[0, 1].map((groupIndex) => (
+                      <div
+                        key={`client-row-mobile-${rowIndex}-group-${groupIndex}`}
+                        className={cn('flex shrink-0 items-center py-1', rowIndex === 1 ? 'gap-6' : 'gap-5')}
+                        aria-hidden={groupIndex === 1}
+                      >
+                        {infiniteLogos.map((logo, index) => (
+                          <div
+                            key={`client-row-mobile-${rowIndex}-${groupIndex}-${logo.name}-${index}`}
+                            className="flex shrink-0 items-center gap-3 rounded-full bg-background px-5 py-3"
+                          >
+                            <img
+                              src={logo.src}
+                              alt={logo.name}
+                              className="block h-7 w-auto shrink-0 object-contain"
+                              loading="eager"
+                            />
+                            <span className="whitespace-nowrap text-sm font-medium leading-none text-foreground/80">{logo.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-10 hidden space-y-4 md:block">
             {Array.from({ length: 5 }).map((_, rowIndex) => {
               const isRightDirection = rowIndex % 2 !== 0;
               const logos = isRightDirection ? [...clientsToRender].reverse() : clientsToRender;
