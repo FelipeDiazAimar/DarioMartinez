@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 
-function getApiConfig() {
-  const apiBaseUrl = process.env.API_BASE_URL;
-  const apiToken = process.env.API_TOKEN;
+const DEFAULT_CATALOG_API_BASE_URL = 'https://dariomartinezcomputacion.com/api/admin';
 
-  if (!apiBaseUrl || !apiToken) {
-    throw new Error('Faltan API_BASE_URL o API_TOKEN en variables de entorno.');
-  }
+function getApiConfig() {
+  const apiBaseUrl = process.env.API_BASE_URL?.trim() || DEFAULT_CATALOG_API_BASE_URL;
+  const apiToken = process.env.API_TOKEN?.trim();
 
   return {
     apiBaseUrl: resolveApiBaseUrl(apiBaseUrl),
@@ -15,7 +13,11 @@ function getApiConfig() {
   };
 }
 
-function buildHeaders(apiToken: string) {
+function buildHeaders(apiToken?: string) {
+  if (!apiToken) {
+    return {};
+  }
+
   return {
     Authorization: `Bearer ${apiToken}`,
   };

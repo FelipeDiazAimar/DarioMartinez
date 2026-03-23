@@ -71,7 +71,7 @@ export function AdminBuyButton({ product }: AdminBuyButtonProps) {
       <DialogTrigger asChild>
         <Button
           onClick={onTriggerClick}
-          className={`h-11 px-6 text-base transition-transform duration-300 hover:scale-105 ${triggerAnimating ? 'animate-bounce' : ''}`}
+          className={`h-11 px-6 text-base rounded-full transition-transform duration-300 hover:scale-105 ${triggerAnimating ? 'animate-bounce' : ''}`}
         >
           <ShoppingCart className="h-4 w-4" />
           Comprar

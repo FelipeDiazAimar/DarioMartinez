@@ -1,1413 +1,411 @@
-'use client';
-
 import Link from 'next/link';
-import * as React from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Search } from 'lucide-react';
 import { LoadingImage } from '@/components/loading-image';
-import { Button } from '@/components/ui/button';
-import {
-  ArrowRight,
-  Calculator,
-  Cpu,
-  Package,
-  Printer,
-  ScanLine,
-  ShieldCheck,
-  Wrench,
-  Laptop,
-  Briefcase,
-  FileText,
-  Zap,
-  Hand,
-  Activity,
-  Sigma,
-  Search,
-  X,
-  History,
-  ChevronLeft,
-  ChevronRight,
-  Network,
-  Waypoints,
-  PlugZap,
-  Wifi,
-  Bluetooth,
-  Usb,
-  Square,
-  MousePointer2,
-  Gamepad2,
-  Keyboard,
-  Type,
-  Rss,
-  Mouse,
-  MousePointerClick,
-  Cable,
-  Camera,
-  Video,
-  Monitor,
-  Plus,
-  Router as RouterIcon,
-  Signal,
-  Home,
-  Backpack,
-  Headphones,
-  Mic,
-  Landmark,
-  Scan,
-  RectangleHorizontal,
-  Expand,
-  Copy,
-  Scale,
-  Check,
-  Armchair,
-  UserCheck,
-  Spline,
-  Paperclip,
-  Stamp,
-  Paintbrush,
-  Droplets,
-  Replace,
-  Lock,
-  Key,
-  HardDrive,
-  Save,
-  Plug,
-  MemoryStick,
-  Chip,
-  FunctionSquare,
-  FlaskConical,
-  Book,
-  PenLine,
-  Clipboard,
-  Shield,
-} from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { supabase } from '@/lib/supabase-client';
+import { Footer } from '@/components/footer';
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
+import { fetchCatalogCategoryData, fetchCatalogItems, fetchCatalogItemsPage } from './catalog-utils';
 
-const getLevenshteinDistance = (a: string, b: string) => {
-  const matrix = Array.from({ length: a.length + 1 }, () =>
-    new Array(b.length + 1).fill(0)
-  );
+export const dynamic = 'force-dynamic';
 
-  for (let i = 0; i <= a.length; i += 1) {
-    matrix[i][0] = i;
-  }
-  for (let j = 0; j <= b.length; j += 1) {
-    matrix[0][j] = j;
-  }
-
-  for (let i = 1; i <= a.length; i += 1) {
-    for (let j = 1; j <= b.length; j += 1) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
-      );
-    }
-  }
-
-  return matrix[a.length][b.length];
+type AdminTestBdPageProps = {
+  searchParams?: Promise<{
+    cat?: string;
+    q?: string;
+    page?: string;
+    visible?: string;
+  }>;
 };
 
-const getClosestSuggestion = (term: string, candidates: string[]) => {
-  if (!term.trim() || candidates.length === 0) return null;
+const INITIAL_VISIBLE = 30;
+const MAX_VISIBLE_PER_PAGE = 60;
 
-  const normalizedTerm = term.toLowerCase();
-  let best: { candidate: string; distance: number } | null = null;
-
-  for (const candidate of candidates) {
-    const normalizedCandidate = candidate.toLowerCase();
-    const distance = getLevenshteinDistance(normalizedTerm, normalizedCandidate);
-    if (!best || distance < best.distance) {
-      best = { candidate, distance };
-    }
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? '', 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
   }
+  return parsed;
+}
 
-  if (!best) return null;
+function normalizeVisible(value: number) {
+  if (value <= INITIAL_VISIBLE) {
+    return INITIAL_VISIBLE;
+  }
+  return MAX_VISIBLE_PER_PAGE;
+}
 
-  const maxLength = Math.max(normalizedTerm.length, best.candidate.length);
-  const similarity = maxLength === 0 ? 0 : 1 - best.distance / maxLength;
-
-  return similarity >= 0.5 ? best.candidate : null;
-};
-
-const allProducts = [
-  {
-    imageId: 'stationery',
-    title: 'Artículos de Librería',
-    description: 'Resmas de papel, cuadernos, bolígrafos y más.',
-    details: [
-      {
-        icon: <Book className="h-5 w-5 text-primary" />,
-        text: 'Cuadernos, blocks de notas y agendas de distintos tamaños y formatos.',
-      },
-      {
-        icon: <PenLine className="h-5 w-5 text-primary" />,
-        text: 'Bolígrafos, lápices, marcadores y todo para la escritura.',
-      },
-      {
-        icon: <Clipboard className="h-5 w-5 text-primary" />,
-        text: 'Papelería comercial, resmas de papel y cartulinas.',
-      },
-    ],
-  },
-  {
-    imageId: 'headphones',
-    title: 'Auriculares y Micrófonos',
-    description: 'Audio de alta calidad para música, gaming y llamadas.',
-    details: [
-      {
-        icon: <Headphones className="h-5 w-5 text-primary" />,
-        text: 'Auriculares con y sin cable, in-ear, on-ear y over-ear.',
-      },
-      {
-        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
-        text: 'Headsets para gaming con sonido envolvente y micrófono integrado.',
-      },
-      {
-        icon: <Mic className="h-5 w-5 text-primary" />,
-        text: 'Micrófonos de escritorio y de solapa para streaming y conferencias.',
-      },
-    ],
-  },
-  {
-    imageId: 'electronic-scales',
-    title: 'Balanzas Electrónicas',
-    description: 'Balanzas comerciales homologadas para pesar con precisión.',
-    details: [
-      {
-        icon: <Scale className="h-5 w-5 text-primary" />,
-        text: 'Balanzas para comercios con cálculo de precio e importe.',
-      },
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Modelos con impresor de etiquetas de código de barras y QR.',
-      },
-      {
-        icon: <Check className="h-5 w-5 text-primary" />,
-        text: 'Homologadas y certificadas para uso comercial.',
-      },
-    ],
-  },
-  {
-    imageId: 'cables',
-    title: 'Cables y Conectividad',
-    description: 'HDMI, USB, VGA, red y todo tipo de cables que necesites.',
-    details: [
-      {
-        icon: <Cable className="h-5 w-5 text-primary" />,
-        text: 'Cables de video: HDMI, DisplayPort, VGA, DVI en todas las longitudes.',
-      },
-      {
-        icon: <Usb className="h-5 w-5 text-primary" />,
-        text: 'Cables USB de todo tipo: A, B, C, micro, mini, y extensiones.',
-      },
-      {
-        icon: <Plug className="h-5 w-5 text-primary" />,
-        text: 'Cables de alimentación, audio, y de red (patch cords).',
-      },
-    ],
-  },
-  {
-    imageId: 'safes',
-    title: 'Cajas Fuertes',
-    description: 'Protege tu dinero y documentos importantes.',
-    details: [
-      {
-        icon: <Lock className="h-5 w-5 text-primary" />,
-        text: 'Cajas de seguridad con cerradura electrónica, a llave o combinadas.',
-      },
-      {
-        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
-        text: 'Distintos tamaños y niveles de seguridad para hogar y comercio.',
-      },
-      {
-        icon: <Key className="h-5 w-5 text-primary" />,
-        text: 'Modelos para amurar, de sobreponer y con ranura buzón.',
-      },
-    ],
-  },
-  {
-    imageId: 'cash-registers',
-    title: 'Cajas Registradoras',
-    description: 'Control fiscal y de ventas para tu comercio.',
-    details: [
-      {
-        icon: <Landmark className="h-5 w-5 text-primary" />,
-        text: 'Registradoras fiscales homologadas por AFIP.',
-      },
-      {
-        icon: <Scan className="h-5 w-5 text-primary" />,
-        text: 'Modelos alfanuméricos con control de stock y reportes Z.',
-      },
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Servicio de inicialización y programación.',
-      },
-    ],
-  },
-  {
-    imageId: 'calculator',
-    title: 'Calculadoras Comerciales',
-    description: 'Calculadoras con impresor y funciones comerciales.',
-    details: [
-      {
-        icon: <Calculator className="h-5 w-5 text-primary" />,
-        text: 'Calculadoras comerciales y de escritorio para el día a día.',
-      },
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Modelos con rollo de papel para un registro físico de tus operaciones.',
-      },
-      {
-        icon: <Sigma className="h-5 w-5 text-primary" />,
-        text: 'Funciones de cálculo de impuestos, costo, venta y margen.',
-      },
-    ],
-  },
-  {
-    imageId: 'scientific-calculator',
-    title: 'Calculadoras Científicas',
-    description: 'Funciones avanzadas para estudiantes y profesionales.',
-    details: [
-      {
-        icon: <Sigma className="h-5 w-5 text-primary" />,
-        text: 'Calculadoras con cientos de funciones científicas y estadísticas.',
-      },
-      {
-        icon: <FunctionSquare className="h-5 w-5 text-primary" />,
-        text: 'Modelos programables y graficadores para carreras técnicas.',
-      },
-      {
-        icon: <FlaskConical className="h-5 w-5 text-primary" />,
-        text: 'Las marcas líderes del mercado: Casio, HP y más.',
-      },
-    ],
-  },
-  {
-    imageId: 'webcams',
-    title: 'Cámaras Web',
-    description: 'Video en alta definición para streaming y videollamadas.',
-    details: [
-      {
-        icon: <Camera className="h-5 w-5 text-primary" />,
-        text: 'Cámaras HD, Full HD y 4K para una imagen nítida.',
-      },
-      {
-        icon: <Video className="h-5 w-5 text-primary" />,
-        text: 'Ideales para teletrabajo, clases online, streaming y creación de contenido.',
-      },
-      {
-        icon: <Mic className="h-5 w-5 text-primary" />,
-        text: 'Modelos con micrófono incorporado y enfoque automático.',
-      },
-    ],
-  },
-  {
-    imageId: 'printer-toner',
-    title: 'Cartuchos y Toners',
-    description: 'Consumibles originales y alternativos para todas las marcas.',
-    details: [
-      {
-        icon: <Paintbrush className="h-5 w-5 text-primary" />,
-        text: 'Amplio stock de cartuchos de tinta y toners para impresoras.',
-      },
-      {
-        icon: <Droplets className="h-5 w-5 text-primary" />,
-        text: 'Trabajamos con todas las marcas: HP, Epson, Brother, Canon, etc.',
-      },
-      {
-        icon: <Replace className="h-5 w-5 text-primary" />,
-        text: 'Opciones originales y alternativas de alta calidad y rendimiento.',
-      },
-    ],
-  },
-  {
-    imageId: 'ticket-printer',
-    title: 'Comanderas y Ticketeadoras',
-    description:
-      'Impresoras térmicas para comandas, recibos y tickets no fiscales.',
-    details: [
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Impresoras térmicas de alta velocidad para puntos de venta y cocinas.',
-      },
-      {
-        icon: <FileText className="h-5 w-5 text-primary" />,
-        text: 'Ideales para emitir comandas, tickets no fiscales, recibos y resúmenes.',
-      },
-      {
-        icon: <Zap className="h-5 w-5 text-primary" />,
-        text: 'Fáciles de instalar y compatibles con los principales sistemas de gestión.',
-      },
-    ],
-  },
-  {
-    imageId: 'pc-components',
-    title: 'Componentes de PC',
-    description: 'Procesadores, motherboards, memorias, fuentes y más.',
-    details: [
-      {
-        icon: <Cpu className="h-5 w-5 text-primary" />,
-        text: 'Procesadores Intel y AMD, placas madre, memorias RAM.',
-      },
-      {
-        icon: <HardDrive className="h-5 w-5 text-primary" />,
-        text: 'Discos SSD y HDD, placas de video, fuentes de alimentación.',
-      },
-      {
-        icon: <Package className="h-5 w-5 text-primary" />,
-        text: 'Gabinetes, coolers y todo para armar o actualizar tu PC.',
-      },
-    ],
-  },
-  {
-    imageId: 'fiscal-printer',
-    title: 'Impresoras Fiscales',
-    description:
-      'Modelos homologados por AFIP para cumplir con todas las normativas vigentes.',
-    details: [
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Equipos fiscales de 1ra y 2da generación, para todo volumen de facturación.',
-      },
-      {
-        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
-        text: 'Homologados por AFIP, garantizando cumplimiento y transacciones seguras.',
-      },
-      {
-        icon: <Wrench className="h-5 w-5 text-primary" />,
-        text: 'Servicio técnico integral: inicialización, mantenimiento y reparaciones.',
-      },
-    ],
-  },
-  {
-    imageId: 'printers',
-    title: 'Impresoras Multifunción',
-    description: 'Imprime, escanea y copia con un solo equipo. Tinta y láser.',
-    details: [
-      {
-        icon: <Printer className="h-5 w-5 text-primary" />,
-        text: 'Equipos inkjet y láser, monocromáticos y a color.',
-      },
-      {
-        icon: <Scan className="h-5 w-5 text-primary" />,
-        text: 'Funciones de impresión, copiado y escaneo en un solo dispositivo.',
-      },
-      {
-        icon: <Copy className="h-5 w-5 text-primary" />,
-        text: 'Modelos con conectividad WiFi y sistemas de tinta continua.',
-      },
-    ],
-  },
-  {
-    imageId: 'office-supplies',
-    title: 'Insumos para Oficina',
-    description: 'Todo lo que necesitás para el día a día de tu oficina.',
-    details: [
-      {
-        icon: <Paperclip className="h-5 w-5 text-primary" />,
-        text: 'Artículos de librería, resmas de papel, carpetas y archivos.',
-      },
-      {
-        icon: <Stamp className="h-5 w-5 text-primary" />,
-        text: 'Abrochadoras, perforadoras y todo para la organización de documentos.',
-      },
-      {
-        icon: <FileText className="h-5 w-5 text-primary" />,
-        text: 'Rollos de papel para ticketeadoras y calculadoras.',
-      },
-    ],
-  },
-  {
-    imageId: 'keyboards',
-    title: 'Teclados',
-    description: 'Mecánicos, de membrana, ergonómicos e inalámbricos.',
-    details: [
-      {
-        icon: <Keyboard className="h-5 w-5 text-primary" />,
-        text: 'Teclados para oficina, gaming y uso general.',
-      },
-      {
-        icon: <Type className="h-5 w-5 text-primary" />,
-        text: 'Modelos mecánicos, de membrana, con y sin pad numérico.',
-      },
-      {
-        icon: <Rss className="h-5 w-5 text-primary" />,
-        text: 'Opciones con cable USB o inalámbricos por Bluetooth o radiofrecuencia.',
-      },
-    ],
-  },
-  {
-    imageId: 'barcode-scanner',
-    title: 'Lectores de Códigos de Barra',
-    description: 'Agilizá tus ventas y control de stock con lectores láser y 2D.',
-    details: [
-      {
-        icon: <ScanLine className="h-5 w-5 text-primary" />,
-        text: 'Lectores 1D y 2D (QR) para agilizar el cobro y la gestión de inventario.',
-      },
-      {
-        icon: <Hand className="h-5 w-5 text-primary" />,
-        text: 'Modelos de mano con cable, inalámbricos y fijos de mostrador.',
-      },
-      {
-        icon: <Activity className="h-5 w-5 text-primary" />,
-        text: 'Lectura rápida y precisa, incluso en códigos dañados o de baja calidad.',
-      },
-    ],
-  },
-  {
-    imageId: 'mice',
-    title: 'Mouses',
-    description: 'Ópticos, láser, gamers y ergonómicos para cada necesidad.',
-    details: [
-      {
-        icon: <Mouse className="h-5 w-5 text-primary" />,
-        text: 'Mouses ópticos y láser para todo tipo de superficies.',
-      },
-      {
-        icon: <MousePointerClick className="h-5 w-5 text-primary" />,
-        text: 'Diseños ergonómicos para prevenir lesiones y mejorar la comodidad.',
-      },
-      {
-        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
-        text: 'Modelos para gaming con alta precisión (DPI) y botones programables.',
-      },
-    ],
-  },
-  {
-    imageId: 'tech-backpacks',
-    title: 'Mochilas para Notebooks',
-    description: 'Transportá tus equipos de forma segura y con estilo.',
-    details: [
-      {
-        icon: <Backpack className="h-5 w-5 text-primary" />,
-        text: 'Mochilas y maletines con compartimento acolchado para notebooks.',
-      },
-      {
-        icon: <Laptop className="h-5 w-5 text-primary" />,
-        text: 'Disponibles en varios tamaños para distintos modelos de laptops.',
-      },
-      {
-        icon: <Shield className="h-5 w-5 text-primary" />,
-        text: 'Materiales resistentes y diseños ergonómicos para mayor comodidad.',
-      },
-    ],
-  },
-  {
-    imageId: 'monitors',
-    title: 'Monitores',
-    description: 'Pantallas Full HD y 4K para trabajo, diseño y gaming.',
-    details: [
-      {
-        icon: <Monitor className="h-5 w-5 text-primary" />,
-        text: 'Monitores LED y IPS de diferentes tamaños y resoluciones (HD, FHD, 4K).',
-      },
-      {
-        icon: <RectangleHorizontal className="h-5 w-5 text-primary" />,
-        text: 'Modelos para gaming con alta tasa de refresco y bajo tiempo de respuesta.',
-      },
-      {
-        icon: <Expand className="h-5 w-5 text-primary" />,
-        text: 'Opciones con diferentes tipos de conexión: HDMI, DisplayPort, VGA.',
-      },
-    ],
-  },
-  {
-    imageId: 'mousepads',
-    title: 'Mousepads',
-    description: 'Superficies optimizadas para precisión y comodidad.',
-    details: [
-      {
-        icon: <Square className="h-5 w-5 text-primary" />,
-        text: 'Mousepads de tela, rígidos y con reposamuñecas de gel.',
-      },
-      {
-        icon: <MousePointer2 className="h-5 w-5 text-primary" />,
-        text: 'Superficies diseñadas para un deslizamiento suave y preciso del mouse.',
-      },
-      {
-        icon: <Gamepad2 className="h-5 w-5 text-primary" />,
-        text: 'Modelos extendidos (XL y XXL) que cubren todo el escritorio.',
-      },
-    ],
-  },
-  {
-    imageId: 'notebook',
-    title: 'Notebooks',
-    description:
-      'Las mejores marcas y modelos para trabajar o estudiar desde donde quieras.',
-    details: [
-      {
-        icon: <Laptop className="h-5 w-5 text-primary" />,
-        text: 'Amplia variedad de las mejores marcas: HP, Dell, Lenovo, Asus y más.',
-      },
-      {
-        icon: <Briefcase className="h-5 w-5 text-primary" />,
-        text: 'Modelos para trabajo, estudio, diseño o gaming, adaptados a tu movilidad.',
-      },
-      {
-        icon: <ShieldCheck className="h-5 w-5 text-primary" />,
-        text: 'Garantía oficial y nuestro respaldo técnico especializado.',
-      },
-    ],
-  },
-  {
-    imageId: 'usb-drives',
-    title: 'Pendrives y Almacenamiento',
-    description: 'Memorias USB y discos externos para tus archivos.',
-    details: [
-      {
-        icon: <Usb className="h-5 w-5 text-primary" />,
-        text: 'Pendrives de distintas capacidades y velocidades (USB 2.0, 3.0, 3.1).',
-      },
-      {
-        icon: <HardDrive className="h-5 w-5 text-primary" />,
-        text: 'Discos duros externos (HDD y SSD) para backups y almacenamiento masivo.',
-      },
-      {
-        icon: <Save className="h-5 w-5 text-primary" />,
-        text: 'Tarjetas de memoria (SD y microSD) para cámaras y celulares.',
-      },
-    ],
-  },
-  {
-    imageId: 'network-cards',
-    title: 'Placas de Red',
-    description: 'Añade o mejora la conexión a internet de tu PC.',
-    details: [
-      {
-        icon: <Network className="h-5 w-5 text-primary" />,
-        text: 'Placas de red PCI Express para conexión por cable Ethernet.',
-      },
-      {
-        icon: <Wifi className="h-5 w-5 text-primary" />,
-        text: 'Placas de red WiFi para conectar tu PC de escritorio de forma inalámbrica.',
-      },
-      {
-        icon: <Plus className="h-5 w-5 text-primary" />,
-        text: 'Modelos con las últimas tecnologías para mayor velocidad y estabilidad.',
-      },
-    ],
-  },
-  {
-    imageId: 'routers',
-    title: 'Routers y Repetidores',
-    description: 'Mejora la cobertura y velocidad de tu señal WiFi.',
-    details: [
-      {
-        icon: <RouterIcon className="h-5 w-5 text-primary" />,
-        text: 'Routers neutros para gestionar tu red y mejorar el rendimiento.',
-      },
-      {
-        icon: <Signal className="h-5 w-5 text-primary" />,
-        text: 'Repetidores y extensores de rango para eliminar zonas sin WiFi.',
-      },
-      {
-        icon: <Home className="h-5 w-5 text-primary" />,
-        text: 'Sistemas Mesh para una cobertura total y sin interrupciones en casas grandes.',
-      },
-    ],
-  },
-  {
-    imageId: 'office-chairs',
-    title: 'Sillas de Escritorio',
-    description: 'Sillas ergonómicas para cuidar tu postura durante el trabajo.',
-    details: [
-      {
-        icon: <Armchair className="h-5 w-5 text-primary" />,
-        text: 'Sillas gerenciales y operativas con múltiples ajustes.',
-      },
-      {
-        icon: <UserCheck className="h-5 w-5 text-primary" />,
-        text: 'Diseños ergonómicos con soporte lumbar, apoyabrazos y apoyacabeza.',
-      },
-      {
-        icon: <Spline className="h-5 w-5 text-primary" />,
-        text: 'Sillas gamer para largas sesiones de juego con máximo confort.',
-      },
-    ],
-  },
-  {
-    imageId: 'network-switch',
-    title: 'Switches de Red',
-    description: 'Expande tu red cableada de forma rápida y eficiente.',
-    details: [
-      {
-        icon: <Network className="h-5 w-5 text-primary" />,
-        text: 'Switches de 5, 8, 16 y 24 puertos para redes domésticas y de oficina.',
-      },
-      {
-        icon: <Waypoints className="h-5 w-5 text-primary" />,
-        text: 'Multiplica los puntos de conexión de tu red cableada fácilmente.',
-      },
-      {
-        icon: <PlugZap className="h-5 w-5 text-primary" />,
-        text: 'Modelos no administrables (plug and play) y administrables.',
-      },
-    ],
-  },
-  {
-    imageId: 'usb-adapters',
-    title: 'Adaptadores USB WiFi/Bluetooth',
-    description: 'Conectividad inalámbrica para cualquier equipo.',
-    details: [
-      {
-        icon: <Wifi className="h-5 w-5 text-primary" />,
-        text: 'Adaptadores USB para agregar conectividad WiFi a PCs de escritorio.',
-      },
-      {
-        icon: <Bluetooth className="h-5 w-5 text-primary" />,
-        text: 'Dongles Bluetooth para conectar periféricos inalámbricos.',
-      },
-      {
-        icon: <Usb className="h-5 w-5 text-primary" />,
-        text: 'Fáciles de instalar y compatibles con todos los sistemas operativos.',
-      },
-    ],
-  },
-];
-
-const ITEMS_PER_PAGE = 12;
-
-function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+function buildCatalogHref(options: {
+  page?: number;
+  visible?: number;
+  cat?: string;
+  q?: string;
 }) {
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    const maxPagesToShow = 5;
-    const half = Math.floor(maxPagesToShow / 2);
+  const params = new URLSearchParams();
 
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      if (currentPage <= half + 1) {
-        for (let i = 1; i <= maxPagesToShow - 1; i++) {
-          pageNumbers.push(i);
-        }
-        pageNumbers.push('...');
-        pageNumbers.push(totalPages);
-      } else if (currentPage >= totalPages - half) {
-        pageNumbers.push(1);
-        pageNumbers.push('...');
-        for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
-          pageNumbers.push(i);
-        }
-      } else {
-        pageNumbers.push(1);
-        pageNumbers.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pageNumbers.push(i);
-        }
-        pageNumbers.push('...');
-        pageNumbers.push(totalPages);
-      }
-    }
-    return pageNumbers;
-  };
+  const page = options.page ?? 1;
+  const visible = options.visible ?? INITIAL_VISIBLE;
 
-  return (
-    <div className="flex items-center justify-center space-x-2 mt-12">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="rounded-full"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      {getPageNumbers().map((page, index) =>
-        typeof page === 'number' ? (
-          <Button
-            key={index}
-            variant={currentPage === page ? 'default' : 'outline'}
-            size="icon"
-            onClick={() => onPageChange(page)}
-            className="rounded-full"
-          >
-            {page}
-          </Button>
-        ) : (
-          <span key={index} className="px-1 text-muted-foreground">
-            ...
-          </span>
-        )
-      )}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="rounded-full"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </div>
-  );
+  if (options.cat && options.cat !== 'all') {
+    params.set('cat', options.cat);
+  }
+
+  if (options.q && options.q.trim().length > 0) {
+    params.set('q', options.q.trim());
+  }
+
+  if (page > 1) {
+    params.set('page', String(page));
+  }
+
+  if (visible > INITIAL_VISIBLE) {
+    params.set('visible', String(normalizeVisible(visible)));
+  }
+
+  const query = params.toString();
+  return query ? `/productos?${query}` : '/productos';
 }
 
-function ProductosPageContent() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const searchContainerRef = React.useRef<HTMLDivElement>(null);
+export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageProps) {
+  const apiBaseUrl = process.env.API_BASE_URL;
+  const apiToken = process.env.API_TOKEN;
 
-  const [openItemId, setOpenItemId] = React.useState<string | null>(null);
-  const getProductKey = React.useCallback((product: any, index: number) => {
-    return `${product.id || product.imageId || 'producto'}-${index}`;
-  }, []);
-  const [productsData, setProductsData] = React.useState<any[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
-
-  const searchTerm = searchParams.get('q') || '';
-  const sortOrder = searchParams.get('sort') || 'a-z';
-  const currentPage = Number(searchParams.get('page') || '1');
-  const selectedCategory = searchParams.get('cat') || 'all';
-
-  const [inputValue, setInputValue] = React.useState(searchTerm);
-  const [searchHistory, setSearchHistory] = React.useState<string[]>([]);
-  const [isHistoryVisible, setIsHistoryVisible] = React.useState(false);
-
-  const normalizeCategories = React.useCallback((value: unknown) => {
-    if (Array.isArray(value)) {
-      const cleaned = value
-        .map((item) => String(item || '').trim())
-        .filter(Boolean);
-      return cleaned.length > 0 ? Array.from(new Set(cleaned)) : ['General'];
-    }
-
-    const raw = String(value || '').trim();
-    if (!raw) {
-      return ['General'];
-    }
-
-    if (raw.startsWith('[') && raw.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(raw);
-        return normalizeCategories(parsed);
-      } catch {
-        return [raw];
-      }
-    }
-
-    if (raw.startsWith('{') && raw.endsWith('}')) {
-      const inner = raw.slice(1, -1).trim();
-      if (!inner) {
-        return ['General'];
-      }
-
-      const values = inner
-        .split(',')
-        .map((item) => item.replace(/^"|"$/g, '').trim())
-        .filter(Boolean);
-
-      return values.length > 0 ? Array.from(new Set(values)) : ['General'];
-    }
-
-    return [raw];
-  }, []);
-
-  React.useEffect(() => {
-    try {
-      const storedHistory = localStorage.getItem('productSearchHistory');
-      if (storedHistory) {
-        setSearchHistory(JSON.parse(storedHistory));
-      }
-    } catch (error) {
-      console.error('Failed to parse search history from localStorage', error);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const loadProducts = async () => {
-      setIsLoading(true);
-      setLoadError(null);
-
-      console.log('[productos] Iniciando carga de productos desde Supabase');
-
-      let query = supabase
-        .from('productos')
-        .select('id, slug, titulo, descripcion, detalles, imagen_url, orden, categoria')
-        .order('orden', { ascending: true });
-
-      let { data, error } = await query;
-
-      if (error && error.message.toLowerCase().includes('categoria')) {
-        const fallback = await supabase
-          .from('productos')
-          .select('id, slug, titulo, descripcion, detalles, imagen_url, orden')
-          .order('orden', { ascending: true });
-
-        data = fallback.data;
-        error = fallback.error;
-      }
-
-      console.log('[productos] Respuesta Supabase', { error, dataCount: data?.length });
-
-      if (error) {
-        console.error('[productos] Error al cargar productos', error);
-        setLoadError(error.message);
-        setProductsData([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const mapped = (data || []).map((item: any) => {
-        const detalles = Array.isArray(item.detalles) ? item.detalles : [];
-        const normalizedDetails = detalles.length > 0
-          ? detalles.map((detail: any) => ({
-              icon: <Check className="h-5 w-5 text-primary" />,
-              text: typeof detail === 'string' ? detail : detail?.texto || detail?.text || '',
-            })).filter((detail: any) => detail.text)
-          : [];
-
-        return {
-          id: item.id,
-          imageId: item.slug || item.id,
-          title: item.titulo || 'Producto',
-          description: item.descripcion || '',
-          categories: normalizeCategories(item.categoria),
-          details: normalizedDetails.length > 0 ? normalizedDetails : [
-            { icon: <Check className="h-5 w-5 text-primary" />, text: 'Consultanos por disponibilidad y precio.' },
-          ],
-          imageUrl: item.imagen_url || '',
-        };
-      });
-
-      console.log('[productos] Productos mapeados', mapped);
-
-      setProductsData(mapped);
-      setIsLoading(false);
-    };
-
-    loadProducts();
-  }, [normalizeCategories]);
-
-  const updateSearchHistory = React.useCallback((term: string) => {
-    if (!term.trim()) return;
-    try {
-      const storedHistory = localStorage.getItem('productSearchHistory');
-      let history: string[] = storedHistory ? JSON.parse(storedHistory) : [];
-      history = [
-        term,
-        ...history.filter((item) => item.toLowerCase() !== term.toLowerCase()),
-      ].slice(0, 5);
-      localStorage.setItem('productSearchHistory', JSON.stringify(history));
-      setSearchHistory(history);
-    } catch (error) {
-      console.error(
-        'Failed to update search history in localStorage',
-        error
-      );
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (inputValue !== searchTerm) {
-        setOpenItemId(null);
-        const params = new URLSearchParams(searchParams.toString());
-        if (inputValue) {
-          params.set('q', inputValue);
-        } else {
-          params.delete('q');
-        }
-        params.delete('page');
-        router.push(`${pathname}?${params.toString()}`);
-        if (inputValue) {
-          updateSearchHistory(inputValue);
-        }
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [
-    inputValue,
-    searchTerm,
-    pathname,
-    router,
-    searchParams,
-    updateSearchHistory,
-  ]);
-
-  React.useEffect(() => {
-    setInputValue(searchTerm);
-  }, [searchTerm]);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
-      ) {
-        setIsHistoryVisible(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [searchContainerRef]);
-
-  const handleSortChange = (order: string) => {
-    setOpenItemId(null);
-    const params = new URLSearchParams(searchParams);
-    params.set('sort', order);
-    params.delete('page');
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleHistoryClick = (term: string) => {
-    setInputValue(term);
-    setIsHistoryVisible(false);
-  };
-  
-  const handleSuggestionClick = (category: string) => {
-    setInputValue(category);
-    window.scrollTo(0, 0);
-  };
-
-  const handleCategoryFilter = (category: string) => {
-    setOpenItemId(null);
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (category === 'all') {
-      params.delete('cat');
-    } else {
-      params.set('cat', category);
-    }
-
-    params.delete('page');
-    router.push(`${pathname}?${params.toString()}`);
-    window.scrollTo(0, 0);
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-
-    setOpenItemId(null);
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (page === 1) {
-      params.delete('page');
-    } else {
-      params.set('page', page.toString());
-    }
-
-    router.push(`${pathname}?${params.toString()}`);
-    window.scrollTo(0, 0);
-  };
-
-  const filteredAndSortedProducts = React.useMemo(() => {
-    console.log('[productos] Filtrado', { searchTerm, sortOrder, selectedCategory, total: productsData.length });
-    return productsData
-      .filter(
-        (product) =>
-          (product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
-          (selectedCategory === 'all' || (product.categories || []).includes(selectedCategory))
-      )
-      .sort((a, b) => {
-        if (sortOrder === 'a-z') {
-          return a.title.localeCompare(b.title);
-        } else {
-          return b.title.localeCompare(a.title);
-        }
-      });
-  }, [searchTerm, sortOrder, productsData, selectedCategory]);
-
-  const suggestion = React.useMemo(() => {
-    if (!searchTerm.trim() || filteredAndSortedProducts.length > 0) {
-      return null;
-    }
-    const titles = productsData.map((product) => product.title).filter(Boolean);
-    return getClosestSuggestion(searchTerm, titles);
-  }, [searchTerm, filteredAndSortedProducts.length, productsData]);
-
-  const groupedCategories = React.useMemo(() => {
-    return Array.from(new Set(productsData.flatMap((product) => product.categories || ['General'])))
-      .sort((a, b) => a.localeCompare(b));
-  }, [productsData]);
-
-
-  const totalPages = Math.ceil(
-    filteredAndSortedProducts.length / ITEMS_PER_PAGE
-  );
-
-  const currentProducts = React.useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const slice = filteredAndSortedProducts.slice(
-      startIndex,
-      startIndex + ITEMS_PER_PAGE
+  if (!apiBaseUrl || !apiToken) {
+    return (
+      <main className="mx-auto w-full max-w-6xl p-6">
+        <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+          Faltan API_BASE_URL o API_TOKEN en variables de entorno.
+        </section>
+      </main>
     );
-    console.log('[productos] Página actual', { currentPage, totalPages, items: slice.length });
-    return slice;
-  }, [filteredAndSortedProducts, currentPage]);
+  }
 
-  const mobileProducts = React.useMemo(() => {
-    if (!openItemId) {
-      return currentProducts;
+  let endpointUsed = `${resolveApiBaseUrl(apiBaseUrl)}/articulos`;
+
+  try {
+    const resolvedSearchParams = await searchParams;
+    const selectedCategoryId = typeof resolvedSearchParams?.cat === 'string' ? resolvedSearchParams.cat : 'all';
+    const searchTerm = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
+    const currentPage = parsePositiveInt(resolvedSearchParams?.page, 1);
+    const visibleRequested = parsePositiveInt(resolvedSearchParams?.visible, INITIAL_VISIBLE);
+    const useFastMode = selectedCategoryId === 'all';
+
+    let inStockItems: Awaited<ReturnType<typeof fetchCatalogItems>>['visibleInStockItems'] = [];
+    let filteredItems: typeof inStockItems = [];
+    let totalPages = 1;
+    let effectivePage = 1;
+    let pageItemsWindow: typeof inStockItems = [];
+
+    if (useFastMode) {
+      const catalogPageResult = await fetchCatalogItemsPage(apiBaseUrl, apiToken, {
+        page: currentPage,
+        pageSize: MAX_VISIBLE_PER_PAGE,
+        searchTerm: searchTerm || undefined,
+      });
+
+      endpointUsed = catalogPageResult.endpointUsed;
+      inStockItems = catalogPageResult.visibleInStockItems;
+      filteredItems = inStockItems;
+      totalPages = Math.max(1, catalogPageResult.totalPages);
+      effectivePage = Math.min(catalogPageResult.page, totalPages);
+      pageItemsWindow = filteredItems;
+    } else {
+      const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
+      endpointUsed = catalogResult.endpointUsed;
+      inStockItems = catalogResult.visibleInStockItems;
+
+      const articleNumbersForCategoryFilter = inStockItems.map((item) => item.articleNumber).filter(Boolean);
+      const categoryDataForFilter = await fetchCatalogCategoryData(articleNumbersForCategoryFilter);
+      const articleCategoryMapForFilter = categoryDataForFilter.articleCategoryByNumber;
+
+      const filteredByCategoryItems = inStockItems.filter((item) => {
+        return articleCategoryMapForFilter[item.articleNumber] === selectedCategoryId;
+      });
+
+      const normalizedSearchTerm = searchTerm.toLowerCase();
+      filteredItems =
+        normalizedSearchTerm.length === 0
+          ? filteredByCategoryItems
+          : filteredByCategoryItems.filter((item) => {
+              const searchableText = [item.title, item.descriptionAdditional, item.articleNumber].filter(Boolean).join(' ').toLowerCase();
+              return searchableText.includes(normalizedSearchTerm);
+            });
+
+      totalPages = Math.max(1, Math.ceil(filteredItems.length / MAX_VISIBLE_PER_PAGE));
+      effectivePage = Math.min(currentPage, totalPages);
+      const pageWindowStart = (effectivePage - 1) * MAX_VISIBLE_PER_PAGE;
+      const pageWindowEnd = pageWindowStart + MAX_VISIBLE_PER_PAGE;
+      pageItemsWindow = filteredItems.slice(pageWindowStart, pageWindowEnd);
     }
-    const openItem = currentProducts.find((p, index) => getProductKey(p, index) === openItemId);
-    if (!openItem) {
-      return currentProducts;
-    }
-    return [
-      openItem,
-      ...currentProducts.filter((p, index) => getProductKey(p, index) !== openItemId),
-    ];
-  }, [openItemId, currentProducts, getProductKey]);
 
-  return (
-    <section id="productos" className="w-full py-12 md:py-24 lg:py-32">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-              Nuestros Productos
-            </h1>
-            <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Equipamiento tecnológico para potenciar tu hogar o empresa.
-            </p>
-          </div>
-        </div>
+    const articleNumbers = pageItemsWindow.map((item) => item.articleNumber).filter(Boolean);
 
-        <div className="mt-12 relative">
-            {isLoading && (
-              <div className="mb-6 text-center text-muted-foreground">Cargando productos...</div>
-            )}
-            {!isLoading && loadError && (
-              <div className="mb-6 text-center text-destructive">Error al cargar productos: {loadError}</div>
-            )}
-            {!isLoading && !loadError && productsData.length === 0 && (
-              <div className="mb-6 text-center text-muted-foreground">No hay productos cargados en la base de datos.</div>
-            )}
-            {!isLoading && !loadError && productsData.length > 0 && filteredAndSortedProducts.length === 0 && searchTerm && (
-              <div className="mb-6 text-center text-muted-foreground">
-                No encontramos resultados para “{searchTerm}”.
-                {suggestion && (
-                  <button
-                    type="button"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="ml-2 text-primary hover:underline"
-                  >
-                    ¿Quisiste decir “{suggestion}”?
-                  </button>
-                )}
-              </div>
-            )}
-            <aside className="hidden lg:block absolute top-0 left-0 w-56">
-                <div className="sticky top-24">
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">Categorías</h3>
-                    <ScrollArea className="h-[calc(100vh-12rem)]" dir="rtl">
-                        <ul className="space-y-1 pl-4 pt-2" dir="ltr">
-                          <li>
-                            <button
-                              onClick={() => handleCategoryFilter('all')}
-                              className={cn(
-                                "w-full rounded-md p-2 text-left text-sm transition-colors",
-                                selectedCategory === 'all' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:text-black'
-                              )}
-                            >
-                              Todas
-                            </button>
-                          </li>
-                          {groupedCategories.map((category) => (
-                            <li key={category} className="rounded-md p-1">
-                              <button
-                                onClick={() => handleCategoryFilter(category)}
-                                className={cn(
-                                  "w-full rounded-md px-2 py-1 text-left text-sm transition-colors",
-                                  selectedCategory === category
-                                    ? 'bg-primary/10 font-semibold text-primary'
-                                    : 'text-foreground hover:bg-muted'
-                                )}
-                              >
-                                {category}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                    </ScrollArea>
-                </div>
-            </aside>
-            <div className="lg:mx-auto lg:max-w-5xl lg:min-h-[calc(100vh-12rem)]">
-                <div className="mb-8 flex justify-center">
-                    <div ref={searchContainerRef} className="relative w-full max-w-md">
-                        <div className="flex w-full items-center overflow-hidden rounded-full border bg-card shadow-sm">
-                        <div className="relative flex-grow">
-                            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                            type="text"
-                            placeholder="Buscar productos..."
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onFocus={() => setIsHistoryVisible(true)}
-                            className="h-12 w-full border-0 bg-transparent pl-12 pr-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
-                            />
-                            {inputValue && (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted"
-                                onClick={() => setInputValue('')}
-                            >
-                                <X className="h-5 w-5" />
-                                <span className="sr-only">Limpiar búsqueda</span>
-                            </Button>
-                            )}
-                        </div>
-                        <Separator orientation="vertical" className="h-6" />
-                        <Select value={sortOrder} onValueChange={handleSortChange}>
-                            <SelectTrigger className="h-12 w-auto flex-shrink-0 border-0 bg-transparent pr-4 text-muted-foreground focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-accent/50">
-                            <SelectValue placeholder="Ordenar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            <SelectItem value="a-z">Ordenar: A-Z</SelectItem>
-                            <SelectItem value="z-a">Ordenar: Z-A</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        </div>
-                        {isHistoryVisible && searchHistory.length > 0 && (
-                        <div className="absolute top-full z-10 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
-                            <p className="p-3 text-sm font-semibold text-muted-foreground">
-                            Búsquedas recientes
-                            </p>
-                            <ul className="py-1">
-                            {searchHistory.map((term, index) => (
-                                <li key={index}>
-                                <button
-                                    onMouseDown={() => handleHistoryClick(term)}
-                                    className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
-                                >
-                                    <History className="h-4 w-4 text-muted-foreground" />
-                                    <span>{term}</span>
-                                </button>
-                                </li>
-                            ))}
-                            </ul>
-                        </div>
-                        )}
-                    </div>
-                </div>
+    const categoryData = await fetchCatalogCategoryData(articleNumbers);
+    const categories = categoryData.categories;
+    const articleCategoryByNumber = categoryData.articleCategoryByNumber;
+    const categoriesById = Object.fromEntries(categories.map((category) => [category.id, category.nombre]));
 
-                {/* Desktop grid */}
-                <Accordion
-                type="single"
-                collapsible
-                className="mx-auto hidden sm:grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
-                value={openItemId || ''}
-                onValueChange={(value) => setOpenItemId(value || null)}
-                >
-                {currentProducts.map((product, index) => {
-                  const productKey = getProductKey(product, index);
-                  const isExpanded = openItemId === productKey;
-                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
-                    return (
-                    <AccordionItem
-                    value={productKey}
-                    key={`${productKey}-desktop`}
-                        className={cn(
-                        'group/item mb-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 ease-out hover:shadow-xl',
-                        isExpanded && 'shadow-xl'
-                        )}
-                    >
-                        <AccordionTrigger className="group/trigger w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                        <div className="flex w-full flex-col">
-                            <div
-                            className={cn(
-                                'overflow-hidden rounded-t-lg',
-                                isExpanded && 'rounded-b-none'
-                            )}
-                            >
-                            <LoadingImage
-                              src={product.imageUrl || productImage?.imageUrl || ''}
-                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
-                                alt={product.title}
-                                width={600}
-                                height={400}
-                                className="aspect-video w-full object-cover transition-transform duration-300 group-hover/item:scale-105"
-                            />
-                            </div>
-                            <div className="flex-grow p-6">
-                            <h3 className="text-xl font-semibold leading-none tracking-tight">
-                                {product.title}
-                            </h3>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {(product.categories || ['General']).map((category: string) => (
-                                <span key={`${product.id}-desktop-${category}`} className="rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                  {category}
-                                </span>
-                              ))}
-                            </div>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                {product.description}
-                            </p>
-                            </div>
-                        </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                        <div className="border-t p-6">
-                            <ul className="mb-6 space-y-4 text-foreground/80">
-                            {product.details.map((detail, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                <div className="flex-shrink-0">{detail.icon}</div>
-                                <span>{detail.text}</span>
-                                </li>
-                            ))}
-                            </ul>
-                            <Button asChild className="w-full rounded-full">
-                            <Link
-                                href="https://wa.me/5493564504977"
-                                target="_blank"
-                            >
-                                Consultar
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Link>
-                            </Button>
-                        </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                    );
-                })}
-                </Accordion>
+    const normalizedVisible = normalizeVisible(visibleRequested);
+    const currentVisible = Math.min(normalizedVisible, pageItemsWindow.length || INITIAL_VISIBLE);
+    const paginatedItems = pageItemsWindow.slice(0, currentVisible);
+    const hasPreviousPage = effectivePage > 1;
+    const hasMoreWithinPage = currentVisible < Math.min(MAX_VISIBLE_PER_PAGE, pageItemsWindow.length);
+    const hasNextPage = effectivePage < totalPages;
+    const showLoadMoreOnly = hasMoreWithinPage;
+    const showPageNavigation = !hasMoreWithinPage && totalPages > 1;
 
-                {/* Mobile Accordion Grid */}
-                <div className="mx-auto block sm:hidden">
-                <Accordion
-                    type="single"
-                    collapsible
-                    className="grid grid-cols-2 gap-x-4 gap-y-8"
-                    value={openItemId || ''}
-                    onValueChange={(value) => setOpenItemId(value || null)}
-                >
-                    {mobileProducts.map((product, index) => {
-                    const productKey = getProductKey(product, index);
-                    const isExpanded = openItemId === productKey;
-                    const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
-                    return (
-                        <AccordionItem
-                      value={productKey}
-                      key={productKey}
-                        className={cn('group border-none', isExpanded && 'col-span-2')}
-                        >
-                        <div
-                            className={cn(
-                            'relative block aspect-[9/16] w-full overflow-hidden rounded-lg',
-                            isExpanded && 'rounded-b-none'
-                            )}
-                        >
-                            <AccordionTrigger className="absolute inset-0 z-10 h-full w-full p-0 text-left hover:no-underline [&>svg]:hidden">
-                            <LoadingImage
-                              src={product.imageUrl || productImage?.imageUrl || ''}
-                                data-ai-hint={productImage?.imageHint || product.imageId.replace('-', ' ')}
-                                alt={product.title}
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 640px) 50vw, 100vw"
-                            />
-                            </AccordionTrigger>
-                        </div>
+    const previousPageHref = buildCatalogHref({
+      page: Math.max(1, effectivePage - 1),
+      visible: INITIAL_VISIBLE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
 
-                        <AccordionTrigger
-                            className={cn(
-                            'w-full pt-3 text-left text-base font-semibold text-foreground hover:no-underline [&>svg]:hidden',
-                            isExpanded && 'hidden'
-                            )}
-                        >
-                            <h3>{product.title}</h3>
-                        </AccordionTrigger>
+    const nextPageHref = buildCatalogHref({
+      page: Math.min(totalPages, effectivePage + 1),
+      visible: INITIAL_VISIBLE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
 
-                        <AccordionContent>
-                            <div className="-mt-2 rounded-b-lg border border-t-0 bg-card p-4 shadow-sm">
-                            <h3 className="mb-4 text-left text-2xl font-bold">
-                                {product.title}
-                            </h3>
-                            <div className="mb-4 flex flex-wrap gap-2">
-                              {(product.categories || ['General']).map((category: string) => (
-                                <span key={`${product.id}-mobile-${category}`} className="rounded-full border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                  {category}
-                                </span>
-                              ))}
-                            </div>
-                            <ul className="mb-6 space-y-4 text-foreground/80">
-                                {product.details.map((detail, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                    <div className="flex-shrink-0">{detail.icon}</div>
-                                    <span>{detail.text}</span>
-                                </li>
-                                ))}
-                            </ul>
-                            <Button asChild className="w-full rounded-full">
-                                <Link
-                                href="https://wa.me/5493564504977"
-                                target="_blank"
-                                >
-                                Consultar
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                                </Link>
-                            </Button>
-                            </div>
-                        </AccordionContent>
-                        </AccordionItem>
-                    );
-                    })}
-                </Accordion>
-                </div>
-                {totalPages > 1 && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                />
-                )}
+    const loadMoreHref = buildCatalogHref({
+      page: effectivePage,
+      visible: MAX_VISIBLE_PER_PAGE,
+      cat: selectedCategoryId,
+      q: searchTerm,
+    });
+
+    const pageNumberLinks = Array.from({ length: totalPages }, (_, index) => {
+      const page = index + 1;
+      return {
+        page,
+        href: buildCatalogHref({
+          page,
+          visible: INITIAL_VISIBLE,
+          cat: selectedCategoryId,
+          q: searchTerm,
+        }),
+      };
+    });
+
+    const categoryHref = (categoryId: string) =>
+      buildCatalogHref({
+        page: 1,
+        visible: INITIAL_VISIBLE,
+        cat: categoryId,
+        q: searchTerm,
+      });
+
+    return (
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
+          <section className="rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Nuestros Productos</h1>
+              <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Equipamiento tecnológico para potenciar tu hogar o empresa.
+              </p>
             </div>
+          </div>
 
-        </div>
+          <form method="get" className="mt-8 flex justify-center">
+            {selectedCategoryId !== 'all' ? <input type="hidden" name="cat" value={selectedCategoryId} /> : null}
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="visible" value={String(INITIAL_VISIBLE)} />
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                name="q"
+                defaultValue={searchTerm}
+                placeholder="Buscar productos..."
+                className="h-12 w-full rounded-full border bg-white pl-12 pr-24 text-base shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted"
+              >
+                Buscar
+              </button>
+            </div>
+          </form>
+          {(searchTerm || selectedCategoryId !== 'all') && (
+            <div className="mt-3 flex justify-center">
+              <Link href="/productos" className="rounded-full border bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted">
+                Quitar filtros
+              </Link>
+            </div>
+          )}
+          </section>
+
+          <section className="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 rounded-2xl border bg-white p-4 shadow-sm">
+              <h3 className="mb-3 border-b pb-2 text-lg font-semibold">Categorías</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href={categoryHref('all')}
+                    className={`block rounded-md px-2 py-1 text-sm transition-colors ${
+                      selectedCategoryId === 'all' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Todas
+                  </Link>
+                </li>
+                {categories.map((category) => (
+                  <li key={category.id}>
+                    <Link
+                      href={categoryHref(category.id)}
+                      className={`block rounded-md px-2 py-1 text-sm transition-colors ${
+                        selectedCategoryId === category.id
+                          ? 'bg-primary/10 font-semibold text-primary'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {category.nombre}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+
+          <div>
+            {inStockItems.length === 0 ? (
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
+                No hay productos con stock disponible en este momento.
+              </section>
+            ) : searchTerm && filteredItems.length === 0 ? (
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
+                No encontramos resultados para "{searchTerm}".
+              </section>
+            ) : filteredItems.length === 0 ? (
+              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
+                No hay productos en esta categoría.
+              </section>
+            ) : (
+              <>
+                <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {paginatedItems.map((item) => {
+                  const categoryId = articleCategoryByNumber[item.articleNumber];
+                  const categoryName = categoryId ? categoriesById[categoryId] : undefined;
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/productos/${encodeURIComponent(item.id)}`}
+                      className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                    >
+                      <article>
+                        <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white p-4">
+                          {item.imageUrl ? (
+                            <LoadingImage
+                              src={item.imageUrl}
+                              alt={item.title}
+                              width={500}
+                              height={400}
+                              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                              spinnerSizeClassName="h-8 w-8 border-2"
+                            />
+                          ) : (
+                            <div className="text-sm text-muted-foreground">Sin imagen</div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 p-4">
+                          <h2 className="line-clamp-2 text-base font-semibold leading-tight">{item.title}</h2>
+                          {item.descriptionAdditional && <p className="line-clamp-2 text-xs text-muted-foreground">{item.descriptionAdditional}</p>}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-xs font-medium">
+                              Stock disponible: {item.stock}
+                            </div>
+                            <div className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-xs font-medium">
+                              {categoryName || 'Sin categoría'}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    </Link>
+                  );
+                })}
+                </section>
+
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedItems.length} de {pageItemsWindow.length} en esta página. Página {effectivePage} de {totalPages}.
+                  </p>
+                  {showLoadMoreOnly ? (
+                    <Link
+                      href={loadMoreHref}
+                      scroll={false}
+                      className="rounded-full border border-blue-600 bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    >
+                      Ver más
+                    </Link>
+                  ) : showPageNavigation ? (
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {hasPreviousPage ? (
+                        <Link
+                          href={previousPageHref}
+                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                        >
+                          Anterior página
+                        </Link>
+                      ) : null}
+
+                      <div className="flex flex-wrap items-center justify-center gap-1">
+                        {pageNumberLinks.map((item) => (
+                          <Link
+                            key={item.page}
+                            href={item.href}
+                            className={`min-w-9 rounded-full border px-3 py-2 text-center text-sm font-medium transition-colors ${
+                              item.page === effectivePage
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50'
+                            }`}
+                            aria-current={item.page === effectivePage ? 'page' : undefined}
+                          >
+                            {item.page}
+                          </Link>
+                        ))}
+                      </div>
+
+                      {hasNextPage ? (
+                        <Link
+                          href={nextPageHref}
+                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                        >
+                          Siguiente página
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            )}
+          </div>
+          </section>
+
+        </main>
+        <Footer forceShow />
       </div>
-    </section>
-  );
-}
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error desconocido';
 
-export default function ProductosPage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[60vh] flex items-center justify-center text-muted-foreground">
-          Cargando productos...
-        </div>
-      }
-    >
-      <ProductosPageContent />
-    </React.Suspense>
-  );
+    return (
+      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <main className="mx-auto w-full max-w-6xl p-6">
+          <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+            <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
+            <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
+            <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
+          </section>
+
+        </main>
+        <Footer forceShow />
+      </div>
+    );
+  }
 }

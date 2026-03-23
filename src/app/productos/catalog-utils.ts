@@ -1,0 +1,522 @@
+import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
+import { createClient } from '@supabase/supabase-js';
+
+type ProductRow = Record<string, unknown>;
+
+export type CatalogItem = {
+  id: string;
+  articleNumber: string;
+  title: string;
+  stock: number;
+  imageUrl: string;
+  visibleInTestbd: boolean;
+  descriptionAdditional?: string;
+  notes?: string;
+  price?: number;
+  priceCurrency?: string;
+  code?: string;
+};
+
+type ArticulosApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: ProductRow[];
+  pagination?: {
+    page?: number;
+    pageSize?: number;
+    total?: number;
+    totalPages?: number;
+  };
+};
+
+type StockApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: Record<string, { stock?: unknown }>;
+};
+
+type CatalogFetchResult = {
+  endpointUsed: string;
+  allItems: CatalogItem[];
+  visibleInStockItems: CatalogItem[];
+};
+
+export type CatalogPageFetchResult = {
+  endpointUsed: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  allItems: CatalogItem[];
+  visibleInStockItems: CatalogItem[];
+};
+
+export type CategoryOption = {
+  id: string;
+  nombre: string;
+};
+
+export type CatalogCategoryData = {
+  categories: CategoryOption[];
+  articleCategoryByNumber: Record<string, string>;
+};
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
+
+function parseNumber(value: unknown) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (typeof value !== 'string') {
+    return 0;
+  }
+
+  const cleaned = value
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/,/g, '.')
+    .replace(/[^0-9.-]/g, '');
+
+  const parsed = Number.parseFloat(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseVisibility(value: unknown) {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value === 1;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === '1' || normalized === 'true' || normalized === 'si' || normalized === 'sí';
+  }
+
+  return false;
+}
+
+function normalizeOptionalText(value: unknown) {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  if (normalized === '0' || normalized.toLowerCase() === 'null' || normalized.toLowerCase() === 'undefined') {
+    return undefined;
+  }
+
+  return normalized;
+}
+
+function normalizeIdentifierText(value: unknown) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const normalized = String(value).trim();
+  return normalized ? normalized : undefined;
+}
+
+function pickText(row: ProductRow, candidates: string[], fallback: string) {
+  for (const candidate of candidates) {
+    const value = normalizeOptionalText(row[candidate]);
+    if (value) {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
+function pickOptionalText(row: ProductRow, candidates: string[]) {
+  for (const candidate of candidates) {
+    const value = normalizeOptionalText(row[candidate]);
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function pickRowValue(row: ProductRow, candidates: string[]) {
+  for (const candidate of candidates) {
+    if (Object.prototype.hasOwnProperty.call(row, candidate)) {
+      return row[candidate];
+    }
+
+    const lowered = candidate.toLowerCase();
+    const match = Object.keys(row).find((key) => key.toLowerCase() === lowered);
+    if (match) {
+      return row[match];
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeImageUrl(value: unknown, apiBaseUrl: string) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const raw = value.trim();
+  if (!raw) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+
+  if (/^\/\//.test(raw)) {
+    return `https:${raw}`;
+  }
+
+  if (/^file:\/\//i.test(raw)) {
+    return '';
+  }
+
+  if (/^[a-zA-Z]:\\/.test(raw) || raw.includes('\\')) {
+    return '';
+  }
+
+  if (raw.startsWith('/')) {
+    const base = apiBaseUrl.replace(/\/$/, '');
+    return `${base}${raw}`;
+  }
+
+  if (/^[a-zA-Z0-9][a-zA-Z0-9+.-]*:\/\//.test(raw)) {
+    return raw;
+  }
+
+  return '';
+}
+
+function parseJsonSafely(rawText: string) {
+  const trimmed = rawText.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const sanitized = trimmed.replace(/^\)\]\}',?\s*/, '');
+  return JSON.parse(sanitized);
+}
+
+async function fetchArticulos(endpoint: string, apiToken: string) {
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+    },
+    cache: 'no-store',
+  });
+
+  const rawText = await response.text();
+  let payload: ArticulosApiResponse | null = null;
+
+  try {
+    payload = parseJsonSafely(rawText) as ArticulosApiResponse | null;
+  } catch {
+    const preview = rawText.trim().slice(0, 180).replace(/\s+/g, ' ');
+    throw new Error(`Respuesta no JSON desde API (${response.status}). Preview: ${preview || '[vacío]'}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(payload?.message || `La API respondió ${response.status}.`);
+  }
+
+  if (!payload?.success || !Array.isArray(payload?.data)) {
+    throw new Error(payload?.message || 'La API no devolvió artículos válidos.');
+  }
+
+  return payload;
+}
+
+function normalizePagination(payload: ArticulosApiResponse | null, fallbackPage: number, fallbackPageSize: number) {
+  const total = Number(payload?.pagination?.total);
+  const pageSize = Number(payload?.pagination?.pageSize);
+  const page = Number(payload?.pagination?.page);
+
+  const safeTotal = Number.isFinite(total) && total >= 0 ? total : Array.isArray(payload?.data) ? payload.data.length : 0;
+  const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : fallbackPageSize;
+  const safeTotalPages = safeTotal > 0 ? Math.ceil(safeTotal / safePageSize) : 1;
+  const safePageRaw = Number.isFinite(page) && page > 0 ? page : fallbackPage;
+  const safePage = Math.min(Math.max(safePageRaw, 1), safeTotalPages);
+
+  return {
+    page: safePage,
+    pageSize: safePageSize,
+    total: safeTotal,
+    totalPages: safeTotalPages,
+  };
+}
+
+async function fetchStockMap(endpoint: string, apiToken: string): Promise<Record<string, number>> {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    const rawText = await response.text();
+    const payload = parseJsonSafely(rawText) as StockApiResponse | null;
+
+    if (!response.ok || !payload?.success || !payload.data || typeof payload.data !== 'object') {
+      return {};
+    }
+
+    const entries = Object.entries(payload.data).map(([code, info]) => [code, parseNumber(info?.stock)]);
+    return Object.fromEntries(entries);
+  } catch {
+    return {};
+  }
+}
+
+export function mapCatalogItem(row: ProductRow, index: number, apiBaseUrl: string): CatalogItem {
+  // El catálogo en stock se determina por la columna stockkardex (con variantes de nombre/casing).
+  const stock = parseNumber(
+    pickRowValue(row, ['stockKardex', 'stockkardex', 'stock_kardex', 'stock_kardex_total']) ?? 0,
+  );
+  const imageUrl = normalizeImageUrl(row.imagen, apiBaseUrl);
+  const visibleInTestbd = parseVisibility(
+    pickRowValue(row, ['mostrar_en_testbd', 'mostrarEnTestbd', 'mostrarentestbd']) ?? 0,
+  );
+
+  const title = pickText(row, ['descripcion', 'nombre', 'producto', 'articulo', 'denominacion', 'detalle'], `Artículo #${index + 1}`);
+  const articleNumber =
+    normalizeIdentifierText(row.codigo) ??
+    normalizeIdentifierText(row.cod) ??
+    normalizeIdentifierText(row.sku) ??
+    normalizeIdentifierText(row.nroArticulo) ??
+    normalizeIdentifierText(row.articulo) ??
+    normalizeIdentifierText(row.id) ??
+    `articulo-${index}`;
+
+  const code =
+    normalizeIdentifierText(row.codigo) ??
+    normalizeIdentifierText(row.cod) ??
+    normalizeIdentifierText(row.sku) ??
+    normalizeIdentifierText(row.nroArticulo) ??
+    normalizeIdentifierText(row.articulo);
+
+  const rawId = code ?? row.id;
+  const id = rawId !== undefined && rawId !== null && String(rawId).trim() ? String(rawId).trim() : `${title}-${index}`;
+
+  const price = parseNumber(row.precio ?? row.costo ?? row.costoBase);
+  const descriptionAdditional = pickOptionalText(row, ['DescripcionWeb', 'descripcionweb', 'descripcionAdicional']);
+  const notes = pickOptionalText(row, ['AnotacionesWeb', 'anotacionesweb', 'anotaciones']);
+  const priceCurrency = pickOptionalText(row, ['moneda', 'costoMoneda']);
+
+  return {
+    id,
+    articleNumber,
+    title,
+    stock,
+    imageUrl,
+    visibleInTestbd,
+    descriptionAdditional,
+    notes,
+    price: price > 0 ? price : undefined,
+    priceCurrency,
+    code,
+  };
+}
+
+export async function fetchCatalogItems(apiBaseUrl: string, apiToken: string): Promise<CatalogFetchResult> {
+  const primaryBase = resolveApiBaseUrl(apiBaseUrl);
+  const primaryEndpoint = `${primaryBase}/articulos`;
+  const primaryStockEndpoint = `${primaryBase}/articulos/stock`;
+  const fallbackEndpoint = 'http://127.0.0.1:3001/articulos';
+  const fallbackStockEndpoint = 'http://127.0.0.1:3001/articulos/stock';
+  const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
+  const stockEndpointsToTry = Array.from(new Set([primaryStockEndpoint, fallbackStockEndpoint]));
+
+  let endpointUsed = primaryEndpoint;
+  let payload: ArticulosApiResponse | null = null;
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpointsToTry) {
+    try {
+      payload = await fetchArticulos(endpoint, apiToken);
+      endpointUsed = endpoint;
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  if (!payload || !Array.isArray(payload.data)) {
+    throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
+  }
+
+  let stockByCode: Record<string, number> = {};
+  for (const stockEndpoint of stockEndpointsToTry) {
+    stockByCode = await fetchStockMap(stockEndpoint, apiToken);
+    if (Object.keys(stockByCode).length > 0) {
+      break;
+    }
+  }
+
+  const allItems = payload.data.map((row, index) => {
+    const mapped = mapCatalogItem(row, index, primaryBase);
+    const normalizedCode = mapped.code?.trim() ?? mapped.articleNumber.trim();
+    const stockFromMap = normalizedCode ? stockByCode[normalizedCode] : undefined;
+
+    return {
+      ...mapped,
+      stock: Number.isFinite(stockFromMap) ? (stockFromMap as number) : mapped.stock,
+    };
+  });
+  const visibleInStockItems = allItems.filter((item) => item.stock > 0 && item.visibleInTestbd);
+
+  return {
+    endpointUsed,
+    allItems,
+    visibleInStockItems,
+  };
+}
+
+export async function fetchCatalogCategoryData(articleNumbers: string[]): Promise<CatalogCategoryData> {
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase) {
+    return {
+      categories: [],
+      articleCategoryByNumber: {},
+    };
+  }
+
+  const uniqueArticleNumbers = Array.from(new Set(articleNumbers.map((value) => value.trim()).filter(Boolean)));
+
+  const [categoriesResult, relationsResult] = await Promise.all([
+    supabase
+      .from('categorias_articulos')
+      .select('id, nombre')
+      .order('nombre', { ascending: true }),
+    uniqueArticleNumbers.length > 0
+      ? supabase
+          .from('articulos_categorias')
+          .select('articulo_numero, categoria_id')
+          .in('articulo_numero', uniqueArticleNumbers)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (categoriesResult.error) {
+    throw new Error(categoriesResult.error.message || 'No se pudieron cargar categorías.');
+  }
+
+  if (relationsResult.error) {
+    throw new Error(relationsResult.error.message || 'No se pudieron cargar asignaciones de categorías.');
+  }
+
+  const categories = (categoriesResult.data ?? []).map((item) => ({
+    id: String(item.id),
+    nombre: String(item.nombre),
+  }));
+
+  const articleCategoryByNumber = Object.fromEntries(
+    (relationsResult.data ?? [])
+      .filter((item) => item?.articulo_numero && item?.categoria_id)
+      .map((item) => [String(item.articulo_numero), String(item.categoria_id)]),
+  );
+
+  return {
+    categories,
+    articleCategoryByNumber,
+  };
+}
+
+export async function fetchCatalogItemsPage(
+  apiBaseUrl: string,
+  apiToken: string,
+  options: { page: number; pageSize: number; searchTerm?: string },
+): Promise<CatalogPageFetchResult> {
+  const primaryBase = resolveApiBaseUrl(apiBaseUrl);
+  const primaryEndpoint = `${primaryBase}/articulos`;
+  const primaryStockEndpoint = `${primaryBase}/articulos/stock`;
+  const fallbackEndpoint = 'http://127.0.0.1:3001/articulos';
+  const fallbackStockEndpoint = 'http://127.0.0.1:3001/articulos/stock';
+  const endpointsToTry = Array.from(new Set([primaryEndpoint, fallbackEndpoint]));
+  const stockEndpointsToTry = Array.from(new Set([primaryStockEndpoint, fallbackStockEndpoint]));
+
+  const safePage = Number.isFinite(options.page) && options.page > 0 ? Math.floor(options.page) : 1;
+  const safePageSize = Number.isFinite(options.pageSize) && options.pageSize > 0 ? Math.min(Math.floor(options.pageSize), 200) : 60;
+  const normalizedSearch = options.searchTerm?.trim() ?? '';
+
+  let endpointUsed = primaryEndpoint;
+  let payload: ArticulosApiResponse | null = null;
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpointsToTry) {
+    try {
+      const url = new URL(endpoint);
+      url.searchParams.set('page', String(safePage));
+      url.searchParams.set('pageSize', String(safePageSize));
+      if (normalizedSearch) {
+        url.searchParams.set('search', normalizedSearch);
+      }
+
+      payload = await fetchArticulos(url.toString(), apiToken);
+      endpointUsed = url.toString();
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  if (!payload || !Array.isArray(payload.data)) {
+    throw lastError || new Error('No se pudo obtener respuesta válida de la API.');
+  }
+
+  let stockByCode: Record<string, number> = {};
+  for (const stockEndpoint of stockEndpointsToTry) {
+    stockByCode = await fetchStockMap(stockEndpoint, apiToken);
+    if (Object.keys(stockByCode).length > 0) {
+      break;
+    }
+  }
+
+  const allItems = payload.data.map((row, index) => {
+    const mapped = mapCatalogItem(row, index, primaryBase);
+    const normalizedCode = mapped.code?.trim() ?? mapped.articleNumber.trim();
+    const stockFromMap = normalizedCode ? stockByCode[normalizedCode] : undefined;
+
+    return {
+      ...mapped,
+      stock: Number.isFinite(stockFromMap) ? (stockFromMap as number) : mapped.stock,
+    };
+  });
+  const visibleInStockItems = allItems.filter((item) => item.stock > 0 && item.visibleInTestbd);
+  const pagination = normalizePagination(payload, safePage, safePageSize);
+
+  return {
+    endpointUsed,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    total: pagination.total,
+    totalPages: pagination.totalPages,
+    allItems,
+    visibleInStockItems,
+  };
+}

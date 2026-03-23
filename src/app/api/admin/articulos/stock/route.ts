@@ -1,20 +1,23 @@
 import { NextResponse } from 'next/server';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 
+const DEFAULT_CATALOG_API_BASE_URL = 'https://dariomartinezcomputacion.com/api/admin';
+
 export async function GET() {
   try {
-    const apiBaseUrl = process.env.API_BASE_URL;
-    const apiToken = process.env.API_TOKEN;
-
-    if (!apiBaseUrl || !apiToken) {
-      throw new Error('Faltan API_BASE_URL o API_TOKEN en variables de entorno.');
-    }
+    const apiBaseUrl = process.env.API_BASE_URL?.trim() || DEFAULT_CATALOG_API_BASE_URL;
+    const apiToken = process.env.API_TOKEN?.trim();
 
     const targetUrl = `${resolveApiBaseUrl(apiBaseUrl)}/articulos/stock`;
 
+    const headers: Record<string, string> = {};
+    if (apiToken) {
+      headers.Authorization = `Bearer ${apiToken}`;
+    }
+
     const response = await fetch(targetUrl, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${apiToken}` },
+      headers,
       cache: 'no-store',
     });
 
