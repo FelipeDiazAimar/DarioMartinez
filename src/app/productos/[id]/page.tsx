@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LoadingImage } from '@/components/loading-image';
-import { AdminBuyButton } from '@/components/admin-buy-button';
 import { Footer } from '@/components/footer';
 import { fetchCatalogCategoryData, fetchCatalogItems } from '../catalog-utils';
 import { RelatedProductsCarousel } from './related-products-carousel';
@@ -117,29 +116,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
 
             <div className="pt-1">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-primary bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:flex-1"
-                >
-                  Consultar o encargar
-                </Link>
-                <div className="sm:flex-1">
-                  <AdminBuyButton
-                    product={{
-                      id: item.id,
-                      title: item.title,
-                      stock: item.stock,
-                      imageUrl: item.imageUrl,
-                      descriptionAdditional: item.descriptionAdditional,
-                      price: item.price,
-                      priceCurrency: item.priceCurrency,
-                    }}
-                  />
-                </div>
-              </div>
+              <Link
+                href={whatsappHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-primary bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 w-full"
+              >
+                Consultar o encargar
+              </Link>
             </div>
 
             <section className="rounded-xl border bg-white p-4">

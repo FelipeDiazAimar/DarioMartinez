@@ -16,6 +16,11 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  const setAdminAuthCookie = (persistent: boolean) => {
+    const base = 'admin_auth=1; path=/; SameSite=Lax';
+    document.cookie = persistent ? `${base}; max-age=${60 * 60 * 24 * 30}` : base;
+  };
+
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
     const localAuth = localStorage.getItem('isAdminAuthenticated');
@@ -35,12 +40,15 @@ export default function AdminLoginPage() {
       if (rememberMe) {
         localStorage.setItem('isAdminAuthenticated', 'true');
         sessionStorage.removeItem('isAdminAuthenticated');
+        setAdminAuthCookie(true);
       } else {
         sessionStorage.setItem('isAdminAuthenticated', 'true');
         localStorage.removeItem('isAdminAuthenticated');
+        setAdminAuthCookie(false);
       }
       router.push('/admin');
     } else {
+      document.cookie = 'admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
       setError('Clave incorrecta. Intente de nuevo.');
       setPassword('');
     }
