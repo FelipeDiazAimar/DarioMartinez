@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,25 +13,26 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
 
   const setAdminAuthCookie = (persistent: boolean) => {
     const base = 'admin_auth=1; path=/; SameSite=Lax';
     document.cookie = persistent ? `${base}; max-age=${60 * 60 * 24 * 30}` : base;
   };
 
-  useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
-    const localAuth = localStorage.getItem('isAdminAuthenticated');
+  const getAdminDestination = () => {
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (!next || !next.startsWith('/admin')) {
+      return '/admin';
+    }
+    return next;
+  };
 
+  useEffect(() => {
+    const localAuth = localStorage.getItem('isAdminAuthenticated');
     if (localAuth === 'true') {
       setRememberMe(true);
     }
-
-    if (sessionAuth === 'true' || localAuth === 'true') {
-      router.push('/admin');
-    }
-  }, [router]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,9 @@ export default function AdminLoginPage() {
         localStorage.removeItem('isAdminAuthenticated');
         setAdminAuthCookie(false);
       }
-      router.push('/admin');
+
+      // Forzar navegación completa evita carreras entre set de cookie y middleware.
+      window.location.assign(getAdminDestination());
     } else {
       document.cookie = 'admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
       setError('Clave incorrecta. Intente de nuevo.');
