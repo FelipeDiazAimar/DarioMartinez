@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase-client";
+import { trackWhatsAppConversion } from "@/lib/google-ads";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -68,6 +69,7 @@ export function ContactForm() {
       console.error("Error guardando consulta", error);
     }
 
+    trackWhatsAppConversion();
     window.open(url, "_blank");
     
     form.reset();

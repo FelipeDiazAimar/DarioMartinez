@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { WhatsAppFloatButton } from '@/components/whatsapp-float-button';
+import { GoogleAdsTag } from '@/components/google-ads-tag';
 import { AdminCartWidget } from '@/components/admin-cart-widget';
 import { cn } from '@/lib/utils';
 import { Analytics } from '@vercel/analytics/next';
@@ -48,6 +49,7 @@ export default function RootLayout({
         <AdminCartWidget />
         <Analytics />
         <SpeedInsights />
+        <GoogleAdsTag />
       </body>
     </html>
   );
