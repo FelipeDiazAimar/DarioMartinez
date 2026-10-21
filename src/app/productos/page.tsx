@@ -1,4 +1,6 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import { Search } from 'lucide-react';
 import { LoadingImage } from '@/components/loading-image';
 import { Footer } from '@/components/footer';
@@ -6,6 +8,16 @@ import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
 import { fetchCatalogCategoryData, fetchCatalogItems, fetchCatalogItemsPage } from './catalog-utils';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Productos de computación en San Francisco, Córdoba',
+  description: 'Equipos, insumos y accesorios de computación con stock en Darío Martínez Computación, San Francisco, Córdoba.',
+  alternates: { canonical: '/productos' },
+};
+
+const getCachedCatalogPage = unstable_cache(fetchCatalogItemsPage, ['catalog-page'], { revalidate: 600 });
+const getCachedCatalogItems = unstable_cache(fetchCatalogItems, ['catalog-all'], { revalidate: 600 });
+const getCachedCatalogCategoryData = unstable_cache(fetchCatalogCategoryData, ['catalog-categories'], { revalidate: 600 });
 
 type AdminTestBdPageProps = {
   searchParams?: Promise<{
@@ -96,7 +108,7 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     let pageItemsWindow: typeof inStockItems = [];
 
     if (useFastMode) {
-      const catalogPageResult = await fetchCatalogItemsPage(apiBaseUrl, apiToken, {
+      const catalogPageResult = await getCachedCatalogPage(apiBaseUrl, apiToken, {
         page: currentPage,
         pageSize: MAX_VISIBLE_PER_PAGE,
         searchTerm: searchTerm || undefined,
@@ -109,12 +121,12 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
       effectivePage = Math.min(catalogPageResult.page, totalPages);
       pageItemsWindow = filteredItems;
     } else {
-      const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
+      const catalogResult = await getCachedCatalogItems(apiBaseUrl, apiToken);
       endpointUsed = catalogResult.endpointUsed;
       inStockItems = catalogResult.visibleInStockItems;
 
       const articleNumbersForCategoryFilter = inStockItems.map((item) => item.articleNumber).filter(Boolean);
-      const categoryDataForFilter = await fetchCatalogCategoryData(articleNumbersForCategoryFilter);
+      const categoryDataForFilter = await getCachedCatalogCategoryData(articleNumbersForCategoryFilter);
       const articleCategoryMapForFilter = categoryDataForFilter.articleCategoryByNumber;
 
       const filteredByCategoryItems = inStockItems.filter((item) => {
@@ -139,7 +151,7 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
 
     const articleNumbers = pageItemsWindow.map((item) => item.articleNumber).filter(Boolean);
 
-    const categoryData = await fetchCatalogCategoryData(articleNumbers);
+    const categoryData = await getCachedCatalogCategoryData(articleNumbers);
     const categories = categoryData.categories;
     const articleCategoryByNumber = categoryData.articleCategoryByNumber;
     const categoriesById = Object.fromEntries(categories.map((category) => [category.id, category.nombre]));
@@ -393,16 +405,24 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
+    console.error('Catálogo no disponible', message, endpointUsed);
 
     return (
       <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <meta name="robots" content="noindex" />
         <main className="mx-auto w-full max-w-6xl p-6">
-          <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-            <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
-            <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
-            <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
+          <section className="rounded-2xl border bg-white p-6 text-center shadow-sm">
+            <h1 className="text-lg font-semibold">El catálogo no está disponible en este momento</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Lo actualizamos durante el horario de atención. Mientras tanto, consultanos por WhatsApp por precio y stock.</p>
+            <a
+              href="https://wa.me/5493564504977"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block rounded-full border border-blue-600 bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            >
+              Consultar por WhatsApp
+            </a>
           </section>
-
         </main>
         <Footer forceShow />
       </div>

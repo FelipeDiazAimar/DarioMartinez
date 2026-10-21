@@ -16,7 +16,7 @@ const defaultContactInfo = {
   facebook: 'https://www.facebook.com/profile.php?id=61585160335205',
   email: 'dario.martinez.comp@email.com',
   phone: '03564 15-504977',
-  address: 'Libertador Norte 163',
+  address: 'Av. del Libertador Norte 163, San Francisco, Córdoba',
   google_maps: 'https://share.google/WFdtCtDtE7RPHKL5o',
   hours_mon_thu: 'Lunes a Jueves de 7:30 a 12:30 y de 15:30 a 19:30',
   hours_fri: 'Viernes de 8:00 a 12:00 y de 15:30 a 19:30',
