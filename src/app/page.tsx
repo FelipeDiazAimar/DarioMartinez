@@ -932,7 +932,7 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild size="icon" className="rounded-full bg-[#E4405F] text-white hover:bg-[#E4405F]/90">
-                <Link href="https://www.instagram.com/dariomartinezcomputacion/" target="_blank" aria-label="Instagram">
+                <Link href="https://www.instagram.com/dariomartinez.computacion/" target="_blank" aria-label="Instagram">
                   <Instagram className="h-6 w-6" />
                 </Link>
               </Button>

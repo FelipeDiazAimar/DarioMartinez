@@ -47,7 +47,7 @@ export default function EditContactPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       whatsapp: "5493564504977",
-      instagram: "https://www.instagram.com/dariomartinezcomputacion/",
+      instagram: "https://www.instagram.com/dariomartinez.computacion/",
       facebook: "https://www.facebook.com/profile.php?id=61585160335205",
       email: "dario.martinez.comp@email.com",
       phone: "03564 15-504977",
@@ -82,7 +82,7 @@ export default function EditContactPage() {
       if (data) {
         form.reset({
           whatsapp: data.whatsapp ?? "5493564504977",
-          instagram: data.instagram ?? "https://www.instagram.com/dariomartinezcomputacion/",
+          instagram: data.instagram ?? "https://www.instagram.com/dariomartinez.computacion/",
           facebook: data.facebook ?? "https://www.facebook.com/profile.php?id=61585160335205",
           email: data.email ?? "dario.martinez.comp@email.com",
           phone: data.phone ?? "03564 15-504977",

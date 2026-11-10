@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Check,
   Download,
+  MessageCircle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -171,13 +172,55 @@ export default function ServiciosPage() {
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-              Servicio Técnico
+              Servicio técnico de PC y notebooks en San Francisco, Córdoba
             </h1>
             <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Ofrecemos una amplia gama de servicios para mantener tus equipos
-              en perfecto estado y optimizar tu entorno tecnológico.
+              Reparamos y ponemos a punto tu equipo en nuestro taller de Av. del Libertador Norte 163, San Francisco. Escribinos por WhatsApp y te pasamos presupuesto.
             </p>
           </div>
+        </div>
+        <div className="mx-auto max-w-3xl pt-10">
+          <h2 className="mb-6 text-center text-2xl font-bold tracking-tight sm:text-3xl font-headline">
+            Qué hacemos en el taller
+          </h2>
+          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 text-foreground/80">
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Reparación de PC y notebooks de todas las marcas</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Limpieza interna y cambio de pasta térmica</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Formateo e instalación de Windows y programas</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Cambio a disco SSD y ampliación de memoria</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Service de impresoras láser y de tinta</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Service de controladores fiscales</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Service de relojes de personal y contadoras de billetes</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Redes, WiFi y routers</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 mt-1 h-4 w-4 flex-shrink-0 text-primary" />
+              <span>Asistencia remota con AnyDesk o TeamViewer</span>
+            </li>
+          </ul>
         </div>
         <Accordion type="single" collapsible className="mx-auto grid max-w-3xl grid-cols-1 gap-6 pt-12">
                 {servicesData.map((service, index) => {
@@ -264,8 +307,42 @@ export default function ServiciosPage() {
             </Card>
         </div>
 
-        <div className="mt-12 flex justify-center">
-          <Button asChild size="lg" className="rounded-full">
+        <div className="mx-auto max-w-3xl pt-12">
+          <h2 className="mb-6 text-center text-2xl font-bold tracking-tight sm:text-3xl font-headline">
+            Preguntas frecuentes
+          </h2>
+          <div className="space-y-6 text-left">
+            <div>
+              <p className="font-semibold">¿Dónde está el taller?</p>
+              <p className="text-foreground/80">En Av. del Libertador Norte 163, San Francisco, Córdoba.</p>
+            </div>
+            <div>
+              <p className="font-semibold">¿Qué horario tienen?</p>
+              <p className="text-foreground/80">Lunes a jueves de 7:30 a 12:30 y de 15:30 a 19:30, y viernes de 8:00 a 12:00 y de 15:30 a 19:30. Sábados y domingos, cerrado.</p>
+            </div>
+            <div>
+              <p className="font-semibold">¿Reparan todas las marcas?</p>
+              <p className="text-foreground/80">Sí, trabajamos con PC de escritorio y notebooks de todas las marcas y modelos.</p>
+            </div>
+            <div>
+              <p className="font-semibold">¿Puedo pedir presupuesto por WhatsApp?</p>
+              <p className="text-foreground/80">Sí. Escribinos contándonos qué le pasa al equipo y te respondemos.</p>
+            </div>
+            <div>
+              <p className="font-semibold">¿Me pueden ayudar sin llevar el equipo?</p>
+              <p className="text-foreground/80">Para problemas de programas, sí: con asistencia remota por AnyDesk o TeamViewer.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Button asChild size="lg" className="rounded-full bg-[#25D366] text-white hover:bg-[#25D366]/90">
+            <Link href="https://wa.me/5493564504977?text=Hola%2C%20quiero%20consultar%20por%20servicio%20t%C3%A9cnico" target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="mr-2 h-5 w-5" />
+              Consultar por WhatsApp
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-full">
             <Link href="/contacto">
               Contactar
               <ArrowRight className="ml-2 h-5 w-5" />

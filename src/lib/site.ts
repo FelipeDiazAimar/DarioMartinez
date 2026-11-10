@@ -8,5 +8,5 @@ export const BUSINESS = {
   region: 'Córdoba',
   postalCode: '2400',
   country: 'AR',
-  instagram: 'https://www.instagram.com/dariomartinezcomputacion/',
+  instagram: 'https://www.instagram.com/dariomartinez.computacion/',
 };

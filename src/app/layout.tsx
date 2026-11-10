@@ -42,6 +42,21 @@ export default function RootLayout({
     },
     areaServed: 'San Francisco, Córdoba',
     sameAs: [BUSINESS.instagram],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Servicio técnico',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Reparación de PC y notebooks de todas las marcas' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Limpieza interna y cambio de pasta térmica' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Formateo e instalación de Windows y programas' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Cambio a disco SSD y ampliación de memoria' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Service de impresoras láser y de tinta' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Service de controladores fiscales' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Service de relojes de personal y contadoras de billetes' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Redes, WiFi y routers' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Asistencia remota con AnyDesk o TeamViewer' } },
+      ],
+    },
     openingHoursSpecification: [
       {
         '@type': 'OpeningHoursSpecification',
