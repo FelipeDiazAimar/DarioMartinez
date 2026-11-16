@@ -937,7 +937,7 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild size="icon" className="rounded-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
-                <Link href="https://www.facebook.com/profile.php?id=61585160335205" target="_blank" aria-label="Facebook">
+                <Link href="https://www.facebook.com/profile.php?id=61595361025236" target="_blank" aria-label="Facebook">
                   <FacebookIcon className="h-6 w-6" />
                 </Link>
               </Button>

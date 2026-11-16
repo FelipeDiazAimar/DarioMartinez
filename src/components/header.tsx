@@ -37,7 +37,7 @@ import { supabase } from "@/lib/supabase-client";
 const defaultContactInfo = {
   whatsapp: "5493564504977",
   instagram: "https://www.instagram.com/dariomartinez.computacion/",
-  facebook: "https://www.facebook.com/profile.php?id=61585160335205",
+  facebook: "https://www.facebook.com/profile.php?id=61595361025236",
   email: "dario.martinez.comp@email.com",
   phone: "03564 15-504977",
   address: "Libertador Norte 163",

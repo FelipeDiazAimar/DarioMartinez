@@ -48,7 +48,7 @@ export default function EditContactPage() {
     defaultValues: {
       whatsapp: "5493564504977",
       instagram: "https://www.instagram.com/dariomartinez.computacion/",
-      facebook: "https://www.facebook.com/profile.php?id=61585160335205",
+      facebook: "https://www.facebook.com/profile.php?id=61595361025236",
       email: "dario.martinez.comp@email.com",
       phone: "03564 15-504977",
       address: "Libertador Norte 163",
@@ -83,7 +83,7 @@ export default function EditContactPage() {
         form.reset({
           whatsapp: data.whatsapp ?? "5493564504977",
           instagram: data.instagram ?? "https://www.instagram.com/dariomartinez.computacion/",
-          facebook: data.facebook ?? "https://www.facebook.com/profile.php?id=61585160335205",
+          facebook: data.facebook ?? "https://www.facebook.com/profile.php?id=61595361025236",
           email: data.email ?? "dario.martinez.comp@email.com",
           phone: data.phone ?? "03564 15-504977",
           address: data.address ?? "Libertador Norte 163",
