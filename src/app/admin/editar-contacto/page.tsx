@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Contact, Check, Undo2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 
 const formSchema = z.object({
   whatsapp: z.string().min(10, { message: "Debe tener al menos 10 dígitos." }),

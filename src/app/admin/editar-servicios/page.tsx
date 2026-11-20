@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Wrench, PlusCircle, Trash2, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 
 const serviceDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });
 

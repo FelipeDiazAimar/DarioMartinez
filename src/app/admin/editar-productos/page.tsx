@@ -31,7 +31,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 
 
 const productDetailSchema = z.string().min(10, { message: "El detalle es muy corto." });

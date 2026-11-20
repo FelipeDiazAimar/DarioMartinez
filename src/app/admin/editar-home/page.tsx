@@ -17,7 +17,7 @@ import { Home, Check, Undo2, Pencil, PlusCircle, Trash2, ArrowUp, ArrowDown } fr
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 
 type CarouselEditorItem = {
   id: string;

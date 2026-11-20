@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Inbox } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 type ConsultaRow = {
   id: number;
   nombre: string | null;

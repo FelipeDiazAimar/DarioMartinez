@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Check, Undo2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/lib/supabase-client';
+import { adminSupabase as supabase } from '@/lib/admin-db-client';
 
 const formSchema = z.object({
   mainTitle: z.string().min(5, { message: "El título es muy corto." }),
