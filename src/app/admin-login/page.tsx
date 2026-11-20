@@ -13,11 +13,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const setAdminAuthCookie = (persistent: boolean) => {
-    const base = 'admin_auth=1; path=/; SameSite=Lax';
-    document.cookie = persistent ? `${base}; max-age=${60 * 60 * 24 * 30}` : base;
-  };
+  const [submitting, setSubmitting] = useState(false);
 
   const getAdminDestination = () => {
     const next = new URLSearchParams(window.location.search).get('next');
@@ -34,25 +30,43 @@ export default function AdminLoginPage() {
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'MartinezDario@') {
+    if (submitting) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // La clave se valida en el servidor, que deja una cookie de sesión firmada (httpOnly).
+      const response = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, remember: rememberMe }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        setError(payload?.message || 'Clave incorrecta. Intente de nuevo.');
+        setPassword('');
+        return;
+      }
+
+      // Marca que usan las páginas del panel para mostrarse. La protección real es la cookie
+      // de sesión que verifica el middleware.
       if (rememberMe) {
         localStorage.setItem('isAdminAuthenticated', 'true');
         sessionStorage.removeItem('isAdminAuthenticated');
-        setAdminAuthCookie(true);
       } else {
         sessionStorage.setItem('isAdminAuthenticated', 'true');
         localStorage.removeItem('isAdminAuthenticated');
-        setAdminAuthCookie(false);
       }
 
       // Forzar navegación completa evita carreras entre set de cookie y middleware.
       window.location.assign(getAdminDestination());
-    } else {
-      document.cookie = 'admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-      setError('Clave incorrecta. Intente de nuevo.');
-      setPassword('');
+    } catch {
+      setError('No se pudo conectar con el servidor. Intente de nuevo.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -102,8 +116,8 @@ export default function AdminLoginPage() {
               </Label>
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">
-              Ingresar
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? 'Ingresando…' : 'Ingresar'}
             </Button>
           </form>
         </CardContent>

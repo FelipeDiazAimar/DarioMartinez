@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const ADMIN_AUTH_COOKIE = 'admin_auth';
-
-function isAdminAuthenticated(request: NextRequest) {
-  return request.cookies.get(ADMIN_AUTH_COOKIE)?.value === '1';
-}
+import { ADMIN_SESSION_COOKIE, getSessionSecret, verifySessionToken } from '@/lib/admin-session';
 
 function isProtectedAdminPath(pathname: string) {
   return pathname === '/admin' || pathname.startsWith('/admin/');
+}
+
+function isProtectedAdminApi(pathname: string) {
+  return pathname === '/api/admin' || pathname.startsWith('/api/admin/');
 }
 
 function resolveLoginRedirectTarget(nextParam: string | null) {
@@ -17,18 +16,27 @@ function resolveLoginRedirectTarget(nextParam: string | null) {
   return isProtectedAdminPath(cleanTarget) ? cleanTarget : '/admin';
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const authenticated = isAdminAuthenticated(request);
+  const authenticated = await verifySessionToken(
+    request.cookies.get(ADMIN_SESSION_COOKIE)?.value,
+    getSessionSecret(),
+  );
+
+  if (isProtectedAdminApi(pathname)) {
+    if (!authenticated) {
+      return NextResponse.json({ success: false, message: 'No autorizado.' }, { status: 401 });
+    }
+
+    return NextResponse.next();
+  }
 
   if (isProtectedAdminPath(pathname)) {
     if (!authenticated) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/admin-login';
       loginUrl.search = '';
-
-      const nextPath = `${pathname}${search}`;
-      loginUrl.searchParams.set('next', nextPath);
+      loginUrl.searchParams.set('next', `${pathname}${search}`);
 
       return NextResponse.redirect(loginUrl);
     }
@@ -46,5 +54,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/admin-login'],
+  matcher: ['/admin', '/admin/:path*', '/admin-login', '/api/admin', '/api/admin/:path*'],
 };
