@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, Printer, RotateCcw, Undo2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Printer, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision } from '@/lib/revision-tipos';
 import { Carrete } from './carrete';
+import { Comparar } from './comparar';
 import { NOMBRE_ESTADO, NOMBRE_TIPO } from './comun';
 import { EditorMovil } from './editor-movil';
 import { MarcaEstado } from './estado';
@@ -63,6 +64,8 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   const { historial } = borrador;
   const ultimoPaso = useRef({ grupo: '', momento: 0 });
   const [editando, setEditando] = useState<Editando | null>(null);
+  // Pieza que se está comparando con su original.
+  const [comparando, setComparando] = useState<string | null>(null);
   const [autor, setAutor] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<{ id: string; texto: string; mal?: boolean } | null>(null);
@@ -75,6 +78,7 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   const descripcionNueva = descripcionCambiada(pieza, descripcion);
   const sinGuardar = difiere(pieza, borrador, revision);
   const distintaDelOriginal = Object.keys(textos).length > 0 || descripcionNueva !== null;
+  const comparacion = comparando === pieza.id;
   const pendientesDeGuardar = piezas.filter((p) => trabajos[p.id] && difiere(p, trabajos[p.id], revisionDe(p.id))).length;
 
   const fijar = (parte: Partial<Trabajo>) => setTrabajos((t) => ({ ...t, [pieza.id]: { ...(t[pieza.id] ?? trabajoInicial(pieza, revision)), ...parte } }));
@@ -188,21 +192,40 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
               <Printer className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Imprimir</span>
             </Button>
           )}
-          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => alIr(piezas[posicion - 1].id)} aria-label="Pieza anterior"><ChevronLeft /></Button>
-          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => alIr(piezas[posicion + 1].id)} aria-label="Pieza siguiente"><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => { setComparando(null); alIr(piezas[posicion - 1].id); }} aria-label="Pieza anterior"><ChevronLeft /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => { setComparando(null); alIr(piezas[posicion + 1].id); }} aria-label="Pieza siguiente"><ChevronRight /></Button>
         </div>
 
-        {editables && (
-          <p className="px-3 pt-2 text-center text-sm text-muted-foreground">
-            {escritorio ? 'Clic en un texto para cambiarlo. Rueda o flechas para pasar de pieza.' : 'Tocá un texto para cambiarlo. Deslizá para pasar de pieza.'}
-          </p>
-        )}
+        <p className="px-3 pt-2 text-center text-sm text-muted-foreground">
+          {comparacion
+            ? 'El original queda como se produjo. Los cambios van en tu copia.'
+            : distintaDelOriginal
+              ? 'Estás viendo tu copia con cambios. El original no se modifica.'
+              : editables
+                ? escritorio
+                  ? 'Clic en un texto para editar una copia. Rueda o flechas para pasar de pieza.'
+                  : 'Tocá un texto para editar una copia. Deslizá para pasar de pieza.'
+                : 'Los cambios se hacen sobre una copia; el original no se modifica.'}
+        </p>
 
+        {comparacion ? (
+          <Comparar
+            key={pieza.id}
+            pieza={pieza}
+            clave={clave}
+            escritorio={escritorio}
+            textos={textos}
+            descripcion={descripcion}
+            alCambiar={cambiarTextos}
+            alTocar={(lamina, indice, original) => setEditando({ que: 'texto', lamina, indice, original })}
+          />
+        ) : (
         <Carrete
           piezas={piezas}
           actual={posicion}
           alElegir={(i) => {
             setEditando(null);
+            setComparando(null);
             alIr(piezas[i].id);
           }}
           clave={clave}
@@ -212,15 +235,27 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
           alCambiar={cambiarTextos}
           alTocar={(lamina, indice, original) => setEditando({ que: 'texto', lamina, indice, original })}
         />
+        )}
       </div>
 
       <div className="flex min-h-0 flex-col gap-2 border-t bg-white p-3 lg:gap-3 lg:border-l lg:border-t-0 lg:p-4">
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" disabled={!historial.length} onClick={deshacer}>
-            <Undo2 className="mr-1.5 h-4 w-4" /> Deshacer
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="outline" size="sm" className="px-1" disabled={!historial.length} onClick={deshacer}>
+            Deshacer
           </Button>
-          <Button variant="outline" size="sm" disabled={!distintaDelOriginal} onClick={deshacerTodo}>
-            <RotateCcw className="mr-1.5 h-4 w-4" /> Deshacer todo
+          <Button variant="outline" size="sm" className="px-1" disabled={!distintaDelOriginal} onClick={deshacerTodo}>
+            Deshacer todo
+          </Button>
+          <Button
+            variant={comparacion ? 'default' : 'outline'}
+            size="sm"
+            className="px-1"
+            aria-pressed={comparacion}
+            disabled={!comparacion && !distintaDelOriginal}
+            title={distintaDelOriginal ? 'Ver el original al lado de tu copia' : 'Se activa cuando cambies algo'}
+            onClick={() => setComparando(comparacion ? null : pieza.id)}
+          >
+            {comparacion ? 'Cerrar' : 'Comparar'}
           </Button>
         </div>
 
