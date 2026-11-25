@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { Estado, Pieza as DatosPieza, Revision } from '@/lib/revision-tipos';
+import { REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision } from '@/lib/revision-tipos';
+import { Carrete } from './carrete';
 import { NOMBRE_ESTADO, NOMBRE_TIPO } from './comun';
 import { EditorMovil } from './editor-movil';
 import { MarcaEstado } from './estado';
@@ -18,51 +19,73 @@ const AUTOR_GUARDADO = 'dm-revision-autor';
 const ESCRITORIO = '(min-width: 1024px) and (pointer: fine)';
 
 type Borrador = { textos: Revision['textos']; descripcion: string; nota: string };
+/** Lo que se está cambiando en una pieza y todavía no se guardó. */
+type Trabajo = Borrador & { historial: Borrador[]; base: string | null };
 type Editando = { que: 'texto'; lamina: number; indice: number; original: string } | { que: 'descripcion' } | { que: 'nota' };
 
 type Props = {
-  pieza: DatosPieza;
-  revision: Revision;
+  /** Las piezas entre las que se puede desplazar, en orden. */
+  piezas: DatosPieza[];
+  actual: string;
+  revisiones: Record<string, Revision>;
   clave: string;
-  anterior?: string;
-  siguiente?: string;
-  alGuardar: (revision: Revision) => void;
+  alGuardar: (id: string, revision: Revision) => void;
   alIr: (id: string | null) => void;
 };
 
-/** Vista de acotaciones: todo a la vista, debajo del encabezado del sitio y sin desplazarse. */
-export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar, alIr }: Props) {
+const trabajoInicial = (pieza: DatosPieza, revision: Revision): Trabajo => ({
+  textos: revision.textos,
+  descripcion: revision.descripcion ?? pieza.descripcion ?? '',
+  nota: revision.nota,
+  historial: [],
+  base: revision.actualizado,
+});
+
+const descripcionCambiada = (pieza: DatosPieza, descripcion: string) => (pieza.descripcion === null || descripcion === pieza.descripcion ? null : descripcion);
+
+const difiere = (pieza: DatosPieza, trabajo: Borrador, revision: Revision) =>
+  trabajo.nota !== revision.nota ||
+  descripcionCambiada(pieza, trabajo.descripcion) !== revision.descripcion ||
+  JSON.stringify(trabajo.textos) !== JSON.stringify(revision.textos);
+
+/** Vista de acotaciones: todo a la vista, debajo del encabezado del sitio y sin desplazarse hacia abajo. */
+export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: Props) {
   const [escritorio] = useState(() => window.matchMedia(ESCRITORIO).matches);
-  const [indice, setIndice] = useState(0);
-  const [borrador, setBorrador] = useState<Borrador>({
-    textos: revision.textos,
-    descripcion: revision.descripcion ?? pieza.descripcion ?? '',
-    nota: revision.nota,
-  });
-  const [historial, setHistorial] = useState<Borrador[]>([]);
+  const posicion = Math.max(0, piezas.findIndex((p) => p.id === actual));
+  const pieza = piezas[posicion];
+  const revisionDe = (id: string) => revisiones[id] ?? REVISION_VACIA;
+  const revision = revisionDe(pieza.id);
+
+  // Cada pieza conserva sus cambios al pasar a otra.
+  const [trabajos, setTrabajos] = useState<Record<string, Trabajo>>({});
+  const trabajoDe = (p: DatosPieza) => trabajos[p.id] ?? trabajoInicial(p, revisionDe(p.id));
+  const borrador = trabajoDe(pieza);
+  const { historial } = borrador;
   const ultimoPaso = useRef({ grupo: '', momento: 0 });
   const [editando, setEditando] = useState<Editando | null>(null);
   const [autor, setAutor] = useState('');
-  const [base, setBase] = useState(revision.actualizado);
   const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState<{ texto: string; mal?: boolean } | null>(null);
+  const [aviso, setAviso] = useState<{ id: string; texto: string; mal?: boolean } | null>(null);
+  const mensaje = aviso?.id === pieza.id ? aviso : null;
+  const setMensaje = (m: { texto: string; mal?: boolean } | null) => setAviso(m && { id: pieza.id, ...m });
 
   const { textos, descripcion, nota } = borrador;
   const llevaDescripcion = pieza.descripcion !== null;
   const nombreDescripcion = pieza.tipo === 'idea' ? 'Idea' : 'Descripción';
-  const descripcionNueva = !llevaDescripcion || descripcion === pieza.descripcion ? null : descripcion;
-  const sinGuardar =
-    nota !== revision.nota || descripcionNueva !== revision.descripcion || JSON.stringify(textos) !== JSON.stringify(revision.textos);
+  const descripcionNueva = descripcionCambiada(pieza, descripcion);
+  const sinGuardar = difiere(pieza, borrador, revision);
   const distintaDelOriginal = Object.keys(textos).length > 0 || descripcionNueva !== null;
+  const pendientesDeGuardar = piezas.filter((p) => trabajos[p.id] && difiere(p, trabajos[p.id], revisionDe(p.id))).length;
+
+  const fijar = (parte: Partial<Trabajo>) => setTrabajos((t) => ({ ...t, [pieza.id]: { ...(t[pieza.id] ?? trabajoInicial(pieza, revision)), ...parte } }));
 
   /** Un paso de "Deshacer" por cada campo tocado; lo que se escribe de corrido cuenta como uno solo. */
-  function cambiar(parte: Partial<Borrador>, grupo: string) {
+  function cambiar(parte: Partial<Borrador>, campo: string) {
     const ahora = Date.now();
-    if (ultimoPaso.current.grupo !== grupo || ahora - ultimoPaso.current.momento > 1200) {
-      setHistorial((h) => [...h.slice(-99), borrador]);
-    }
+    const grupo = `${pieza.id}:${campo}`;
+    const nuevoPaso = ultimoPaso.current.grupo !== grupo || ahora - ultimoPaso.current.momento > 1200;
     ultimoPaso.current = { grupo, momento: ahora };
-    setBorrador((b) => ({ ...b, ...parte }));
+    fijar({ ...parte, ...(nuevoPaso && { historial: [...historial.slice(-99), { textos, descripcion, nota }] }) });
     setMensaje(null);
   }
 
@@ -79,8 +102,7 @@ export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar
   function deshacer() {
     const previo = historial.at(-1);
     if (!previo) return;
-    setHistorial(historial.slice(0, -1));
-    setBorrador(previo);
+    fijar({ ...previo, historial: historial.slice(0, -1) });
     ultimoPaso.current = { grupo: '', momento: 0 };
   }
 
@@ -102,15 +124,16 @@ export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar
   }, []);
 
   useEffect(() => {
-    if (!sinGuardar) return;
+    if (!pendientesDeGuardar) return;
     const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener('beforeunload', avisar);
     return () => window.removeEventListener('beforeunload', avisar);
-  }, [sinGuardar]);
+  }, [pendientesDeGuardar]);
 
-  const salir = (destino: string | null) => {
-    if (sinGuardar && !window.confirm('Hay cambios sin guardar. ¿Salir igual?')) return;
-    alIr(destino);
+  const cerrar = () => {
+    const cuantas = pendientesDeGuardar === 1 ? 'una pieza' : `${pendientesDeGuardar} piezas`;
+    if (pendientesDeGuardar && !window.confirm(`Hay cambios sin guardar en ${cuantas}. ¿Salir igual?`)) return;
+    alIr(null);
   };
 
   // Guardar con correcciones o nota deja la pieza "con correcciones", salvo que ya esté desaprobada.
@@ -127,18 +150,18 @@ export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar
       const respuesta = await fetch('/api/revision/pieza', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-revision-clave': clave },
-        body: JSON.stringify({ id: pieza.id, estado, nota, descripcion: descripcionNueva, textos, autor, base }),
+        body: JSON.stringify({ id: pieza.id, estado, nota, descripcion: descripcionNueva, textos, autor, base: borrador.base }),
       });
       const datos = await respuesta.json();
       if (respuesta.status === 409) {
-        alGuardar(datos.actual);
-        setBase(datos.actual.actualizado);
+        alGuardar(pieza.id, datos.actual);
+        fijar({ base: datos.actual.actualizado });
         setMensaje({ texto: `${datos.error} Lo tuyo sigue acá: revisalo y volvé a guardar.`, mal: true });
         return;
       }
       if (!respuesta.ok) throw new Error(datos.error);
-      alGuardar(datos.revision);
-      setBase(datos.revision.actualizado);
+      alGuardar(pieza.id, datos.revision);
+      setTrabajos(({ [pieza.id]: _, ...resto }) => resto);
       setMensaje({ texto: estado === 'aprobado' ? 'Aprobada y guardada.' : `Guardada como "${NOMBRE_ESTADO[estado].toLowerCase()}".` });
     } catch (e) {
       setMensaje({ texto: e instanceof Error && e.message ? e.message : 'No se pudo guardar. Revisá la conexión.', mal: true });
@@ -156,53 +179,39 @@ export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar
     <section aria-label={pieza.titulo} className="fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1">
       <div className="flex min-h-0 flex-1 flex-col" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
         <div className="flex items-center gap-1 border-b bg-white px-2 py-1.5">
-          <Button variant="ghost" size="icon" onClick={() => salir(null)} aria-label="Volver a la lista"><X /></Button>
+          <Button variant="ghost" size="icon" onClick={cerrar} aria-label="Volver a la lista"><X /></Button>
           <MarcaEstado estado={revision.estado} className="rounded-full px-3 py-1 text-sm" />
-          <span className="min-w-0 flex-1 truncate pl-1 text-sm text-muted-foreground">{pieza.aporte?.autor ? `${NOMBRE_TIPO[pieza.tipo]} de ${pieza.aporte.autor}` : NOMBRE_TIPO[pieza.tipo]}</span>
+          <span className="min-w-0 flex-1 truncate pl-1 text-sm text-muted-foreground max-sm:invisible">{pieza.aporte?.autor ? `${NOMBRE_TIPO[pieza.tipo]} de ${pieza.aporte.autor}` : NOMBRE_TIPO[pieza.tipo]}</span>
+          <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{posicion + 1} de {piezas.length}</span>
           {imprimible && (
             <Button variant="outline" size="sm" aria-label="Imprimir" onClick={() => imprimir(pieza, textos, clave).catch(() => setMensaje({ texto: 'No se pudo preparar la impresión.', mal: true }))}>
               <Printer className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Imprimir</span>
             </Button>
           )}
-          <Button variant="ghost" size="icon" disabled={!anterior} onClick={() => salir(anterior!)} aria-label="Pieza anterior"><ChevronLeft /></Button>
-          <Button variant="ghost" size="icon" disabled={!siguiente} onClick={() => salir(siguiente!)} aria-label="Pieza siguiente"><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => alIr(piezas[posicion - 1].id)} aria-label="Pieza anterior"><ChevronLeft /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => alIr(piezas[posicion + 1].id)} aria-label="Pieza siguiente"><ChevronRight /></Button>
         </div>
 
         {editables && (
           <p className="px-3 pt-2 text-center text-sm text-muted-foreground">
-            {escritorio ? 'Hacé clic en cualquier texto de la imagen y escribí encima.' : 'Tocá un texto de la imagen para cambiarlo.'}
+            {escritorio ? 'Clic en un texto para cambiarlo. Rueda o flechas para pasar de pieza.' : 'Tocá un texto para cambiarlo. Deslizá para pasar de pieza.'}
           </p>
         )}
 
-        {pieza.laminas.length === 0 ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center p-4">
-            <p className="max-h-full w-full max-w-xl overflow-hidden whitespace-pre-wrap rounded-2xl border bg-white p-6 text-lg shadow-sm">{descripcion}</p>
-          </div>
-        ) : (
-          <div className="flex min-h-0 flex-1 gap-3 p-3">
-            {pieza.laminas.map((lamina, i) => (
-              <div key={lamina.id} className={cn('min-h-0 min-w-0 flex-1', i !== indice && 'hidden lg:block')}>
-                <Pieza
-                  lamina={lamina}
-                  clave={clave}
-                  nombre={`${pieza.titulo}, imagen ${i + 1}`}
-                  conControles
-                  cambios={textos[lamina.id]}
-                  alCambiar={escritorio ? (cambios) => cambiarTextos(lamina.id, cambios) : undefined}
-                  alTocar={escritorio ? undefined : (n, original) => setEditando({ que: 'texto', lamina: i, indice: n, original })}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {pieza.laminas.length > 1 && (
-          <div className="flex justify-center gap-2 pb-2 lg:hidden">
-            {pieza.laminas.map((lamina, i) => (
-              <Button key={lamina.id} size="sm" variant={i === indice ? 'default' : 'outline'} onClick={() => setIndice(i)}>Imagen {i + 1}</Button>
-            ))}
-          </div>
-        )}
+        <Carrete
+          piezas={piezas}
+          actual={posicion}
+          alElegir={(i) => {
+            setEditando(null);
+            alIr(piezas[i].id);
+          }}
+          clave={clave}
+          escritorio={escritorio}
+          textosDe={(p) => trabajoDe(p).textos}
+          descripcionDe={(p) => trabajoDe(p).descripcion}
+          alCambiar={cambiarTextos}
+          alTocar={(lamina, indice, original) => setEditando({ que: 'texto', lamina, indice, original })}
+        />
       </div>
 
       <div className="flex min-h-0 flex-col gap-2 border-t bg-white p-3 lg:gap-3 lg:border-l lg:border-t-0 lg:p-4">

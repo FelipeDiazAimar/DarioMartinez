@@ -34,6 +34,10 @@ type Props = {
   activo?: number;
   /** Los videos se pueden reproducir (vista grande). */
   conControles?: boolean;
+  /** Dibujar sin esperar a que entre en pantalla. */
+  yaMismo?: boolean;
+  /** Rueda del mouse sobre la pieza: el marco no la deja pasar sola. */
+  alRueda?: (e: WheelEvent) => void;
 };
 
 /** Una imagen de la pieza escalada para entrar en el espacio disponible. */
@@ -43,11 +47,15 @@ export function Pieza(props: Props) {
 
 function Archivo({ lamina, nombre, conControles }: Props) {
   const { url, mime } = lamina.archivo!;
+  const video = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (!conControles) video.current?.pause();
+  }, [conControles]);
   if (mime.startsWith('video/')) {
     return (
       <div className="relative flex h-full min-h-0 w-full items-center justify-center bg-black">
         {/* El #t pide un cuadro para usar de miniatura. */}
-        <video src={conControles ? url : `${url}#t=0.1`} controls={conControles} playsInline preload="metadata" muted={!conControles} className="max-h-full max-w-full" />
+        <video ref={video} src={conControles ? url : `${url}#t=0.1`} controls={conControles} playsInline preload="metadata" muted={!conControles} className="max-h-full max-w-full" />
         {!conControles && <Play aria-hidden className="absolute h-12 w-12 fill-white text-white drop-shadow-lg" />}
       </div>
     );
@@ -60,8 +68,8 @@ function Archivo({ lamina, nombre, conControles }: Props) {
   );
 }
 
-function Editable({ lamina, clave, nombre, cambios, alCambiar, alTocar, activo }: Props) {
-  const [cerca, setCerca] = useState(Boolean(alCambiar || alTocar));
+function Editable({ lamina, clave, nombre, cambios, alCambiar, alTocar, activo, yaMismo, alRueda }: Props) {
+  const [cerca, setCerca] = useState(Boolean(yaMismo || alCambiar || alTocar));
   const [html, setHtml] = useState<string | null>(null);
   const [falla, setFalla] = useState(false);
   const [lista, setLista] = useState(false);
@@ -70,8 +78,8 @@ function Editable({ lamina, clave, nombre, cambios, alCambiar, alTocar, activo }
   const caja = useRef<HTMLDivElement>(null);
   const marco = useRef<HTMLIFrameElement>(null);
   const originales = useRef<string[]>([]);
-  const ultimo = useRef(alCambiar);
-  ultimo.current = alCambiar;
+  const ultimo = useRef({ alCambiar, alRueda });
+  ultimo.current = { alCambiar, alRueda };
 
   useEffect(() => {
     const elemento = caja.current;
@@ -109,28 +117,38 @@ function Editable({ lamina, clave, nombre, cambios, alCambiar, alTocar, activo }
       const envoltura = doc.createElement('dm-t');
       nodo.replaceWith(envoltura);
       envoltura.appendChild(nodo);
-      if (ultimo.current) {
-        envoltura.setAttribute('contenteditable', 'plaintext-only');
-        envoltura.setAttribute('spellcheck', 'false');
-      }
     }
-    if (ultimo.current) {
-      const estilo = doc.createElement('style');
-      estilo.textContent = ESTILO_EDICION;
-      doc.head.appendChild(estilo);
-      doc.addEventListener('keydown', (e) => e.key === 'Enter' && e.preventDefault());
-      doc.addEventListener('input', () => {
-        const nuevos: Record<string, string> = {};
-        elementos().forEach((el, i) => {
-          const texto = el.textContent ?? '';
-          if (texto !== originales.current[i]) nuevos[i] = texto.slice(0, 600);
-        });
-        ultimo.current?.(nuevos);
+    doc.addEventListener('keydown', (e) => e.key === 'Enter' && e.preventDefault());
+    doc.addEventListener('wheel', (e) => ultimo.current.alRueda?.(e), { passive: false });
+    doc.addEventListener('input', () => {
+      const nuevos: Record<string, string> = {};
+      elementos().forEach((el, i) => {
+        const texto = el.textContent ?? '';
+        if (texto !== originales.current[i]) nuevos[i] = texto.slice(0, 600);
       });
-    }
+      ultimo.current.alCambiar?.(nuevos);
+    });
     await doc.fonts.ready;
     setLista(true);
   }
+
+  // La edición directa se enciende y se apaga sin volver a cargar la pieza.
+  const editable = Boolean(alCambiar);
+  useEffect(() => {
+    const doc = marco.current?.contentDocument;
+    if (!lista || !doc || !editable) return;
+    const estilo = doc.createElement('style');
+    estilo.textContent = ESTILO_EDICION;
+    doc.head.appendChild(estilo);
+    for (const el of elementos()) {
+      el.setAttribute('contenteditable', 'plaintext-only');
+      el.setAttribute('spellcheck', 'false');
+    }
+    return () => {
+      estilo.remove();
+      for (const el of elementos()) el.removeAttribute('contenteditable');
+    };
+  }, [lista, editable, elementos]);
 
   // Aplicar las correcciones (solo lo que difiere, para no mover el cursor) y medir las zonas para tocar.
   const tocable = Boolean(alTocar);

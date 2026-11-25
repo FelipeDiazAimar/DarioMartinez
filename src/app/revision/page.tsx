@@ -91,7 +91,6 @@ export default function RevisionPage() {
 
   const aprobadas = todas.filter((p) => revisionDe(p.id).estado === 'aprobado').length;
   const piezaAbierta = todas.find((p) => p.id === abierta);
-  const posicion = abierta ? recorrido.indexOf(abierta) : -1;
 
   const cuantasConEstado = (valor: Estado | 'todas') => (valor === 'todas' ? delTipo.length : delTipo.filter((p) => revisionDe(p.id).estado === valor).length);
   const cuantasDeTipo = (valor: Tipo | 'todo') => (valor === 'todo' ? delEstado.length : delEstado.filter((p) => p.tipo === valor).length);
@@ -241,13 +240,11 @@ export default function RevisionPage() {
 
       {piezaAbierta && clave !== null && (
         <Detalle
-          key={piezaAbierta.id}
-          pieza={piezaAbierta}
-          revision={revisionDe(piezaAbierta.id)}
+          piezas={recorrido.flatMap((id) => todas.filter((p) => p.id === id))}
+          actual={piezaAbierta.id}
+          revisiones={revisiones}
           clave={clave}
-          anterior={recorrido[posicion - 1]}
-          siguiente={recorrido[posicion + 1]}
-          alGuardar={(revision) => setRevisiones((antes) => ({ ...antes, [piezaAbierta.id]: revision }))}
+          alGuardar={(id, revision) => setRevisiones((antes) => ({ ...antes, [id]: revision }))}
           alIr={setAbierta}
         />
       )}
