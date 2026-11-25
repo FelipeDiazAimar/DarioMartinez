@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 import type { Pieza as DatosPieza, Revision } from '@/lib/revision-tipos';
 import { Pieza } from './lamina';
 
-const SEPARACION = 24;
+const SEPARACION = 10;
+// Parte del alto que ocupa la pieza actual; el resto deja asomar la de arriba y la de abajo.
+const PARTE = 0.84;
 // Piezas dibujadas a cada lado de la actual; las demás ocupan su lugar vacías.
 const CERCANAS = 2;
 
@@ -22,7 +24,7 @@ type Props = {
   alTocar: (lamina: number, indice: number, original: string) => void;
 };
 
-/** Las piezas en fila: la actual queda centrada y se pasa de una a otra desplazando. */
+/** Las piezas en columna: la actual queda centrada y se pasa de una a otra desplazando. */
 export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe, descripcionDe, alCambiar, alTocar }: Props) {
   const pista = useRef<HTMLDivElement>(null);
   const [tamano, setTamano] = useState({ ancho: 0, alto: 0 });
@@ -30,6 +32,7 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
   const centrada = useRef(-1);
   const espera = useRef<ReturnType<typeof setTimeout>>(undefined);
   const rueda = useRef({ hasta: 0 });
+  const tocando = useRef(false);
   const estado = useRef({ actual, total: piezas.length, alElegir });
   estado.current = { actual, total: piezas.length, alElegir };
 
@@ -44,19 +47,22 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
   // En PC los carruseles se ven completos; en celular, de a una imagen.
   const visibles = (p: DatosPieza) => (escritorio ? Math.max(p.laminas.length, 1) : 1);
 
-  const anchoDe = (p: DatosPieza) => {
+  /** Tamaño de cada pieza: la más grande que entra a lo ancho y deja ver las vecinas. */
+  const medidaDe = (p: DatosPieza) => {
     const [primera] = p.laminas;
     const proporcion = primera ? primera.ancho / primera.alto : 4 / 5;
     const botones = !escritorio && p.laminas.length > 1 ? 44 : 0;
     const n = visibles(p);
-    return Math.round(Math.min(tamano.ancho * 0.86, (tamano.alto - botones) * proporcion * n + 12 * (n - 1)));
+    const huecos = 12 * (n - 1);
+    const ancho = Math.min(tamano.ancho - 24, (tamano.alto * PARTE - botones) * proporcion * n + huecos);
+    return { width: Math.round(ancho), height: Math.round((ancho - huecos) / n / proporcion + botones) };
   };
 
   const centrar = useCallback((indice: number, suave: boolean) => {
     const el = pista.current;
     const hoja = el?.querySelector<HTMLElement>(`[data-hoja="${indice}"]`);
     if (!el || !hoja) return;
-    el.scrollTo({ left: hoja.offsetLeft - (el.clientWidth - hoja.offsetWidth) / 2, behavior: suave ? 'smooth' : 'auto' });
+    el.scrollTo({ top: hoja.offsetTop - (el.clientHeight - hoja.offsetHeight) / 2, behavior: suave ? 'smooth' : 'auto' });
   }, []);
 
   // Al cambiar de pieza (flechas, teclado) o de tamaño, volver a centrar.
@@ -76,16 +82,19 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
     clearTimeout(espera.current);
     espera.current = setTimeout(() => {
       const el = pista.current;
-      if (!el) return;
-      const medio = el.scrollLeft + el.clientWidth / 2;
+      // Con el dedo todavía apoyado no se acomoda nada.
+      if (!el || tocando.current) return;
+      const medio = el.scrollTop + el.clientHeight / 2;
       const hojas = Array.from(el.querySelectorAll<HTMLElement>('[data-hoja]'));
-      const distancia = (h: HTMLElement) => Math.abs(h.offsetLeft + h.offsetWidth / 2 - medio);
+      const distancia = (h: HTMLElement) => Math.abs(h.offsetTop + h.offsetHeight / 2 - medio);
       const cercana = hojas.reduce((mejor, h) => (distancia(h) < distancia(mejor) ? h : mejor));
       const indice = Number(cercana.dataset.hoja);
       if (indice !== estado.current.actual) {
         centrada.current = indice;
         estado.current.alElegir(indice);
       }
+      // Si quedó a mitad de camino, terminar de centrarla.
+      if (Math.abs(cercana.offsetTop - (el.clientHeight - cercana.offsetHeight) / 2 - el.scrollTop) > 2) centrar(indice, true);
     }, 140);
   }
 
@@ -114,8 +123,10 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
     const el = pista.current;
     const teclas = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest('input, textarea, select')) return;
-      if (e.key === 'ArrowRight') paso(1);
-      if (e.key === 'ArrowLeft') paso(-1);
+      const direccion = ['ArrowDown', 'PageDown'].includes(e.key) ? 1 : ['ArrowUp', 'PageUp'].includes(e.key) ? -1 : 0;
+      if (!direccion) return;
+      e.preventDefault();
+      paso(direccion);
     };
     el?.addEventListener('wheel', alRueda, { passive: false });
     window.addEventListener('keydown', teclas);
@@ -126,19 +137,28 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
     };
   }, [alRueda, paso]);
 
-  const margen = (p: DatosPieza) => Math.max(0, (tamano.ancho - anchoDe(p)) / 2 - SEPARACION);
+  const margen = (p: DatosPieza) => Math.max(0, (tamano.alto - medidaDe(p).height) / 2 - SEPARACION);
 
   return (
     <div
       ref={pista}
       onScroll={alDesplazar}
+      onTouchStart={() => (tocando.current = true)}
+      onTouchEnd={() => {
+        tocando.current = false;
+        alDesplazar();
+      }}
+      onTouchCancel={() => {
+        tocando.current = false;
+        alDesplazar();
+      }}
       aria-label="Piezas"
-      className="relative flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-contain py-2 [scrollbar-width:none]"
+      className="relative flex min-h-0 flex-1 snap-y snap-mandatory flex-col items-center overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none]"
       style={{ gap: SEPARACION }}
     >
       {tamano.ancho > 0 && (
         <>
-          <div aria-hidden className="shrink-0" style={{ width: margen(piezas[0]) }} />
+          <div aria-hidden className="w-full shrink-0" style={{ height: margen(piezas[0]) }} />
           {piezas.map((pieza, i) => {
             const enFoco = i === actual;
             const textos = textosDe(pieza);
@@ -147,8 +167,8 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
                 key={pieza.id}
                 data-hoja={i}
                 aria-current={enFoco || undefined}
-                className={cn('relative flex h-full shrink-0 snap-center snap-always flex-col transition-opacity duration-300', !enFoco && 'opacity-40')}
-                style={{ width: anchoDe(pieza) }}
+                className={cn('relative flex shrink-0 snap-center snap-always flex-col transition-opacity duration-300', !enFoco && 'opacity-40')}
+                style={medidaDe(pieza)}
               >
                 {Math.abs(i - actual) > CERCANAS ? null : pieza.laminas.length === 0 ? (
                   <div className="flex min-h-0 flex-1 items-center">
@@ -188,7 +208,7 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
               </div>
             );
           })}
-          <div aria-hidden className="shrink-0" style={{ width: margen(piezas[piezas.length - 1]) }} />
+          <div aria-hidden className="w-full shrink-0" style={{ height: margen(piezas[piezas.length - 1]) }} />
         </>
       )}
     </div>

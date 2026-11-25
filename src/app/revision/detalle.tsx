@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, Printer, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Printer, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -192,19 +192,19 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
               <Printer className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Imprimir</span>
             </Button>
           )}
-          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => { setComparando(null); alIr(piezas[posicion - 1].id); }} aria-label="Pieza anterior"><ChevronLeft /></Button>
-          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => { setComparando(null); alIr(piezas[posicion + 1].id); }} aria-label="Pieza siguiente"><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => { setComparando(null); alIr(piezas[posicion - 1].id); }} aria-label="Pieza anterior"><ChevronUp /></Button>
+          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => { setComparando(null); alIr(piezas[posicion + 1].id); }} aria-label="Pieza siguiente"><ChevronDown /></Button>
         </div>
 
-        <p className="px-3 pt-2 text-center text-sm text-muted-foreground">
+        <p className="px-3 py-2 text-center text-sm text-muted-foreground max-lg:hidden">
           {comparacion
             ? 'El original queda como se produjo. Los cambios van en tu copia.'
             : distintaDelOriginal
               ? 'Estás viendo tu copia con cambios. El original no se modifica.'
               : editables
                 ? escritorio
-                  ? 'Clic en un texto para editar una copia. Rueda o flechas para pasar de pieza.'
-                  : 'Tocá un texto para editar una copia. Deslizá para pasar de pieza.'
+                  ? 'Clic en un texto para editar una copia. Rueda o flechas para bajar a la siguiente.'
+                  : 'Tocá un texto para editar una copia. Deslizá hacia arriba para ver la siguiente.'
                 : 'Los cambios se hacen sobre una copia; el original no se modifica.'}
         </p>
 
