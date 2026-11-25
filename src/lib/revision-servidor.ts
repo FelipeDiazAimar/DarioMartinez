@@ -33,7 +33,10 @@ export async function leerTexto(ruta: string) {
 }
 
 export async function leerCatalogo(): Promise<Pieza[]> {
-  return JSON.parse(await leerTexto('catalogo.json')).piezas;
+  const { data, error } = await almacen().list('catalogo', { limit: 1, sortBy: { column: 'name', order: 'desc' } });
+  if (error) throw error;
+  if (!data?.length) throw new Error('No hay catálogo cargado.');
+  return JSON.parse(await leerTexto(`catalogo/${data[0].name}`)).piezas;
 }
 
 // Cada guardado crea un archivo nuevo (estado/<id>__<momento>.json): el almacén cachea las

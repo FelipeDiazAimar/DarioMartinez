@@ -3,8 +3,8 @@
 import { usePathname } from 'next/navigation';
 
 /**
- * Muestra a sus hijos solo en el sitio. En /revision no van el encabezado, el pie ni
- * las etiquetas de analítica y anuncios: así la clave del enlace no queda registrada en terceros.
+ * Oculta a sus hijos en /revision: ahí no van la analítica ni los anuncios (la clave del enlace
+ * no queda registrada en terceros) ni el botón flotante de WhatsApp, que taparía los controles.
  */
 export function SoloSitio({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

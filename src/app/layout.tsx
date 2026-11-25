@@ -101,11 +101,11 @@ export default function RootLayout({
         )}
       >
         <div className="relative flex min-h-dvh flex-col">
-          <SoloSitio><Header /></SoloSitio>
+          <Header />
           <main className="flex-1">
             {children}
           </main>
-          <SoloSitio><Footer /></SoloSitio>
+          <Footer />
         </div>
         <Toaster />
         <SoloSitio>

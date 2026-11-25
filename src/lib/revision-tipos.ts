@@ -6,12 +6,8 @@ export type Lamina = {
   id: string;
   ancho: number;
   alto: number;
-  /** Ruta de la imagen final en el almacén. */
-  imagen: string;
-  /** Ruta del HTML editable, o null si la pieza solo existe como imagen. */
-  html: string | null;
-  /** Enlace temporal a la imagen (lo agrega la API). */
-  url?: string;
+  /** Ruta del HTML de la pieza en el almacén. */
+  html: string;
 };
 
 export type Pieza = {

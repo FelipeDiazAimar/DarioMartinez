@@ -1,36 +1,32 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, X } from 'lucide-react';
-import type { Estado, Lamina, Pieza, Revision } from '@/lib/revision-tipos';
-import { NOMBRE_ESTADO, NOMBRE_TIPO, nombreDia } from './comun';
-import estilos from './revision.module.css';
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Copy, Printer, RotateCcw, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import type { Estado, Pieza as DatosPieza, Revision } from '@/lib/revision-tipos';
+import { COLOR_ESTADO, NOMBRE_ESTADO, NOMBRE_TIPO, fechaCorta } from './comun';
+import { imprimir } from './imprimir';
+import { Pieza } from './lamina';
 
 const AUTOR_GUARDADO = 'dm-revision-autor';
 
 type Props = {
-  pieza: Pieza;
+  pieza: DatosPieza;
   revision: Revision;
   clave: string;
-  /** Piezas entre las que se puede avanzar y retroceder. */
-  lista: Pieza[];
+  anterior?: string;
+  siguiente?: string;
   alGuardar: (revision: Revision) => void;
   alIr: (id: string | null) => void;
 };
 
-/** Textos visibles de la pieza, en el orden en que aparecen en el documento. */
-function nodosDeTexto(doc: Document) {
-  const recorrido = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-  const nodos: Text[] = [];
-  while (recorrido.nextNode()) {
-    const nodo = recorrido.currentNode as Text;
-    if (nodo.nodeValue?.trim() && !nodo.parentElement?.closest('style,script')) nodos.push(nodo);
-  }
-  return nodos;
-}
-
-export function Detalle({ pieza, revision, clave, lista, alGuardar, alIr }: Props) {
+/** Vista de acotaciones: todo a la vista, debajo del encabezado del sitio y sin desplazarse. */
+export function Detalle({ pieza, revision, clave, anterior, siguiente, alGuardar, alIr }: Props) {
   const [indice, setIndice] = useState(0);
+  const [pestana, setPestana] = useState<'descripcion' | 'nota'>(pieza.descripcion === null ? 'nota' : 'descripcion');
   const [nota, setNota] = useState(revision.nota);
   const [descripcion, setDescripcion] = useState(revision.descripcion ?? pieza.descripcion ?? '');
   const [textos, setTextos] = useState(revision.textos);
@@ -38,10 +34,12 @@ export function Detalle({ pieza, revision, clave, lista, alGuardar, alIr }: Prop
   const [base, setBase] = useState(revision.actualizado);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; mal?: boolean } | null>(null);
-  const dialogo = useRef<HTMLDialogElement>(null);
+
+  const descripcionNueva = pieza.descripcion === null || descripcion === pieza.descripcion ? null : descripcion;
+  const sinGuardar =
+    nota !== revision.nota || descripcionNueva !== revision.descripcion || JSON.stringify(textos) !== JSON.stringify(revision.textos);
 
   useEffect(() => {
-    if (!dialogo.current?.open) dialogo.current?.showModal();
     document.body.style.overflow = 'hidden';
     try {
       setAutor(localStorage.getItem(AUTOR_GUARDADO) ?? '');
@@ -51,18 +49,17 @@ export function Detalle({ pieza, revision, clave, lista, alGuardar, alIr }: Prop
     };
   }, []);
 
-  const descripcionNueva = pieza.descripcion === null || descripcion === pieza.descripcion ? null : descripcion;
-  const sinGuardar =
-    nota !== revision.nota || descripcionNueva !== revision.descripcion || JSON.stringify(textos) !== JSON.stringify(revision.textos);
+  useEffect(() => {
+    if (!sinGuardar) return;
+    const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener('beforeunload', avisar);
+    return () => window.removeEventListener('beforeunload', avisar);
+  }, [sinGuardar]);
 
   const salir = (destino: string | null) => {
     if (sinGuardar && !window.confirm('Hay cambios sin guardar. ¿Salir igual?')) return;
     alIr(destino);
   };
-
-  const posicion = lista.findIndex((p) => p.id === pieza.id);
-  const anterior = lista[posicion - 1];
-  const siguiente = lista[posicion + 1];
 
   // Guardar con correcciones o nota deja la pieza "con correcciones", salvo que ya esté desaprobada.
   const hayCorrecciones = Boolean(nota.trim()) || descripcionNueva !== null || Object.keys(textos).length > 0;
@@ -84,7 +81,7 @@ export function Detalle({ pieza, revision, clave, lista, alGuardar, alIr }: Prop
       if (respuesta.status === 409) {
         alGuardar(datos.actual);
         setBase(datos.actual.actualizado);
-        setMensaje({ texto: `${datos.error} Lo que escribiste sigue acá: revisalo y volvé a guardar.`, mal: true });
+        setMensaje({ texto: `${datos.error} Lo tuyo sigue acá: revisalo y volvé a guardar.`, mal: true });
         return;
       }
       if (!respuesta.ok) throw new Error(datos.error);
@@ -98,217 +95,113 @@ export function Detalle({ pieza, revision, clave, lista, alGuardar, alIr }: Prop
     }
   }
 
-  const lamina = pieza.laminas[indice];
   const firma = revision.actualizado
     ? `${revision.autor ? `${revision.autor}, ` : ''}${new Date(revision.actualizado).toLocaleString('es-AR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}`
     : '';
 
   return (
-    <dialog
-      ref={dialogo}
-      className={estilos.detalle}
-      aria-label={pieza.titulo}
-      onCancel={(e) => {
-        e.preventDefault();
-        salir(null);
-      }}
-    >
-      <div className={estilos.barra}>
-        <button type="button" className={estilos.icono} onClick={() => salir(null)} aria-label="Volver a la lista"><X /></button>
-        <div className={estilos.barraTitulo}>
-          <h2>{pieza.titulo}</h2>
-          <p>{NOMBRE_TIPO[pieza.tipo]}{pieza.dia ? `, ${nombreDia(pieza.dia).toLowerCase()} a las ${pieza.hora}` : ''}</p>
-        </div>
-        <button type="button" className={estilos.icono} disabled={!anterior} onClick={() => salir(anterior.id)} aria-label="Pieza anterior"><ChevronLeft /></button>
-        <button type="button" className={estilos.icono} disabled={!siguiente} onClick={() => salir(siguiente.id)} aria-label="Pieza siguiente"><ChevronRight /></button>
-      </div>
-
-      <div className={estilos.cuerpo}>
-        <Escenario
-          key={lamina.id}
-          lamina={lamina}
-          clave={clave}
-          cambios={textos[lamina.id] ?? {}}
-          alCambiar={(cambios) =>
-            setTextos((antes) => {
-              const nuevos = { ...antes };
-              if (Object.keys(cambios).length) nuevos[lamina.id] = cambios;
-              else delete nuevos[lamina.id];
-              return nuevos;
-            })
-          }
-          paginas={pieza.laminas.length}
-          pagina={indice}
-          alPaginar={setIndice}
-        />
-
-        {pieza.descripcion !== null && (
-          <section className={estilos.bloque} style={{ gridArea: 'descripcion' }}>
-            <div className={estilos.encabezadoBloque}>
-              <label htmlFor="descripcion">Descripción de la publicación</label>
-              <button
-                type="button"
-                className={estilos.enlace}
-                onClick={() => navigator.clipboard.writeText(descripcion).then(() => setMensaje({ texto: 'Descripción copiada.' }))}
-              >
-                <Copy aria-hidden /> Copiar
-              </button>
-            </div>
-            <textarea id="descripcion" rows={12} value={descripcion} maxLength={4000} onChange={(e) => setDescripcion(e.target.value)} />
-            {descripcionNueva !== null && (
-              <button type="button" className={estilos.enlace} onClick={() => setDescripcion(pieza.descripcion ?? '')}>Volver a la original</button>
-            )}
-          </section>
-        )}
-
-        <section className={estilos.bloque} style={{ gridArea: 'nota' }}>
-          <label htmlFor="nota">Nota</label>
-          <textarea id="nota" rows={3} value={nota} maxLength={4000} placeholder="Qué cambiar, dudas o comentarios" onChange={(e) => setNota(e.target.value)} />
-          <label htmlFor="autor">Tu nombre (opcional)</label>
-          <input id="autor" value={autor} maxLength={60} onChange={(e) => setAutor(e.target.value)} />
-        </section>
-      </div>
-
-      <footer className={estilos.acciones}>
-        <p className={estilos.mensaje} role="status" data-mal={mensaje?.mal || undefined}>
-          {mensaje && !(sinGuardar && !mensaje.mal) ? (
-            mensaje.texto
-          ) : (
-            <>
-              <span className={estilos.estado} data-estado={revision.estado}>{NOMBRE_ESTADO[revision.estado]}</span>{' '}
-              {sinGuardar ? 'Cambios sin guardar' : firma}
-            </>
-          )}
-        </p>
-        <div className={estilos.botones}>
-          <button type="button" className={estilos.rechazar} disabled={guardando} onClick={() => guardar('desaprobado')}>Desaprobar</button>
-          <button type="button" className={estilos.boton} disabled={guardando || !sinGuardar} onClick={() => guardar(estadoAlGuardar)}>Guardar</button>
-          <button type="button" className={estilos.aprobar} disabled={guardando} onClick={() => guardar('aprobado')}>Aprobar</button>
-        </div>
-      </footer>
-    </dialog>
-  );
-}
-
-type EscenarioProps = {
-  lamina: Lamina;
-  clave: string;
-  cambios: Record<string, string>;
-  alCambiar: (cambios: Record<string, string>) => void;
-  paginas: number;
-  pagina: number;
-  alPaginar: (pagina: number) => void;
-};
-
-/** La pieza en grande y, si es editable, los campos de sus textos. */
-function Escenario({ lamina, clave, cambios, alCambiar, paginas, pagina, alPaginar }: EscenarioProps) {
-  const [html, setHtml] = useState<string | null>(null);
-  const [falla, setFalla] = useState('');
-  const [originales, setOriginales] = useState<string[] | null>(null);
-  const [escala, setEscala] = useState(0);
-  const marco = useRef<HTMLIFrameElement>(null);
-  const observador = useRef<ResizeObserver | null>(null);
-
-  const medir = useCallback(
-    (caja: HTMLDivElement | null) => {
-      observador.current?.disconnect();
-      if (!caja) return;
-      observador.current = new ResizeObserver(([e]) =>
-        setEscala(Math.min(e.contentRect.width / lamina.ancho, e.contentRect.height / lamina.alto)),
-      );
-      observador.current.observe(caja);
-    },
-    [lamina.ancho, lamina.alto],
-  );
-
-  useEffect(() => {
-    if (!lamina.html) return;
-    let vigente = true;
-    fetch(`/api/revision/lamina?id=${encodeURIComponent(lamina.id)}`, { headers: { 'x-revision-clave': clave } })
-      .then(async (r) => {
-        const datos = await r.json();
-        if (!r.ok) throw new Error(datos.error);
-        if (vigente) setHtml(datos.html);
-      })
-      .catch(() => vigente && setFalla('No se pudo abrir el texto editable. Cerrá la pieza y volvé a entrar.'));
-    return () => {
-      vigente = false;
-    };
-  }, [lamina.id, lamina.html, clave]);
-
-  useEffect(() => {
-    const doc = marco.current?.contentDocument;
-    if (!doc || !originales) return;
-    nodosDeTexto(doc).forEach((nodo, i) => {
-      const nuevo = cambios[i] ?? originales[i];
-      // Un texto vaciado conserva un espacio para que la numeración de los demás no se corra.
-      nodo.nodeValue = nuevo || '​';
-    });
-  }, [cambios, originales]);
-
-  const sin = (i: number) => {
-    const nuevos = { ...cambios };
-    delete nuevos[i];
-    return nuevos;
-  };
-
-  return (
-    <>
-      <div className={estilos.escenario}>
-        <div className={estilos.lienzo} ref={medir}>
-          <div className={estilos.caja} style={{ width: lamina.ancho * escala, height: lamina.alto * escala }}>
-            {/* La imagen final queda de fondo hasta que el HTML editable termina de dibujarse. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={lamina.url} alt="Pieza en grande" />
-            {html && (
-              <iframe
-                ref={marco}
-                title="Pieza con los textos editados"
-                srcDoc={html}
-                sandbox="allow-same-origin"
-                tabIndex={-1}
-                style={{ width: lamina.ancho, height: lamina.alto, transform: `scale(${escala})`, opacity: originales ? 1 : 0 }}
-                onLoad={async () => {
-                  const doc = marco.current?.contentDocument;
-                  if (!doc) return;
-                  await doc.fonts.ready;
-                  setOriginales(nodosDeTexto(doc).map((n) => n.nodeValue ?? ''));
-                }}
-              />
-            )}
+    <section aria-label={pieza.titulo} className="fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1">
+      <div className="flex min-h-0 flex-1 flex-col" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
+        <div className="flex items-center gap-1 border-b bg-white px-2 py-1.5">
+          <Button variant="ghost" size="icon" onClick={() => salir(null)} aria-label="Volver a la lista"><X /></Button>
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate font-semibold leading-tight">{pieza.titulo}</h2>
+            <p className="truncate text-xs text-muted-foreground">
+              {NOMBRE_TIPO[pieza.tipo]}{pieza.dia ? `, ${fechaCorta(pieza.dia).toLowerCase()} ${pieza.hora}` : ''}
+            </p>
           </div>
+          {Object.keys(textos).length > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => setTextos({})}>
+              <RotateCcw className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Textos originales</span>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => imprimir(pieza, textos, clave).catch(() => setMensaje({ texto: 'No se pudo preparar la impresión.', mal: true }))}>
+            <Printer className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Imprimir</span>
+          </Button>
+          <Button variant="ghost" size="icon" disabled={!anterior} onClick={() => salir(anterior!)} aria-label="Pieza anterior"><ChevronLeft /></Button>
+          <Button variant="ghost" size="icon" disabled={!siguiente} onClick={() => salir(siguiente!)} aria-label="Pieza siguiente"><ChevronRight /></Button>
         </div>
-        {paginas > 1 && (
-          <div className={estilos.paginas}>
-            {Array.from({ length: paginas }, (_, i) => (
-              <button key={i} type="button" aria-pressed={i === pagina} onClick={() => alPaginar(i)}>Imagen {i + 1}</button>
+
+        <p className="px-3 pt-2 text-center text-sm text-muted-foreground">Tocá cualquier texto de la imagen y escribí encima.</p>
+
+        <div className="flex min-h-0 flex-1 gap-3 p-3">
+          {pieza.laminas.map((lamina, i) => (
+            <div key={lamina.id} className={cn('min-h-0 min-w-0 flex-1', i !== indice && 'hidden lg:block')}>
+              <Pieza
+                lamina={lamina}
+                clave={clave}
+                nombre={`${pieza.titulo}, imagen ${i + 1}`}
+                cambios={textos[lamina.id] ?? {}}
+                alCambiar={(cambios) =>
+                  setTextos((antes) => {
+                    const nuevos = { ...antes };
+                    if (Object.keys(cambios).length) nuevos[lamina.id] = cambios;
+                    else delete nuevos[lamina.id];
+                    return nuevos;
+                  })
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        {pieza.laminas.length > 1 && (
+          <div className="flex justify-center gap-2 pb-2 lg:hidden">
+            {pieza.laminas.map((lamina, i) => (
+              <Button key={lamina.id} size="sm" variant={i === indice ? 'default' : 'outline'} onClick={() => setIndice(i)}>Imagen {i + 1}</Button>
             ))}
           </div>
         )}
       </div>
 
-      <section className={estilos.bloque} style={{ gridArea: 'textos' }}>
-        <h3>Textos de la imagen</h3>
-        {!lamina.html && <p className={estilos.ayuda}>Esta pieza está solo como imagen. Escribí la corrección en la nota.</p>}
-        {falla && <p className={estilos.ayuda} role="alert">{falla}</p>}
-        {lamina.html && !falla && !originales && <div className="dm-skeleton h-24 rounded-md" />}
-        {originales?.map((original, i) => (
-          <div key={i} className={estilos.campo} data-cambiado={i in cambios || undefined}>
-            <textarea
-              aria-label={`Texto ${i + 1}: ${original}`}
-              rows={1}
-              maxLength={600}
-              value={cambios[i] ?? original}
-              onChange={(e) => alCambiar(e.target.value === original ? sin(i) : { ...cambios, [i]: e.target.value })}
-            />
-            {i in cambios && (
-              <button type="button" className={estilos.enlace} onClick={() => alCambiar(sin(i))}>
-                Antes decía “{original.trim()}”. Deshacer
-              </button>
-            )}
-          </div>
-        ))}
-      </section>
-    </>
+      <div className="flex min-h-0 flex-col gap-2 border-t bg-white p-3 lg:gap-3 lg:border-l lg:border-t-0 lg:p-4">
+        {pieza.descripcion !== null && (
+          <>
+            <div className="flex gap-2 lg:hidden">
+              <Button size="sm" variant={pestana === 'descripcion' ? 'secondary' : 'ghost'} onClick={() => setPestana('descripcion')}>Descripción</Button>
+              <Button size="sm" variant={pestana === 'nota' ? 'secondary' : 'ghost'} onClick={() => setPestana('nota')}>Nota</Button>
+            </div>
+            <div className={cn('flex min-h-0 flex-col gap-1 lg:flex lg:flex-[2]', pestana !== 'descripcion' && 'hidden')}>
+              <div className="flex items-center justify-between">
+                <label htmlFor="descripcion" className="text-sm font-semibold">Descripción</label>
+                <div className="flex gap-1">
+                  {descripcionNueva !== null && (
+                    <Button variant="link" size="sm" className="h-7 px-1" onClick={() => setDescripcion(pieza.descripcion ?? '')}>Volver a la original</Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="h-7" onClick={() => navigator.clipboard.writeText(descripcion).then(() => setMensaje({ texto: 'Descripción copiada.' }))}>
+                    <Copy className="mr-1.5 h-3.5 w-3.5" /> Copiar
+                  </Button>
+                </div>
+              </div>
+              <Textarea id="descripcion" value={descripcion} maxLength={4000} onChange={(e) => setDescripcion(e.target.value)} className="h-24 min-h-0 resize-none lg:h-auto lg:flex-1" />
+            </div>
+          </>
+        )}
+
+        <div className={cn('flex min-h-0 flex-col gap-1 lg:flex lg:flex-1', pestana !== 'nota' && 'hidden')}>
+          <label htmlFor="nota" className="text-sm font-semibold">Nota</label>
+          <Textarea id="nota" value={nota} maxLength={4000} placeholder="Qué cambiar, dudas o comentarios" onChange={(e) => setNota(e.target.value)} className="h-16 min-h-0 resize-none lg:h-auto lg:flex-1" />
+        </div>
+
+        <Input aria-label="Tu nombre (opcional)" placeholder="Tu nombre (opcional)" value={autor} maxLength={60} onChange={(e) => setAutor(e.target.value)} className="h-9" />
+
+        <p role="status" className={cn('text-sm text-muted-foreground', mensaje?.mal && 'font-semibold text-destructive')}>
+          {mensaje && !(sinGuardar && !mensaje.mal) ? (
+            mensaje.texto
+          ) : (
+            <>
+              <span className={cn('mr-2 rounded-full px-2.5 py-0.5 text-xs font-semibold', COLOR_ESTADO[revision.estado])}>{NOMBRE_ESTADO[revision.estado]}</span>
+              {sinGuardar ? 'Cambios sin guardar' : firma}
+            </>
+          )}
+        </p>
+
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="outline" className="px-2 text-destructive" disabled={guardando} onClick={() => guardar('desaprobado')}>Desaprobar</Button>
+          <Button className="px-2" disabled={guardando || !sinGuardar} onClick={() => guardar(estadoAlGuardar)}>Guardar</Button>
+          <Button className="bg-green-700 px-2 text-white hover:bg-green-800" disabled={guardando} onClick={() => guardar('aprobado')}>Aprobar</Button>
+        </div>
+      </div>
+    </section>
   );
 }
