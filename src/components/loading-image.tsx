@@ -48,6 +48,9 @@ export function LoadingImage({
     }
   }, [isExternalUrl, runtimeSrc]);
 
+  // Logos e iconos (ancho chico) cargan sin marcador: un indicador ahí molesta más que la espera.
+  const isSmall = !props.fill && typeof props.width === 'number' && props.width <= 160;
+
   const hasValidSrc = typeof normalizedSrc === 'string' ? normalizedSrc.length > 0 : Boolean(normalizedSrc);
 
   if (!hasValidSrc) {
@@ -59,16 +62,16 @@ export function LoadingImage({
   }
 
   return (
-    <div className={cn(wrapperBaseClassName, wrapperClassName)}>
-      {!isLoaded && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted/30">
-          <div
-            className={cn(
-              'h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent',
-              spinnerSizeClassName
-            )}
-          />
-        </div>
+    <div
+      className={cn(
+        wrapperBaseClassName,
+        // Sin la imagen la caja mide cero: mientras carga ocupa el hueco de su contenedor.
+        !isLoaded && !isSmall && !props.fill && 'h-full min-h-24 w-full',
+        wrapperClassName,
+      )}
+    >
+      {!isLoaded && !isSmall && (
+        <div aria-hidden className={cn('dm-skeleton absolute inset-0 z-10', spinnerSizeClassName && 'rounded-md')} />
       )}
 
       {isExternalUrl ? (

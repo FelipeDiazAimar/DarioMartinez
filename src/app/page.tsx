@@ -349,15 +349,9 @@ export default function Home() {
       <section className="w-full relative">
         {!isHomeContentLoaded ? (
           <>
-            <div className="hidden md:block relative w-full h-[500px] lg:h-[600px] bg-muted/30">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-              </div>
+            <div className="hidden md:block relative w-full h-[500px] lg:h-[600px] dm-skeleton">
             </div>
-            <div className="block md:hidden relative w-full aspect-[9/16] bg-muted/30">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-              </div>
+            <div className="block md:hidden relative w-full aspect-[9/16] dm-skeleton">
             </div>
           </>
         ) : (

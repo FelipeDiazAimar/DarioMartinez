@@ -8,6 +8,7 @@ import { WhatsAppFloatButton } from '@/components/whatsapp-float-button';
 import { GoogleAdsTag } from '@/components/google-ads-tag';
 import { AdminCartWidget } from '@/components/admin-cart-widget';
 import { cn } from '@/lib/utils';
+import { SoloSitio } from '@/components/solo-sitio';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -100,18 +101,20 @@ export default function RootLayout({
         )}
       >
         <div className="relative flex min-h-dvh flex-col">
-          <Header />
+          <SoloSitio><Header /></SoloSitio>
           <main className="flex-1">
             {children}
           </main>
-          <Footer />
+          <SoloSitio><Footer /></SoloSitio>
         </div>
         <Toaster />
-        <WhatsAppFloatButton />
-        <AdminCartWidget />
-        <Analytics />
-        <SpeedInsights />
-        <GoogleAdsTag />
+        <SoloSitio>
+          <WhatsAppFloatButton />
+          <AdminCartWidget />
+          <Analytics />
+          <SpeedInsights />
+          <GoogleAdsTag />
+        </SoloSitio>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }} />
       </body>
     </html>

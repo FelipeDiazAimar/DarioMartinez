@@ -1,0 +1,78 @@
+// Almacén de la sección /revision: un bucket privado de Supabase con el catálogo,
+// las piezas y un archivo de estado por pieza. Solo se usa desde rutas del servidor.
+import { createHash, timingSafeEqual } from 'node:crypto';
+import { createClient } from '@supabase/supabase-js';
+import { REVISION_VACIA, type Pieza, type Revision } from '@/lib/revision-tipos';
+
+const BUCKET = 'revision';
+
+// Huella SHA-256 de la clave que viaja en el enlace (la clave es aleatoria y no está en el repositorio).
+// Para cambiar el enlace: generar otra clave y reemplazar esta huella.
+const HUELLA_CLAVE = '81ab37eee63ee386facfa6177b443902b13f512735e9ad8ae6dcd8ddd5166031';
+
+export function claveValida(request: Request) {
+  const clave = request.headers.get('x-revision-clave') ?? '';
+  const huella = createHash('sha256').update(clave).digest();
+  return timingSafeEqual(huella, Buffer.from(HUELLA_CLAVE, 'hex'));
+}
+
+export function almacen() {
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY.');
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }) },
+  }).storage.from(BUCKET);
+}
+
+export async function leerTexto(ruta: string) {
+  const { data, error } = await almacen().download(ruta);
+  if (error) throw error;
+  return data.text();
+}
+
+export async function leerCatalogo(): Promise<Pieza[]> {
+  return JSON.parse(await leerTexto('catalogo.json')).piezas;
+}
+
+// Cada guardado crea un archivo nuevo (estado/<id>__<momento>.json): el almacén cachea las
+// descargas, y sobrescribir el mismo nombre devolvería por un rato la versión anterior.
+async function versiones() {
+  const { data, error } = await almacen().list('estado', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
+  if (error) throw error;
+  const porPieza = new Map<string, string[]>();
+  for (const { name } of data ?? []) {
+    const [id, resto] = name.split('__');
+    if (resto) porPieza.set(id, [...(porPieza.get(id) ?? []), name].sort());
+  }
+  return porPieza;
+}
+
+async function leerArchivo(nombre: string): Promise<Revision> {
+  return { ...REVISION_VACIA, ...JSON.parse(await leerTexto(`estado/${nombre}`)) };
+}
+
+export async function leerRevision(id: string): Promise<Revision> {
+  const nombre = (await versiones()).get(id)?.at(-1);
+  return nombre ? leerArchivo(nombre) : REVISION_VACIA;
+}
+
+/** Estados guardados. Las piezas sin archivo están pendientes. */
+export async function leerRevisiones(): Promise<Record<string, Revision>> {
+  const pares = await Promise.all(
+    [...(await versiones())].map(async ([id, nombres]) => [id, await leerArchivo(nombres[nombres.length - 1])] as const),
+  );
+  return Object.fromEntries(pares);
+}
+
+export async function guardarRevision(id: string, revision: Revision) {
+  const anteriores = (await versiones()).get(id) ?? [];
+  const { error } = await almacen().upload(`estado/${id}__${Date.now()}.json`, JSON.stringify(revision), {
+    contentType: 'application/json',
+  });
+  if (error) throw error;
+  // Se conservan las últimas diez versiones por si hay que recuperar algo.
+  const sobran = anteriores.slice(0, -9).map((nombre) => `estado/${nombre}`);
+  if (sobran.length) await almacen().remove(sobran);
+}

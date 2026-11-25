@@ -368,9 +368,7 @@ export default function ControladoresFiscalesPage() {
         >
           <div className="relative w-full aspect-[9/16] md:aspect-auto md:h-[500px] lg:h-[600px]">
             {!heroBackgroundLoaded && !heroMobileBackgroundLoaded && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted/30">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-              </div>
+              <div aria-hidden className="dm-skeleton absolute inset-0" />
             )}
             {content.heroBackgroundImageUrl ? (
               <>
@@ -473,9 +471,7 @@ export default function ControladoresFiscalesPage() {
         className={cn('relative w-full py-12 md:py-24 lg:py-32 opacity-0', featuresInView && 'animate-fade-in')}
       >
         {!featuresBackgroundLoaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted/30">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          </div>
+          <div aria-hidden className="dm-skeleton absolute inset-0" />
         )}
         {content.featuresBackgroundImageUrl ? (
           <div
@@ -594,9 +590,7 @@ export default function ControladoresFiscalesPage() {
         className={cn('relative w-full py-12 md:py-24 lg:py-32 opacity-0', benefitsInView && 'animate-fade-in')}
       >
         {!benefitsBackgroundLoaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted/30">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          </div>
+          <div aria-hidden className="dm-skeleton absolute inset-0" />
         )}
         {content.benefitsBackgroundImageUrl ? (
           <div
