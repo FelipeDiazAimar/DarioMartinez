@@ -61,6 +61,25 @@ export async function leerRevision(id: string): Promise<Revision> {
   return nombre ? leerArchivo(nombre) : REVISION_VACIA;
 }
 
+/** Lo que cargó el grupo: un archivo por aporte, que no se vuelve a escribir. Lo más nuevo primero. */
+async function leerAportes(): Promise<Pieza[]> {
+  const { data, error } = await almacen().list('aportes', { limit: 1000 });
+  if (error) throw error;
+  const nombres = (data ?? []).map((a) => a.name).filter((n) => n.endsWith('.json')).sort().reverse();
+  return Promise.all(nombres.map(async (n) => JSON.parse(await leerTexto(`aportes/${n}`)) as Pieza));
+}
+
+export async function guardarAporte(pieza: Pieza) {
+  const { error } = await almacen().upload(`aportes/${pieza.id}.json`, JSON.stringify(pieza), { contentType: 'application/json' });
+  if (error) throw error;
+}
+
+/** Los aportes del grupo y las piezas producidas. */
+export async function leerPiezas(): Promise<Pieza[]> {
+  const [aportes, catalogo] = await Promise.all([leerAportes(), leerCatalogo()]);
+  return [...aportes, ...catalogo];
+}
+
 /** Estados guardados. Las piezas sin archivo están pendientes. */
 export async function leerRevisiones(): Promise<Record<string, Revision>> {
   const pares = await Promise.all(

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { claveValida, guardarRevision, leerCatalogo, leerRevision } from '@/lib/revision-servidor';
+import { claveValida, guardarRevision, leerPiezas, leerRevision } from '@/lib/revision-servidor';
 import { ESTADOS, type Revision } from '@/lib/revision-tipos';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
 
   const { id, base, ...cambios } = datos.data;
   try {
-    const pieza = (await leerCatalogo()).find((p) => p.id === id);
+    const pieza = (await leerPiezas()).find((p) => p.id === id);
     if (!pieza) return NextResponse.json({ error: 'Esa pieza no existe.' }, { status: 404 });
 
     // Si otra persona guardó mientras tanto, no pisar lo suyo.

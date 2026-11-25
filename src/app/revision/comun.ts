@@ -10,20 +10,22 @@ export const NOMBRE_ESTADO: Record<Estado, string> = {
 /** Primero lo que falta revisar. */
 export const ORDEN_ESTADO: Record<Estado, number> = { pendiente: 0, correcciones: 1, desaprobado: 2, aprobado: 3 };
 
+/** Franja de la tarjeta (fondo lleno) y borde, para ver el estado de un vistazo. */
 export const COLOR_ESTADO: Record<Estado, string> = {
-  pendiente: 'bg-muted text-primary',
-  correcciones: 'bg-amber-100 text-amber-900',
-  aprobado: 'bg-green-100 text-green-900',
-  desaprobado: 'bg-red-100 text-red-800',
+  pendiente: 'bg-amber-400 text-amber-950',
+  correcciones: 'bg-blue-700 text-white',
+  aprobado: 'bg-green-700 text-white',
+  desaprobado: 'bg-red-600 text-white',
 };
 
-export const NOMBRE_TIPO: Record<Tipo, string> = { publicacion: 'Publicación', historia: 'Historia', portada: 'Portada web' };
+export const BORDE_ESTADO: Record<Estado, string> = {
+  pendiente: 'border-amber-400',
+  correcciones: 'border-blue-700',
+  aprobado: 'border-green-700',
+  desaprobado: 'border-red-600',
+};
 
-export function fechaCorta(dia: string) {
-  const [, mes, numero] = dia.split('-');
-  const semana = new Date(`${dia}T12:00:00`).toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '');
-  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)} ${Number(numero)}/${Number(mes)}`;
-}
+export const NOMBRE_TIPO: Record<Tipo, string> = { publicacion: 'Publicación', historia: 'Historia', video: 'Video', idea: 'Idea', portada: 'Portada web' };
 
 export function hayTextoCorregido(revision: Revision) {
   return revision.descripcion !== null || Object.values(revision.textos).some((t) => Object.keys(t).length > 0);
@@ -33,15 +35,16 @@ const descargas = new Map<string, Promise<string>>();
 
 /** HTML de una lámina (se pide una sola vez por visita). */
 export function pedirHtml(lamina: Lamina, clave: string) {
-  let pedido = descargas.get(lamina.html);
+  const ruta = lamina.html!;
+  let pedido = descargas.get(ruta);
   if (!pedido) {
     pedido = fetch(`/api/revision/lamina?id=${encodeURIComponent(lamina.id)}`, { headers: { 'x-revision-clave': clave } }).then(async (r) => {
       const datos = await r.json();
       if (!r.ok) throw new Error(datos.error);
       return datos.html as string;
     });
-    pedido.catch(() => descargas.delete(lamina.html));
-    descargas.set(lamina.html, pedido);
+    pedido.catch(() => descargas.delete(ruta));
+    descargas.set(ruta, pedido);
   }
   return pedido;
 }

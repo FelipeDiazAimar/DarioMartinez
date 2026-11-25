@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   try {
     // La ruta sale del catálogo, nunca de lo que manda el navegador.
     const lamina = (await leerCatalogo()).flatMap((p) => p.laminas).find((l) => l.id === id);
-    if (!lamina) return NextResponse.json({ error: 'Esa pieza no existe.' }, { status: 404 });
+    if (!lamina?.html) return NextResponse.json({ error: 'Esa pieza no existe.' }, { status: 404 });
     return NextResponse.json({ html: await leerTexto(lamina.html) });
   } catch (error) {
     console.error('[revision] no se pudo leer la lámina', error);

@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Printer } from 'lucide-react';
+import { Plus, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ESTADOS, REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision, type Tipo } from '@/lib/revision-tipos';
-import { COLOR_ESTADO, NOMBRE_ESTADO, NOMBRE_TIPO, ORDEN_ESTADO, fechaCorta, hayTextoCorregido } from './comun';
+import { BORDE_ESTADO, NOMBRE_TIPO, ORDEN_ESTADO, hayTextoCorregido } from './comun';
+import { Cargar } from './cargar';
 import { Detalle } from './detalle';
+import { MarcaEstado } from './estado';
 import { imprimir } from './imprimir';
 import { Pieza } from './lamina';
 
@@ -16,7 +18,8 @@ const FILTRO_ESTADO: Record<Estado, string> = {
   aprobado: 'Aprobadas',
   desaprobado: 'Desaprobadas',
 };
-const FILTRO_TIPO: Record<Tipo, string> = { publicacion: 'Publicaciones', historia: 'Historias', portada: 'Portadas web' };
+const FILTRO_TIPO: Record<Tipo, string> = { publicacion: 'Publicaciones', historia: 'Historias', video: 'Videos', idea: 'Ideas', portada: 'Portadas web' };
+const TIPOS = ['todo', 'publicacion', 'historia', 'video', 'idea', 'portada'] as const;
 const CLAVE_GUARDADA = 'dm-revision-clave';
 
 function Filtro({ activo, alElegir, children, cuantas }: { activo: boolean; alElegir: () => void; children: React.ReactNode; cuantas: number }) {
@@ -46,6 +49,7 @@ export default function RevisionPage() {
   const [abierta, setAbierta] = useState<string | null>(null);
   // Orden al abrir una pieza: guardar no cambia a cuál llevan las flechas.
   const [recorrido, setRecorrido] = useState<string[]>([]);
+  const [cargando, setCargando] = useState(false);
 
   // La clave va después del # del enlace: el navegador no la manda al servidor ni queda en registros.
   useEffect(() => {
@@ -89,6 +93,9 @@ export default function RevisionPage() {
   const piezaAbierta = todas.find((p) => p.id === abierta);
   const posicion = abierta ? recorrido.indexOf(abierta) : -1;
 
+  const cuantasConEstado = (valor: Estado | 'todas') => (valor === 'todas' ? delTipo.length : delTipo.filter((p) => revisionDe(p.id).estado === valor).length);
+  const cuantasDeTipo = (valor: Tipo | 'todo') => (valor === 'todo' ? delEstado.length : delEstado.filter((p) => p.tipo === valor).length);
+
   const abrir = (id: string) => {
     setRecorrido(visibles.map((p) => p.id));
     setAbierta(id);
@@ -96,12 +103,18 @@ export default function RevisionPage() {
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
-      <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
+      {/* Con una pieza abierta la lista se oculta para que no se transparente bajo el encabezado. */}
+      <div className={cn('mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6', (piezaAbierta || cargando) && 'invisible')}>
         <div className="space-y-2 py-4 text-center">
           <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl">Revisión de contenido</h1>
           <p className="text-foreground/80">
-            {piezas ? `${aprobadas} de ${piezas.length} aprobadas` : 'Publicaciones, historias y portadas'}
+            {piezas ? `${aprobadas} de ${piezas.length} aprobadas` : 'Publicaciones, historias, videos e ideas'}
           </p>
+          {piezas && (
+            <Button size="lg" className="mt-2 w-full sm:w-auto" onClick={() => setCargando(true)}>
+              <Plus className="mr-1.5 h-5 w-5" /> Cargar contenido o idea
+            </Button>
+          )}
         </div>
 
         {error && (
@@ -112,22 +125,41 @@ export default function RevisionPage() {
         )}
 
         <div className="space-y-4 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8 lg:space-y-0">
-          <aside className="space-y-3 rounded-2xl border bg-white p-3 shadow-sm lg:sticky lg:top-24 lg:p-4">
-            <div>
-              <h2 className="mb-2 hidden border-b pb-2 text-lg font-semibold lg:block">Estado</h2>
-              <div className="flex gap-1 overflow-x-auto lg:flex-col" role="group" aria-label="Estado">
+          <div className="grid grid-cols-2 gap-2 lg:hidden">
+            <label className="flex flex-col gap-1 text-xs font-semibold text-muted-foreground">
+              Estado
+              <select value={estado} onChange={(e) => setEstado(e.target.value as Estado | 'todas')} className="h-11 rounded-lg border bg-white px-2 text-base font-medium text-foreground">
                 {(['todas', ...ESTADOS] as const).map((valor) => (
-                  <Filtro key={valor} activo={estado === valor} alElegir={() => setEstado(valor)} cuantas={valor === 'todas' ? delTipo.length : delTipo.filter((p) => revisionDe(p.id).estado === valor).length}>
+                  <option key={valor} value={valor}>{valor === 'todas' ? 'Todas' : FILTRO_ESTADO[valor]} ({cuantasConEstado(valor)})</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-semibold text-muted-foreground">
+              Tipo
+              <select value={tipo} onChange={(e) => setTipo(e.target.value as Tipo | 'todo')} className="h-11 rounded-lg border bg-white px-2 text-base font-medium text-foreground">
+                {TIPOS.map((valor) => (
+                  <option key={valor} value={valor}>{valor === 'todo' ? 'Todo' : FILTRO_TIPO[valor]} ({cuantasDeTipo(valor)})</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <aside className="sticky top-24 hidden space-y-3 rounded-2xl border bg-white p-4 shadow-sm lg:block">
+            <div>
+              <h2 className="mb-2 border-b pb-2 text-lg font-semibold">Estado</h2>
+              <div className="flex flex-col gap-1" role="group" aria-label="Estado">
+                {(['todas', ...ESTADOS] as const).map((valor) => (
+                  <Filtro key={valor} activo={estado === valor} alElegir={() => setEstado(valor)} cuantas={cuantasConEstado(valor)}>
                     {valor === 'todas' ? 'Todas' : FILTRO_ESTADO[valor]}
                   </Filtro>
                 ))}
               </div>
             </div>
             <div>
-              <h2 className="mb-2 hidden border-b pb-2 text-lg font-semibold lg:block">Tipo</h2>
-              <div className="flex gap-1 overflow-x-auto lg:flex-col" role="group" aria-label="Tipo">
-                {(['todo', 'publicacion', 'historia', 'portada'] as const).map((valor) => (
-                  <Filtro key={valor} activo={tipo === valor} alElegir={() => setTipo(valor)} cuantas={valor === 'todo' ? delEstado.length : delEstado.filter((p) => p.tipo === valor).length}>
+              <h2 className="mb-2 border-b pb-2 text-lg font-semibold">Tipo</h2>
+              <div className="flex flex-col gap-1" role="group" aria-label="Tipo">
+                {TIPOS.map((valor) => (
+                  <Filtro key={valor} activo={tipo === valor} alElegir={() => setTipo(valor)} cuantas={cuantasDeTipo(valor)}>
                     {valor === 'todo' ? 'Todo' : FILTRO_TIPO[valor]}
                   </Filtro>
                 ))}
@@ -155,31 +187,37 @@ export default function RevisionPage() {
               {clave !== null && visibles.map((pieza) => {
                 const revision = revisionDe(pieza.id);
                 const [primera] = pieza.laminas;
+                const descripcion = revision.descripcion ?? pieza.descripcion;
+                const imprimible = Boolean(primera) && !primera.archivo?.mime.startsWith('video/');
+                const detalles = [
+                  pieza.aporte?.autor && `Cargado por ${pieza.aporte.autor}`,
+                  hayTextoCorregido(revision) && 'Texto corregido',
+                  revision.nota && 'Con nota',
+                ].filter(Boolean) as string[];
                 return (
-                  <article key={pieza.id} className="group min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                    <div className="relative" style={{ aspectRatio: `${primera.ancho} / ${primera.alto}` }}>
-                      <Pieza lamina={primera} clave={clave} nombre={pieza.titulo} cambios={revision.textos[primera.id] ?? {}} />
-                      <button type="button" className="absolute inset-0 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-ring" onClick={() => abrir(pieza.id)} aria-label={`Revisar ${pieza.titulo}`} />
-                      {pieza.laminas.length > 1 && (
-                        <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">{pieza.laminas.length} imágenes</span>
+                  <article key={pieza.id} data-id={pieza.id} className={cn('min-w-0 overflow-hidden rounded-2xl border-4 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg', BORDE_ESTADO[revision.estado])}>
+                    <MarcaEstado estado={revision.estado} className="px-2 py-2 text-sm" />
+                    <div className="relative" style={{ aspectRatio: primera ? `${primera.ancho} / ${primera.alto}` : '4 / 5' }}>
+                      {primera ? (
+                        <Pieza lamina={primera} clave={clave} nombre={pieza.titulo} cambios={revision.textos[primera.id]} />
+                      ) : (
+                        <p className="h-full overflow-hidden whitespace-pre-wrap bg-amber-50 p-4 pt-11 text-base leading-snug">{descripcion}</p>
                       )}
+                      <button type="button" className="absolute inset-0 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-ring" onClick={() => abrir(pieza.id)} aria-label={`Revisar ${pieza.titulo}`} />
+                      <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-semibold text-white">
+                        {NOMBRE_TIPO[pieza.tipo]}{pieza.laminas.length > 1 ? `, ${pieza.laminas.length} imágenes` : ''}
+                      </span>
                     </div>
-                    <div className="space-y-2 border-t p-3">
-                      <div>
-                        <h3 className="font-semibold leading-tight">{pieza.titulo}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {NOMBRE_TIPO[pieza.tipo]}{pieza.dia ? `, ${fechaCorta(pieza.dia).toLowerCase()} ${pieza.hora}` : ''}
-                        </p>
+                    {(detalles.length > 0 || imprimible) && (
+                      <div className="space-y-2 border-t p-2">
+                        {detalles.length > 0 && <p className="text-xs text-muted-foreground">{detalles.join(', ')}</p>}
+                        {imprimible && (
+                          <Button variant="outline" size="sm" className="w-full" onClick={() => imprimir(pieza, revision.textos, clave).catch(() => setError('No se pudo preparar la impresión.'))}>
+                            <Printer className="mr-1.5 h-4 w-4" /> Imprimir
+                          </Button>
+                        )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', COLOR_ESTADO[revision.estado])}>{NOMBRE_ESTADO[revision.estado]}</span>
-                        {hayTextoCorregido(revision) && <span className="text-xs text-muted-foreground">Texto corregido</span>}
-                        {revision.nota && <span className="text-xs text-muted-foreground">Con nota</span>}
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full" onClick={() => imprimir(pieza, revision.textos, clave).catch(() => setError('No se pudo preparar la impresión.'))}>
-                        <Printer className="mr-1.5 h-4 w-4" /> Imprimir
-                      </Button>
-                    </div>
+                    )}
                   </article>
                 );
               })}
@@ -187,6 +225,19 @@ export default function RevisionPage() {
           </div>
         </div>
       </div>
+
+      {cargando && clave !== null && (
+        <Cargar
+          clave={clave}
+          alCerrar={() => setCargando(false)}
+          alTerminar={() => {
+            setCargando(false);
+            setEstado('todas');
+            setTipo('todo');
+            cargar();
+          }}
+        />
+      )}
 
       {piezaAbierta && clave !== null && (
         <Detalle

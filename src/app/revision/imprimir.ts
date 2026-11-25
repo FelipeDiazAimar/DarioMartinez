@@ -20,7 +20,13 @@ const cargado = (marco: HTMLIFrameElement) => new Promise<void>((listo) => marco
 
 /** Imprime la pieza (una hoja por imagen) tal como se ve, con las correcciones. */
 export async function imprimir(pieza: Pieza, textos: Revision['textos'], clave: string) {
-  const htmls = await Promise.all(pieza.laminas.map(async (l) => conCorrecciones(await pedirHtml(l, clave), textos[l.id] ?? {})));
+  const htmls = await Promise.all(
+    pieza.laminas.map(async (l) =>
+      l.archivo
+        ? `<!doctype html><body style="margin:0"><img src="${l.archivo.url!.replaceAll('&', '&amp;')}" style="display:block;width:100vw;height:100vh;object-fit:contain">`
+        : conCorrecciones(await pedirHtml(l, clave), textos[l.id] ?? {}),
+    ),
+  );
 
   document.getElementById('dm-impresion')?.remove();
   const hojas = document.createElement('iframe');
