@@ -7,6 +7,8 @@ import {
   ChevronUp,
   Columns2,
   Copy,
+  Delete,
+  Loader2,
   Lock,
   Printer,
   RotateCcw,
@@ -16,7 +18,6 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision } from '@/lib/revision-tipos';
@@ -29,7 +30,6 @@ import { imprimir } from './imprimir';
 import { Pieza } from './lamina';
 
 const AUTOR_GUARDADO = 'dm-revision-autor';
-const PIN_GUARDADO = 'dm-revision-pin';
 // PC con mouse: se escribe sobre la pieza. El resto (celular, tableta) usa el campo grande.
 const ESCRITORIO = '(min-width: 1024px) and (pointer: fine)';
 
@@ -82,7 +82,6 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   const [comparando, setComparando] = useState<string | null>(null);
   const [autor, setAutor] = useState('');
   const [esAdmin, setEsAdmin] = useState(false);
-  const [pinGuardado, setPinGuardado] = useState('');
   const [pinPendiente, setPinPendiente] = useState<'aprobado' | 'desaprobado' | null>(null);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
@@ -140,7 +139,6 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
     document.body.style.overflow = 'hidden';
     try {
       setAutor(localStorage.getItem(AUTOR_GUARDADO) ?? '');
-      setPinGuardado(localStorage.getItem(PIN_GUARDADO) ?? '');
       const adminOk =
         sessionStorage.getItem('isAdminAuthenticated') === 'true' ||
         localStorage.getItem('isAdminAuthenticated') === 'true';
@@ -170,7 +168,7 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
 
   async function guardar(estado: Estado, pinOverride?: string) {
     const requierePermiso = estado === 'aprobado' || estado === 'desaprobado';
-    const pinUsado = (pinOverride ?? pinGuardado).trim();
+    const pinUsado = (pinOverride ?? '').trim();
 
     if (requierePermiso && !esAdmin && !pinUsado) {
       setPinError('');
@@ -200,12 +198,9 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
       });
       const datos = await respuesta.json();
       if (respuesta.status === 403 && datos?.requierePin) {
-        try {
-          localStorage.removeItem(PIN_GUARDADO);
-        } catch {}
-        setPinGuardado('');
         setPinPendiente(estado === 'aprobado' || estado === 'desaprobado' ? estado : 'aprobado');
-        setPinError(datos.error || 'PIN incorrecto.');
+        setPinInput('');
+        setPinError(datos.error || 'PIN incorrecto. Intentá de nuevo.');
         return;
       }
       if (respuesta.status === 409) {
@@ -215,12 +210,6 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
         return;
       }
       if (!respuesta.ok) throw new Error(datos.error);
-      if (pinOverride) {
-        try {
-          localStorage.setItem(PIN_GUARDADO, pinUsado);
-        } catch {}
-        setPinGuardado(pinUsado);
-      }
       setPinPendiente(null);
       setPinInput('');
       alGuardar(pieza.id, datos.revision);
@@ -232,6 +221,42 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
       setGuardando(false);
     }
   }
+
+  const tocarDigitoPin = (digito: string) => {
+    if (guardando || !pinPendiente) return;
+    setPinError('');
+    setPinInput((prev) => {
+      if (prev.length >= 4) return prev;
+      const next = prev + digito;
+      if (next.length === 4) {
+        window.setTimeout(() => {
+          guardar(pinPendiente, next);
+        }, 120);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!pinPendiente) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        tocarDigitoPin(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        setPinInput((prev) => prev.slice(0, -1));
+        setPinError('');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setPinPendiente(null);
+        setPinInput('');
+        setPinError('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const editables = pieza.laminas.some((l) => l.html);
   const imprimible = pieza.laminas.length > 0 && pieza.laminas.every((l) => !l.archivo?.mime.startsWith('video/'));
@@ -461,80 +486,113 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="PIN de aprobación"
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+          aria-label="Teclado PIN de aprobación"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md"
         >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!pinInput.trim()) {
-                setPinError('Ingresá el PIN de 4 dígitos.');
-                return;
-              }
-              guardar(pinPendiente, pinInput.trim());
-            }}
-            className="w-full max-w-xs space-y-4 rounded-3xl border border-primary/15 bg-white p-6 shadow-2xl"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-sm">
-                  <Lock className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="font-headline text-base font-bold text-foreground">PIN de aprobación</h3>
-                  <p className="text-xs text-muted-foreground">Se recuerda en este dispositivo</p>
-                </div>
-              </div>
+          <div className="w-full max-w-[330px] overflow-hidden rounded-[2rem] border border-primary/15 bg-white shadow-[0_32px_70px_-20px_rgba(4,17,51,0.55)]">
+            {/* Cabecera del teclado PIN */}
+            <div className="relative bg-gradient-to-br from-[#041133] via-[#002878] to-[#1D44B2] px-6 pb-5 pt-5 text-white">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full"
+                className="absolute right-3 top-3 h-8 w-8 rounded-full text-white/75 hover:bg-white/15 hover:text-white"
                 onClick={() => {
                   setPinPendiente(null);
+                  setPinInput('');
                   setPinError('');
                 }}
                 aria-label="Cerrar"
               >
                 <X className="h-4 w-4" />
               </Button>
+
+              <div className="flex flex-col items-center text-center">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
+                  {guardando ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-5 w-5" />}
+                </span>
+                <h3 className="mt-3 font-headline text-lg font-extrabold tracking-tight">
+                  {pinPendiente === 'aprobado' ? 'Confirmar aprobación' : 'Confirmar desaprobación'}
+                </h3>
+                <p className="mt-0.5 text-xs text-blue-100/85">Ingresá el PIN de 4 dígitos</p>
+
+                {/* 4 indicadores de dígitos */}
+                <div className="mt-4 flex items-center justify-center gap-3.5">
+                  {[0, 1, 2, 3].map((i) => {
+                    const filled = i < pinInput.length;
+                    return (
+                      <span
+                        key={i}
+                        className={cn(
+                          'h-4 w-4 rounded-full border-2 transition-all duration-150',
+                          pinError
+                            ? 'border-rose-300 bg-rose-400/30'
+                            : filled
+                              ? 'scale-110 border-amber-300 bg-amber-300 shadow-[0_0_12px_rgba(252,211,77,0.75)]'
+                              : 'border-white/40 bg-white/10',
+                        )}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Input
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={8}
-                autoFocus
-                placeholder="••••"
-                value={pinInput}
-                onChange={(e) => {
-                  setPinInput(e.target.value.replace(/\D/g, ''));
-                  setPinError('');
-                }}
-                className="h-12 rounded-2xl text-center font-mono text-2xl tracking-[0.5em]"
-              />
-              {pinError && <p className="text-center text-xs font-semibold text-rose-600">{pinError}</p>}
-            </div>
+            {/* Cuerpo: error + teclado numérico 3×4 */}
+            <div className="p-5">
+              <div className="mb-3 min-h-[18px] text-center">
+                {pinError && <p className="text-xs font-semibold text-rose-600">{pinError}</p>}
+              </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full"
-                onClick={() => {
-                  setPinPendiente(null);
-                  setPinError('');
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={guardando} className="rounded-full">
-                {pinPendiente === 'aprobado' ? 'Aprobar' : 'Desaprobar'}
-              </Button>
+              <div className="grid grid-cols-3 gap-2.5">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    disabled={guardando}
+                    onClick={() => tocarDigitoPin(d)}
+                    className="flex h-14 items-center justify-center rounded-2xl border border-primary/12 bg-[#F6F9FF] font-headline text-2xl font-bold text-foreground shadow-2xs transition-all duration-150 hover:border-primary/40 hover:bg-[#EBF2FF] hover:text-primary active:scale-95 active:bg-primary active:text-white disabled:opacity-50"
+                  >
+                    {d}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  disabled={guardando || pinInput.length === 0}
+                  onClick={() => {
+                    setPinInput('');
+                    setPinError('');
+                  }}
+                  className="flex h-14 items-center justify-center rounded-2xl border border-border bg-white text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted active:scale-95 disabled:opacity-40"
+                >
+                  Borrar
+                </button>
+
+                <button
+                  type="button"
+                  disabled={guardando}
+                  onClick={() => tocarDigitoPin('0')}
+                  className="flex h-14 items-center justify-center rounded-2xl border border-primary/12 bg-[#F6F9FF] font-headline text-2xl font-bold text-foreground shadow-2xs transition-all duration-150 hover:border-primary/40 hover:bg-[#EBF2FF] hover:text-primary active:scale-95 active:bg-primary active:text-white disabled:opacity-50"
+                >
+                  0
+                </button>
+
+                <button
+                  type="button"
+                  disabled={guardando || pinInput.length === 0}
+                  onClick={() => {
+                    setPinInput((prev) => prev.slice(0, -1));
+                    setPinError('');
+                  }}
+                  aria-label="Borrar último dígito"
+                  className="flex h-14 items-center justify-center rounded-2xl border border-border bg-white text-foreground transition-all hover:bg-muted active:scale-95 disabled:opacity-40"
+                >
+                  <Delete className="h-5 w-5" />
+                </button>
+              </div>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </section>

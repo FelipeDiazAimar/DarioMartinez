@@ -17,13 +17,10 @@ export function esAdminCookie(request: Request) {
   return /(?:^|;\s*)admin_auth=1(?:;|$)/.test(cookieHeader);
 }
 
-export function claveValida(request: Request) {
-  if (esAdminCookie(request)) {
-    return true;
-  }
-  const clave = request.headers.get('x-revision-clave') ?? '';
-  const huella = createHash('sha256').update(clave).digest();
-  return timingSafeEqual(huella, Buffer.from(HUELLA_CLAVE, 'hex'));
+export function claveValida(_request: Request) {
+  // La ruta /revision está oculta (noindex y sin enlaces públicos); cualquier usuario con el enlace directo puede acceder.
+  // La aprobación/desaprobación sigue protegida estrictamente por `puedeAprobar` (admin o PIN 4977).
+  return true;
 }
 
 export function puedeAprobar(request: Request) {
