@@ -1,4 +1,4 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 export default {
   darkMode: ['class'],
@@ -10,13 +10,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
+        headline: ['var(--font-headline)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        code: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        surface: 'hsl(var(--surface))',
+        ink: 'hsl(var(--ink))',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
@@ -61,47 +64,52 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      transitionTimingFunction: {
+        expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
         'fade-in': {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
         'slide-in-from-bottom': {
-          from: { transform: 'translateY(20px)', opacity: '0' },
+          from: { transform: 'translateY(18px)', opacity: '0' },
           to: { transform: 'translateY(0)', opacity: '1' },
         },
         'slide-in-from-left': {
-            from: { transform: 'translateX(-20px)', opacity: '0' },
-            to: { transform: 'translateX(0)', opacity: '1' },
+          from: { transform: 'translateX(-18px)', opacity: '0' },
+          to: { transform: 'translateX(0)', opacity: '1' },
         },
         'slide-in-from-right': {
-            from: { transform: 'translateX(20px)', opacity: '0' },
-            to: { transform: 'translateX(0)', opacity: '1' },
+          from: { transform: 'translateX(18px)', opacity: '0' },
+          to: { transform: 'translateX(0)', opacity: '1' },
+        },
+        'page-enter': {
+          from: { opacity: '0.01', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'svg-dash-flow': {
+          from: { strokeDashoffset: '24' },
+          to: { strokeDashoffset: '0' },
         },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.4s ease-out',
-        'accordion-up': 'accordion-up 0.4s ease-out',
-        'fade-in': 'fade-in 0.6s ease-out forwards',
-        'slide-in-from-bottom': 'slide-in-from-bottom 0.6s ease-out forwards',
-        'slide-in-from-left': 'slide-in-from-left 0.6s ease-out forwards',
-        'slide-in-from-right': 'slide-in-from-right 0.6s ease-out forwards',
+        'accordion-down': 'accordion-down 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+        'accordion-up': 'accordion-up 0.24s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'slide-in-from-bottom': 'slide-in-from-bottom 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'slide-in-from-left': 'slide-in-from-left 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'slide-in-from-right': 'slide-in-from-right 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'page-enter': 'page-enter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'svg-dash-flow': 'svg-dash-flow 2.8s linear infinite',
       },
     },
   },

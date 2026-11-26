@@ -36,13 +36,23 @@ function pickImageFromHtml(html: string, baseUrl: string) {
 }
 
 async function fetchAsImage(url: string, referer?: string) {
+  let effectiveReferer = referer;
+  if (!effectiveReferer) {
+    try {
+      effectiveReferer = `${new URL(url).origin}/`;
+    } catch {
+      effectiveReferer = undefined;
+    }
+  }
+
   const response = await fetch(url, {
     method: 'GET',
     cache: 'no-store',
     headers: {
-      Accept: 'image/*,*/*;q=0.8',
-      'User-Agent': 'Mozilla/5.0 (compatible; DM-ImageProxy/1.0)',
-      ...(referer ? { Referer: referer } : {}),
+      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      ...(effectiveReferer ? { Referer: effectiveReferer } : {}),
     },
   });
 

@@ -4,51 +4,31 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ContactForm } from '@/components/contact-form';
 import { Button } from '@/components/ui/button';
-import { Instagram, Mail } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Instagram, Mail, MapPin, Phone, Clock, Building2 } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
-import { LoadingImage } from '@/components/loading-image';
-import { supabase } from '@/lib/supabase-client';
+import { MapsIcon } from '@/components/icons/maps-icon';
+import { LiveOpenStatus } from '@/components/live-open-status';
+import { BrandLogo } from '@/components/brand-logo';
+import { ScrollReveal } from '@/components/scroll-reveal';
+import { DEFAULT_CONTACT_INFO, getSharedContactInfo } from '@/lib/site-data-cache';
+import { trackEvent } from '@/lib/analytics-client';
 
-const defaultContactInfo = {
-  whatsapp: '5493564504977',
-  instagram: 'https://www.instagram.com/dariomartinezcomputacion/',
-  facebook: 'https://www.facebook.com/profile.php?id=61585160335205',
-  email: 'dario.martinez.comp@email.com',
-  phone: '03564 15-504977',
-  address: 'Libertador Norte 163',
-  google_maps: 'https://share.google/WFdtCtDtE7RPHKL5o',
-  hours_mon_thu: 'Lunes a Jueves de 7:30 a 12:30 y de 15:30 a 19:30',
-  hours_fri: 'Viernes de 8:00 a 12:00 y de 15:30 a 19:30',
-};
+const defaultContactInfo = DEFAULT_CONTACT_INFO;
 
 export default function ContactoPage() {
   const [contactInfo, setContactInfo] = useState(defaultContactInfo);
   const [businessName, setBusinessName] = useState('');
 
-    useEffect(() => {
-      const loadContactInfo = async () => {
-        const { data } = await supabase
-          .from('contacto_info')
-          .select('*')
-          .eq('id', 1)
-          .maybeSingle();
+  useEffect(() => {
+    getSharedContactInfo().then(setContactInfo);
+  }, []);
 
-        if (data) {
-          setContactInfo({
-            ...defaultContactInfo,
-            ...data,
-          });
-        }
-      };
-
-      loadContactInfo();
-    }, []);
-
-    const whatsappLink = useMemo(
-      () => `https://wa.me/${(contactInfo.whatsapp || '').replace(/\D/g, '')}`,
-      [contactInfo.whatsapp]
-    );
+  const whatsappLink = useMemo(
+    () => `https://wa.me/${(contactInfo.whatsapp || '').replace(/\D/g, '')}`,
+    [contactInfo.whatsapp]
+  );
 
   const businessMailLink = useMemo(() => {
     const company = businessName.trim();
@@ -70,78 +50,169 @@ export default function ContactoPage() {
     return `https://mail.google.com/mail/?${params.toString()}`;
   }, [businessName, contactInfo.email]);
 
-    return (
-        <section
-        id="contacto"
-        className="w-full bg-white pt-12 pb-12 md:pt-24 md:pb-24 lg:pt-24 lg:pb-32"
-      >
-          <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
-          <div className="space-y-3">
-            <LoadingImage
-                src="/LOGO1.png"
-                alt="Darío Martínez Computación"
-                width={200}
-                height={200}
-                className="mx-auto"
-            />
-            <h1 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">
-              Contactanos sin compromiso
-            </h1>
-            <p className="mx-auto max-w-[600px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              ¿Tenés alguna duda o necesitás un presupuesto? Completá el
-              formulario o envianos un WhatsApp.
-            </p>
-          </div>
-          <div className="mx-auto w-full max-w-sm space-y-3">
-            <ContactForm />
-            <p className="text-xs text-foreground/70">
-              Tu consulta es bienvenida. ¡Respondemos a la brevedad!
-            </p>
-
-            <div className="mt-32 text-center">
-              <h2 className="text-4xl font-bold tracking-tight" style={{ marginTop: '70px' }}>Eres una empresa?</h2>
-              <p className="mt-2 text-lg text-muted-foreground">
-                O quieres contactarte por mail
+  return (
+    <div className="w-full bg-background text-foreground">
+      <section className="bg-brand-soft w-full border-b border-border py-16 lg:py-20">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="max-w-2xl space-y-4">
+              <LiveOpenStatus />
+              <h1 className="font-headline text-4xl font-extrabold tracking-[-0.03em] sm:text-5xl">
+                Contactanos sin compromiso
+              </h1>
+              <p className="text-base leading-relaxed text-foreground/75 md:text-lg">
+                ¿Tenés alguna duda o necesitás un presupuesto? Completá el formulario o envianos un WhatsApp.
               </p>
             </div>
-
-            <div className="mt-6 rounded-2xl border bg-card/70 p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-              <div className="mt-4 space-y-3">
-                <input
-                  value={businessName}
-                  onChange={(event) => setBusinessName(event.target.value)}
-                  placeholder="Nombre de la empresa"
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-all duration-200 ring-offset-background placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring"
-                />
-
-                <Button asChild className="w-full transition-transform duration-200 hover:scale-[1.01]">
-                  <a href={businessMailLink} target="_blank" rel="noopener noreferrer">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Enviar mail
-                  </a>
-                </Button>
-              </div>
-            </div>
-
-            <div className="pt-8 flex justify-center gap-4">
-              <Button asChild size="icon" className="rounded-full bg-[#25D366] text-white hover:bg-[#25D366]/90">
-                <Link href={whatsappLink} target="_blank" aria-label="WhatsApp">
-                  <WhatsAppIcon className="h-6 w-6" />
-                </Link>
-              </Button>
-              <Button asChild size="icon" className="rounded-full bg-[#E4405F] text-white hover:bg-[#E4405F]/90">
-                <Link href={contactInfo.instagram} target="_blank" aria-label="Instagram">
-                  <Instagram className="h-6 w-6" />
-                </Link>
-              </Button>
-              <Button asChild size="icon" className="rounded-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
-                <Link href={contactInfo.facebook} target="_blank" aria-label="Facebook">
-                  <FacebookIcon className="h-6 w-6" />
-                </Link>
-              </Button>
-            </div>
+            <BrandLogo size="lg" className="hidden md:inline-flex" />
           </div>
         </div>
       </section>
-    );
+
+      <section id="contacto" className="bg-brand-mist w-full py-16 lg:py-24">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+            {/* Formulario principal */}
+            <ScrollReveal direction="left" className="lg:col-span-7">
+              <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">
+                <h2 className="font-headline text-2xl font-bold">Envianos tu consulta</h2>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Tu consulta es bienvenida. ¡Respondemos a la brevedad!
+                </p>
+                <div className="mt-6">
+                  <ContactForm />
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Canales directos y contacto empresarial */}
+            <ScrollReveal direction="right" className="space-y-6 lg:col-span-5">
+              {/* Bloque empresas / email */}
+              <div className="rounded-2xl border border-border bg-background p-6">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/8 text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-headline text-xl font-bold">¿Sos una empresa o comercio?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      O si preferís escribirnos directamente por mail para cotizaciones formales.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <Input
+                    value={businessName}
+                    onChange={(event) => setBusinessName(event.target.value)}
+                    placeholder="Nombre de tu empresa o comercio"
+                    className="h-11 rounded-xl bg-surface"
+                  />
+                  <Button asChild size="lg" variant="outline" className="h-11 w-full rounded-full">
+                    <a
+                      href={businessMailLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackEvent('social_click', { label: 'Email Empresarial' })}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Enviar mail comercial
+                    </a>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Datos del local */}
+              <div className="divide-y divide-border rounded-2xl border border-border bg-background">
+                <div className="flex items-start gap-3.5 p-5">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <div className="text-sm">
+                    <p className="font-semibold text-foreground">Dirección</p>
+                    <Link
+                      href={contactInfo.google_maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary hover:underline"
+                    >
+                      {contactInfo.address} — San Francisco, Córdoba
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5 p-5">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <div className="space-y-1 text-sm">
+                    <p className="font-semibold text-foreground">Teléfonos</p>
+                    <p className="font-mono text-xs text-muted-foreground tabular-nums">
+                      Tel: {contactInfo.phone}
+                    </p>
+                    <p className="font-mono text-xs text-muted-foreground tabular-nums">
+                      WhatsApp: {contactInfo.whatsapp}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5 p-5">
+                  <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <div className="space-y-1 text-sm">
+                    <p className="font-semibold text-foreground">Horarios</p>
+                    <p className="text-muted-foreground">{contactInfo.hours_mon_thu}</p>
+                    <p className="text-muted-foreground">{contactInfo.hours_fri}</p>
+                    <p className="text-muted-foreground">Sábados: Cerrado</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Redes sociales */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Button asChild variant="whatsapp" className="rounded-full px-5">
+                  <Link
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackEvent('whatsapp_click', { label: 'Contacto Page Button' })}
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    WhatsApp
+                  </Link>
+                </Button>
+                <Button asChild variant="instagram" className="rounded-full px-5">
+                  <Link
+                    href={contactInfo.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    onClick={() => trackEvent('social_click', { label: 'Instagram Contacto' })}
+                  >
+                    <Instagram className="h-4 w-4" />
+                    Instagram
+                  </Link>
+                </Button>
+                <Link
+                  href={contactInfo.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  onClick={() => trackEvent('social_click', { label: 'Facebook Contacto' })}
+                  className="rb-glare rb-facebook-btn relative grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-primary/15 bg-white text-foreground/80"
+                >
+                  <FacebookIcon className="h-4 w-4" />
+                </Link>
+                <Link
+                  href={contactInfo.google_maps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Google Maps"
+                  onClick={() => trackEvent('social_click', { label: 'Maps Contacto' })}
+                  className="rb-pill-interactive grid h-10 w-10 place-items-center rounded-full border border-primary/15 bg-white text-foreground/80 hover:border-primary hover:bg-primary hover:text-white"
+                >
+                  <MapsIcon className="h-4 w-4" />
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

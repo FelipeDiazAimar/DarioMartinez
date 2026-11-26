@@ -178,7 +178,7 @@ export default function EditContactPage() {
                 <CardHeader>
                     <CardTitle>Datos de Contacto y Redes</CardTitle>
                     <CardDescription>
-                        Actualizá los datos que se muestran en el sitio web. Este es un editor de demostración y los cambios no se guardarán.
+                        Actualizá los datos de contacto, redes y horarios que se muestran en todo el sitio web.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

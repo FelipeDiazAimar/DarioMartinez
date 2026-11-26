@@ -1,9 +1,10 @@
-import type {NextConfig} from 'next';
+import path from 'path';
+import type { NextConfig } from 'next';
 
 const backendApiUrl = process.env.BACKEND_API_URL?.replace(/\/$/, '');
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingRoot: path.join(__dirname),
   typescript: {
     ignoreBuildErrors: true,
   },

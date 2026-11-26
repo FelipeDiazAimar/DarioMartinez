@@ -129,6 +129,19 @@ export default function ConsultasPage() {
     setMarkingId(null);
     setLeidoPor('');
   };
+
+  const deleteConsulta = async (id: number) => {
+    const confirmed = window.confirm('¿Querés eliminar esta consulta de forma permanente?');
+    if (!confirmed) return;
+
+    const { error } = await supabase.from('consultas').delete().eq('id', id);
+    if (error) {
+      setLoadError(`No se pudo eliminar la consulta: ${error.message}`);
+      return;
+    }
+
+    setSubmissions((prev) => prev.filter((item) => item.id !== id));
+  };
   
   if (!isAuthenticated || isLoading) {
     return (

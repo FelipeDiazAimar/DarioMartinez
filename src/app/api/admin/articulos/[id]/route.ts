@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
+import { syncCatalogChangesToSupabase } from '@/lib/catalog-sync';
 
 type Params = {
   params: Promise<{
@@ -46,6 +47,11 @@ export async function PUT(request: Request, { params }: Params) {
 
     const payload = await response.json().catch(() => ({}));
 
+    if (response.ok) {
+      // Replicar cambios inmediatamente al espejo en Supabase sin esperar cron
+      void syncCatalogChangesToSupabase().catch(() => {});
+    }
+
     return NextResponse.json(payload, { status: response.status });
   } catch (error: any) {
     return NextResponse.json(
@@ -79,6 +85,11 @@ export async function DELETE(request: Request, { params }: Params) {
     });
 
     const payload = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      // Replicar cambios inmediatamente al espejo en Supabase sin esperar cron
+      void syncCatalogChangesToSupabase().catch(() => {});
+    }
 
     return NextResponse.json(payload, { status: response.status });
   } catch (error: any) {

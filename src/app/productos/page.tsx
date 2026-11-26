@@ -1,13 +1,12 @@
 import Link from 'next/link';
-import { Search } from 'lucide-react';
-import { LoadingImage } from '@/components/loading-image';
-import { Footer } from '@/components/footer';
+import { Search, SlidersHorizontal, X, Package } from 'lucide-react';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
-import { fetchCatalogCategoryData, fetchCatalogItems, fetchCatalogItemsPage } from './catalog-utils';
+import { fetchCatalogCategoryData, fetchCatalogItemsPage } from './catalog-utils';
+import { CatalogProductGrid } from './catalog-product-grid';
 
 export const dynamic = 'force-dynamic';
 
-type AdminTestBdPageProps = {
+type CatalogPageProps = {
   searchParams?: Promise<{
     cat?: string;
     q?: string;
@@ -41,22 +40,18 @@ function buildCatalogHref(options: {
   q?: string;
 }) {
   const params = new URLSearchParams();
-
   const page = options.page ?? 1;
   const visible = options.visible ?? INITIAL_VISIBLE;
 
   if (options.cat && options.cat !== 'all') {
     params.set('cat', options.cat);
   }
-
   if (options.q && options.q.trim().length > 0) {
     params.set('q', options.q.trim());
   }
-
   if (page > 1) {
     params.set('page', String(page));
   }
-
   if (visible > INITIAL_VISIBLE) {
     params.set('visible', String(normalizeVisible(visible)));
   }
@@ -65,21 +60,11 @@ function buildCatalogHref(options: {
   return query ? `/productos?${query}` : '/productos';
 }
 
-export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageProps) {
-  const apiBaseUrl = process.env.API_BASE_URL;
-  const apiToken = process.env.API_TOKEN;
+export default async function ProductosCatalogPage({ searchParams }: CatalogPageProps) {
+  const apiBaseUrl = process.env.API_BASE_URL || '';
+  const apiToken = process.env.API_TOKEN || '';
 
-  if (!apiBaseUrl || !apiToken) {
-    return (
-      <main className="mx-auto w-full max-w-6xl p-6">
-        <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-destructive">
-          Faltan API_BASE_URL o API_TOKEN en variables de entorno.
-        </section>
-      </main>
-    );
-  }
-
-  let endpointUsed = `${resolveApiBaseUrl(apiBaseUrl)}/articulos`;
+  let endpointUsed = apiBaseUrl ? `${resolveApiBaseUrl(apiBaseUrl)}/articulos` : 'supabase://catalogo_productos';
 
   try {
     const resolvedSearchParams = await searchParams;
@@ -87,58 +72,22 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
     const searchTerm = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
     const currentPage = parsePositiveInt(resolvedSearchParams?.page, 1);
     const visibleRequested = parsePositiveInt(resolvedSearchParams?.visible, INITIAL_VISIBLE);
-    const useFastMode = selectedCategoryId === 'all';
 
-    let inStockItems: Awaited<ReturnType<typeof fetchCatalogItems>>['visibleInStockItems'] = [];
-    let filteredItems: typeof inStockItems = [];
-    let totalPages = 1;
-    let effectivePage = 1;
-    let pageItemsWindow: typeof inStockItems = [];
+    const catalogPageResult = await fetchCatalogItemsPage(apiBaseUrl, apiToken, {
+      page: currentPage,
+      pageSize: MAX_VISIBLE_PER_PAGE,
+      searchTerm: searchTerm || undefined,
+      categoryId: selectedCategoryId,
+    });
 
-    if (useFastMode) {
-      const catalogPageResult = await fetchCatalogItemsPage(apiBaseUrl, apiToken, {
-        page: currentPage,
-        pageSize: MAX_VISIBLE_PER_PAGE,
-        searchTerm: searchTerm || undefined,
-      });
-
-      endpointUsed = catalogPageResult.endpointUsed;
-      inStockItems = catalogPageResult.visibleInStockItems;
-      filteredItems = inStockItems;
-      totalPages = Math.max(1, catalogPageResult.totalPages);
-      effectivePage = Math.min(catalogPageResult.page, totalPages);
-      pageItemsWindow = filteredItems;
-    } else {
-      const catalogResult = await fetchCatalogItems(apiBaseUrl, apiToken);
-      endpointUsed = catalogResult.endpointUsed;
-      inStockItems = catalogResult.visibleInStockItems;
-
-      const articleNumbersForCategoryFilter = inStockItems.map((item) => item.articleNumber).filter(Boolean);
-      const categoryDataForFilter = await fetchCatalogCategoryData(articleNumbersForCategoryFilter);
-      const articleCategoryMapForFilter = categoryDataForFilter.articleCategoryByNumber;
-
-      const filteredByCategoryItems = inStockItems.filter((item) => {
-        return articleCategoryMapForFilter[item.articleNumber] === selectedCategoryId;
-      });
-
-      const normalizedSearchTerm = searchTerm.toLowerCase();
-      filteredItems =
-        normalizedSearchTerm.length === 0
-          ? filteredByCategoryItems
-          : filteredByCategoryItems.filter((item) => {
-              const searchableText = [item.title, item.descriptionAdditional, item.articleNumber].filter(Boolean).join(' ').toLowerCase();
-              return searchableText.includes(normalizedSearchTerm);
-            });
-
-      totalPages = Math.max(1, Math.ceil(filteredItems.length / MAX_VISIBLE_PER_PAGE));
-      effectivePage = Math.min(currentPage, totalPages);
-      const pageWindowStart = (effectivePage - 1) * MAX_VISIBLE_PER_PAGE;
-      const pageWindowEnd = pageWindowStart + MAX_VISIBLE_PER_PAGE;
-      pageItemsWindow = filteredItems.slice(pageWindowStart, pageWindowEnd);
-    }
+    endpointUsed = catalogPageResult.endpointUsed;
+    const inStockItems = catalogPageResult.visibleInStockItems;
+    const filteredItems = inStockItems;
+    const totalPages = Math.max(1, catalogPageResult.totalPages);
+    const effectivePage = Math.min(catalogPageResult.page, totalPages);
+    const pageItemsWindow = filteredItems;
 
     const articleNumbers = pageItemsWindow.map((item) => item.articleNumber).filter(Boolean);
-
     const categoryData = await fetchCatalogCategoryData(articleNumbers);
     const categories = categoryData.categories;
     const articleCategoryByNumber = categoryData.articleCategoryByNumber;
@@ -195,216 +144,210 @@ export default async function AdminTestBdPage({ searchParams }: AdminTestBdPageP
         q: searchTerm,
       });
 
+    const activeCategoryName = selectedCategoryId !== 'all' ? categoriesById[selectedCategoryId] : null;
+
     return (
-      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
-        <main className="mx-auto w-full max-w-7xl space-y-6 p-6">
-          <section className="rounded-2xl p-6 shadow-sm">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Nuestros Productos</h1>
-              <p className="max-w-[900px] text-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Equipamiento tecnológico para potenciar tu hogar o empresa.
-              </p>
-            </div>
-          </div>
+      <div className="bg-brand-mist w-full text-foreground">
+        {/* Cabecera del catálogo con degradé institucional */}
+        <section className="bg-brand-soft w-full border-b border-border py-12 lg:py-16">
+          <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div className="space-y-3">
+                <h1 className="font-headline text-4xl font-extrabold tracking-[-0.03em] sm:text-5xl">
+                  Nuestros Productos
+                </h1>
+                <p className="max-w-2xl text-base text-foreground/75 md:text-lg">
+                  Equipamiento tecnológico para potenciar tu hogar o empresa.
+                </p>
+              </div>
 
-          <form method="get" className="mt-8 flex justify-center">
-            {selectedCategoryId !== 'all' ? <input type="hidden" name="cat" value={selectedCategoryId} /> : null}
-            <input type="hidden" name="page" value="1" />
-            <input type="hidden" name="visible" value={String(INITIAL_VISIBLE)} />
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                name="q"
-                defaultValue={searchTerm}
-                placeholder="Buscar productos..."
-                className="h-12 w-full rounded-full border bg-white pl-12 pr-24 text-base shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <button
-                type="submit"
-                className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted"
-              >
-                Buscar
-              </button>
+              <form method="get" className="w-full max-w-md">
+                {selectedCategoryId !== 'all' ? (
+                  <input type="hidden" name="cat" value={selectedCategoryId} />
+                ) : null}
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="visible" value={String(INITIAL_VISIBLE)} />
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="search"
+                    name="q"
+                    defaultValue={searchTerm}
+                    placeholder="Buscar productos por nombre o código..."
+                    className="h-12 w-full rounded-full border border-border bg-surface pl-11 pr-24 text-sm outline-none transition-colors focus:border-primary focus:bg-background"
+                  />
+                  <button
+                    type="submit"
+                    className="rb-glare absolute right-1.5 top-1/2 h-9 -translate-y-1/2 overflow-hidden rounded-full bg-gradient-to-r from-[#002878] to-[#2349B6] px-4 text-xs font-semibold text-white shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-6px_rgba(0,48,143,0.55)] hover:brightness-110 active:scale-95"
+                  >
+                    Buscar
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-          {(searchTerm || selectedCategoryId !== 'all') && (
-            <div className="mt-3 flex justify-center">
-              <Link href="/productos" className="rounded-full border bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted">
-                Quitar filtros
-              </Link>
-            </div>
-          )}
-          </section>
 
-          <section className="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-2xl border bg-white p-4 shadow-sm">
-              <h3 className="mb-3 border-b pb-2 text-lg font-semibold">Categorías</h3>
-              <ul className="space-y-1">
-                <li>
+            {/* Filtro de categorías móvil y tablet (horizontal scrollable chips) */}
+            {categories.length > 0 && (
+              <div className="mt-6 lg:hidden">
+                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                  <span>Categorías</span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <Link
                     href={categoryHref('all')}
-                    className={`block rounded-md px-2 py-1 text-sm transition-colors ${
-                      selectedCategoryId === 'all' ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:text-foreground'
+                    className={`rb-pill-interactive shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold ${
+                      selectedCategoryId === 'all'
+                        ? 'border-primary bg-gradient-to-r from-[#002878] to-[#2349B6] text-white shadow-sm'
+                        : 'border-primary/15 bg-white text-foreground/80 hover:border-primary/45 hover:bg-[#EEF4FF] hover:text-primary'
                     }`}
                   >
                     Todas
                   </Link>
-                </li>
-                {categories.map((category) => (
-                  <li key={category.id}>
+                  {categories.map((category) => (
                     <Link
+                      key={category.id}
                       href={categoryHref(category.id)}
-                      className={`block rounded-md px-2 py-1 text-sm transition-colors ${
+                      className={`rb-pill-interactive shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold ${
                         selectedCategoryId === category.id
-                          ? 'bg-primary/10 font-semibold text-primary'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'border-primary bg-gradient-to-r from-[#002878] to-[#2349B6] text-white shadow-sm'
+                          : 'border-primary/15 bg-white text-foreground/80 hover:border-primary/45 hover:bg-[#EEF4FF] hover:text-primary'
                       }`}
                     >
                       {category.nombre}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-
-          <div>
-            {inStockItems.length === 0 ? (
-              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
-                No hay productos con stock disponible en este momento.
-              </section>
-            ) : searchTerm && filteredItems.length === 0 ? (
-              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
-                No encontramos resultados para "{searchTerm}".
-              </section>
-            ) : filteredItems.length === 0 ? (
-              <section className="rounded-2xl border bg-white p-6 text-center text-muted-foreground">
-                No hay productos en esta categoría.
-              </section>
-            ) : (
-              <>
-                <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {paginatedItems.map((item) => {
-                  const categoryId = articleCategoryByNumber[item.articleNumber];
-                  const categoryName = categoryId ? categoriesById[categoryId] : undefined;
-
-                  return (
-                    <Link
-                      key={item.id}
-                      href={`/productos/${encodeURIComponent(item.id)}`}
-                      className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                    >
-                      <article>
-                        <div className="relative flex h-52 items-center justify-center overflow-hidden bg-white p-4">
-                          {item.imageUrl ? (
-                            <LoadingImage
-                              src={item.imageUrl}
-                              alt={item.title}
-                              width={500}
-                              height={400}
-                              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                              spinnerSizeClassName="h-8 w-8 border-2"
-                            />
-                          ) : (
-                            <div className="text-sm text-muted-foreground">Sin imagen</div>
-                          )}
-                        </div>
-
-                        <div className="space-y-2 p-4">
-                          <h2 className="line-clamp-2 text-base font-semibold leading-tight">{item.title}</h2>
-                          {item.descriptionAdditional && <p className="line-clamp-2 text-xs text-muted-foreground">{item.descriptionAdditional}</p>}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <div className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-xs font-medium">
-                              Stock disponible: {item.stock}
-                            </div>
-                            <div className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-xs font-medium">
-                              {categoryName || 'Sin categoría'}
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    </Link>
-                  );
-                })}
-                </section>
-
-                <div className="mt-6 flex flex-col items-center gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {paginatedItems.length} de {pageItemsWindow.length} en esta página. Página {effectivePage} de {totalPages}.
-                  </p>
-                  {showLoadMoreOnly ? (
-                    <Link
-                      href={loadMoreHref}
-                      scroll={false}
-                      className="rounded-full border border-blue-600 bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                    >
-                      Ver más
-                    </Link>
-                  ) : showPageNavigation ? (
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      {hasPreviousPage ? (
-                        <Link
-                          href={previousPageHref}
-                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                        >
-                          Anterior página
-                        </Link>
-                      ) : null}
-
-                      <div className="flex flex-wrap items-center justify-center gap-1">
-                        {pageNumberLinks.map((item) => (
-                          <Link
-                            key={item.page}
-                            href={item.href}
-                            className={`min-w-9 rounded-full border px-3 py-2 text-center text-sm font-medium transition-colors ${
-                              item.page === effectivePage
-                                ? 'border-blue-600 bg-blue-600 text-white'
-                                : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50'
-                            }`}
-                            aria-current={item.page === effectivePage ? 'page' : undefined}
-                          >
-                            {item.page}
-                          </Link>
-                        ))}
-                      </div>
-
-                      {hasNextPage ? (
-                        <Link
-                          href={nextPageHref}
-                          className="rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                        >
-                          Siguiente página
-                        </Link>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  ))}
                 </div>
-              </>
+              </div>
+            )}
+
+            {(searchTerm || selectedCategoryId !== 'all') && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {activeCategoryName && (
+                  <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
+                    Categoría: {activeCategoryName}
+                  </span>
+                )}
+                {searchTerm && (
+                  <span className="inline-flex items-center rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground">
+                    Búsqueda: “{searchTerm}”
+                  </span>
+                )}
+                <Link
+                  href="/productos"
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  <X className="h-3 w-3" />
+                  Quitar filtros
+                </Link>
+              </div>
             )}
           </div>
-          </section>
+        </section>
 
-        </main>
-        <Footer forceShow />
+        {/* Cuerpo del catálogo */}
+        <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+          <div className="lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+            {/* Sidebar Desktop */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 rounded-2xl border border-border bg-background p-5">
+                <h2 className="mb-3 border-b border-border pb-3 font-headline text-sm font-bold text-foreground">
+                  Categorías
+                </h2>
+                <ul className="space-y-1.5">
+                  <li>
+                    <Link
+                      href={categoryHref('all')}
+                      className={`rb-pill-interactive block rounded-xl px-3.5 py-2 text-sm ${
+                        selectedCategoryId === 'all'
+                          ? 'bg-gradient-to-r from-[#002878] to-[#2349B6] text-white font-semibold shadow-sm'
+                          : 'text-foreground/75 hover:bg-[#EEF4FF] hover:text-primary'
+                      }`}
+                    >
+                      Todas
+                    </Link>
+                  </li>
+                  {categories.map((category) => (
+                    <li key={category.id}>
+                      <Link
+                        href={categoryHref(category.id)}
+                        className={`rb-pill-interactive block rounded-xl px-3.5 py-2 text-sm ${
+                          selectedCategoryId === category.id
+                            ? 'bg-gradient-to-r from-[#002878] to-[#2349B6] text-white font-semibold shadow-sm'
+                            : 'text-foreground/75 hover:bg-[#EEF4FF] hover:text-primary'
+                        }`}
+                      >
+                        {category.nombre}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+
+            {/* Grilla de productos */}
+            <div>
+              {inStockItems.length === 0 ? (
+                <section className="rounded-2xl border border-border bg-background p-10 text-center">
+                  <Package className="mx-auto h-10 w-10 text-muted-foreground/60" />
+                  <p className="mt-3 text-base font-medium text-foreground">
+                    No hay productos con stock disponible en este momento.
+                  </p>
+                </section>
+              ) : searchTerm && filteredItems.length === 0 ? (
+                <section className="rounded-2xl border border-border bg-background p-10 text-center">
+                  <p className="text-base font-medium text-foreground">
+                    No encontramos resultados para “{searchTerm}”.
+                  </p>
+                  <Link
+                    href="/productos"
+                    className="mt-4 inline-flex rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    Ver todos los productos
+                  </Link>
+                </section>
+              ) : filteredItems.length === 0 ? (
+                <section className="rounded-2xl border border-border bg-background p-10 text-center">
+                  <p className="text-base font-medium text-foreground">No hay productos en esta categoría.</p>
+                  <Link
+                    href="/productos"
+                    className="mt-4 inline-flex rounded-full border border-border bg-surface px-5 py-2 text-sm font-medium hover:border-primary"
+                  >
+                    Volver a todas las categorías
+                  </Link>
+                </section>
+              ) : (
+                <CatalogProductGrid
+                  items={pageItemsWindow}
+                  initialVisible={currentVisible}
+                  articleCategoryByNumber={articleCategoryByNumber}
+                  categoriesById={categoriesById}
+                  effectivePage={effectivePage}
+                  totalPages={totalPages}
+                  hasPreviousPage={hasPreviousPage}
+                  hasNextPage={hasNextPage}
+                  previousPageHref={previousPageHref}
+                  nextPageHref={nextPageHref}
+                  pageNumberLinks={pageNumberLinks}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
 
     return (
-      <div className="min-h-screen w-full" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
-        <main className="mx-auto w-full max-w-6xl p-6">
-          <section className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-            <h1 className="text-lg font-semibold text-destructive">No se pudo generar el catálogo en stock.</h1>
-            <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
-            <p className="mt-1 text-sm text-destructive">Endpoint consultado: {endpointUsed}</p>
-          </section>
-
-        </main>
-        <Footer forceShow />
+      <div className="mx-auto w-full max-w-5xl px-4 py-16">
+        <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6">
+          <h1 className="font-headline text-lg font-bold text-destructive">
+            No se pudo cargar el catálogo en stock.
+          </h1>
+          <p className="mt-2 text-sm text-destructive/90">Detalle técnico: {message}</p>
+          <p className="mt-1 font-mono text-xs text-destructive/80">Endpoint: {endpointUsed}</p>
+        </section>
       </div>
     );
   }

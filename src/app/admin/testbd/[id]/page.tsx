@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LoadingImage } from '@/components/loading-image';
-import { AdminBuyButton } from '@/components/admin-buy-button';
-import { Footer } from '@/components/footer';
 import { fetchCatalogCategoryData, fetchCatalogItems } from '../catalog-utils';
 import { RelatedProductsCarousel } from './related-products-carousel';
 
@@ -139,27 +137,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </div>
             </div>
 
-            <div className="pt-1">
-              <AdminBuyButton
-                product={{
-                  id: item.id,
-                  title: item.title,
-                  stock: item.stock,
-                  imageUrl: item.imageUrl,
-                  descriptionAdditional: item.descriptionAdditional,
-                  price: item.price,
-                  priceCurrency: item.priceCurrency,
-                }}
-              />
-            </div>
-
             <section className="rounded-xl border bg-white p-4">
-              <h2 className="text-sm font-semibold">Descripción (DescripcionWeb en BD)</h2>
+              <h2 className="text-sm font-semibold">Descripción</h2>
               <p className="mt-2 text-sm text-muted-foreground">{item.descriptionAdditional || 'Sin descripción cargada.'}</p>
             </section>
 
             <section className="rounded-xl border bg-white p-4">
-              <h2 className="text-sm font-semibold">Descripción adicional (AnotacionesWeb en BD)</h2>
+              <h2 className="text-sm font-semibold">Especificaciones y detalles</h2>
               <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.notes || 'Sin anotaciones cargadas.'}</p>
             </section>
           </div>
@@ -187,7 +171,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           )}
           </section>
         </main>
-        <Footer forceShow />
       </div>
     );
   } catch (error) {
@@ -201,7 +184,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <p className="mt-2 text-sm text-destructive">Detalle técnico: {message}</p>
           </section>
         </main>
-        <Footer forceShow />
       </div>
     );
   }
