@@ -192,9 +192,7 @@ const HISTORICAL_TOP_PRODUCTS = [
 ];
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
+  const authorized = isAuthorized(request);
 
   try {
     const supabase = getSupabaseAdmin();
@@ -523,13 +521,15 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.visits - a.visits)
       .slice(0, 15);
 
-    const recentConsultas = consultas.slice(0, 12).map((c) => ({
-      id: c.id,
-      name: `${c.nombre || ''} ${c.apellido || ''}`.trim() || c.email || 'Consulta sin nombre',
-      email: c.email || '',
-      createdAt: c.created_at,
-      leida: Boolean(c.leida),
-    }));
+    const recentConsultas = authorized
+      ? consultas.slice(0, 12).map((c) => ({
+          id: c.id,
+          name: `${c.nombre || ''} ${c.apellido || ''}`.trim() || c.email || 'Consulta sin nombre',
+          email: c.email || '',
+          createdAt: c.created_at,
+          leida: Boolean(c.leida),
+        }))
+      : [];
 
     return NextResponse.json({
       needsSetup,

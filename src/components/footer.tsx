@@ -116,7 +116,7 @@ export function Footer({ forceShow }: { forceShow?: boolean } = {}) {
     return defaultMapEmbedUrl;
   }, [contactInfo.google_maps]);
 
-  if ((isAdmin || pathname === '/admin-login') && !forceShow) {
+  if ((isAdmin || pathname === '/admin-login' || pathname.startsWith('/revision')) && !forceShow) {
     return null;
   }
 

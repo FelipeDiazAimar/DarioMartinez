@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, X, Package } from 'lucide-react';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base-url';
@@ -338,6 +339,7 @@ export default async function ProductosCatalogPage({ searchParams }: CatalogPage
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
+    console.error('Catálogo no disponible', message, endpointUsed);
 
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-16">

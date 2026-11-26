@@ -33,21 +33,45 @@ export type WeeklyCaptureItem = {
   createdAt: string | null;
 };
 
+const ORDER_FILE_NAME = '_order.json';
+
+async function readOrderFile(folder: string): Promise<string[]> {
+  const supabase = getSupabaseAdmin();
+  try {
+    const { data, error } = await supabase.storage.from('images').download(`${folder}/${ORDER_FILE_NAME}`);
+    if (error || !data) return [];
+    const text = await data.text();
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed.filter((p): p is string => typeof p === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
 async function listPlatformImages(weekKey: string, platform: Platform): Promise<WeeklyCaptureItem[]> {
   const supabase = getSupabaseAdmin();
   const folder = `weekly-dashboards/${weekKey}/${platform}`;
 
-  const { data, error } = await supabase.storage.from('images').list(folder, {
-    limit: 50,
-    sortBy: { column: 'name', order: 'asc' },
-  });
+  const [{ data, error }, savedOrder] = await Promise.all([
+    supabase.storage.from('images').list(folder, {
+      limit: 50,
+      sortBy: { column: 'name', order: 'asc' },
+    }),
+    readOrderFile(folder),
+  ]);
 
   if (error || !Array.isArray(data)) {
     return [];
   }
 
-  return data
-    .filter((file) => file.name && !file.name.startsWith('.') && file.id !== null)
+  const items = data
+    .filter(
+      (file) =>
+        file.name &&
+        !file.name.startsWith('.') &&
+        file.name !== ORDER_FILE_NAME &&
+        file.id !== null
+    )
     .map((file) => {
       const fullPath = `${folder}/${file.name}`;
       const { data: pub } = supabase.storage.from('images').getPublicUrl(fullPath);
@@ -58,6 +82,19 @@ async function listPlatformImages(weekKey: string, platform: Platform): Promise<
         createdAt: file.created_at || null,
       };
     });
+
+  if (savedOrder.length === 0) {
+    return items;
+  }
+
+  const rank = new Map<string, number>();
+  savedOrder.forEach((p, idx) => rank.set(p, idx));
+  return [...items].sort((a, b) => {
+    const ra = rank.has(a.path) ? rank.get(a.path)! : Number.MAX_SAFE_INTEGER;
+    const rb = rank.has(b.path) ? rank.get(b.path)! : Number.MAX_SAFE_INTEGER;
+    if (ra !== rb) return ra - rb;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -168,6 +205,44 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error subiendo capturas.';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Solo el administrador puede guardar el orden.' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const week = String(body?.week || '').trim();
+    const platform = String(body?.platform || '').trim().toLowerCase();
+    const order = Array.isArray(body?.order)
+      ? body.order.filter((p: unknown): p is string => typeof p === 'string' && p.startsWith(`weekly-dashboards/${week}/${platform}/`))
+      : [];
+
+    if (!isValidWeekKey(week) || !isValidPlatform(platform)) {
+      return NextResponse.json({ error: 'Semana o plataforma inválida.' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const orderPath = `weekly-dashboards/${week}/${platform}/${ORDER_FILE_NAME}`;
+    const payload = Buffer.from(JSON.stringify(order), 'utf8');
+
+    const { error } = await supabase.storage.from('images').upload(orderPath, payload, {
+      contentType: 'application/json',
+      upsert: true,
+      cacheControl: '0',
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return NextResponse.json({ ok: true, week, platform, order });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error guardando el orden del dashboard.';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

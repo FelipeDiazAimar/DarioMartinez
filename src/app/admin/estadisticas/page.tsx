@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Eye,
@@ -26,6 +25,8 @@ import {
   TrendingUp,
   TrendingDown,
   EyeOff,
+  ClipboardCheck,
+  ArrowRight,
 } from 'lucide-react';
 import {
   Bar,
@@ -54,6 +55,7 @@ import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { WeeklySocialDashboards } from '@/components/weekly-social-dashboards';
+import { BrandLogo } from '@/components/brand-logo';
 import { AuroraBackdrop, SpotlightCard } from '@/components/react-bits';
 import { SkeletonBox } from '@/components/skeletons';
 import { useToast } from '@/hooks/use-toast';
@@ -171,9 +173,9 @@ function DeltaPill({ delta, compareLabel }: { delta: number; compareLabel: strin
 }
 
 export default function StatisticsPage() {
-  const router = useRouter();
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [selectedRange, setSelectedRange] = useState<TimeRangeKey>('30d');
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [stats, setStats] = useState<StatsResponse | null>(null);
@@ -191,18 +193,20 @@ export default function StatisticsPage() {
   const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
-    const localAuth = localStorage.getItem('isAdminAuthenticated');
-    if (sessionAuth === 'true' || localAuth === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      router.replace('/admin-login');
+    try {
+      const sessionAuth = sessionStorage.getItem('isAdminAuthenticated');
+      const localAuth = localStorage.getItem('isAdminAuthenticated');
+      setIsAdmin(sessionAuth === 'true' || localAuth === 'true');
+    } catch {
+      setIsAdmin(false);
+    } finally {
+      setAuthChecked(true);
     }
 
     if (typeof window !== 'undefined' && window.location.origin) {
       setBaseOrigin(window.location.origin);
     }
-  }, [router]);
+  }, []);
 
   const fetchStats = useCallback(
     async (range: TimeRangeKey) => {
@@ -242,16 +246,16 @@ export default function StatisticsPage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAdmin) {
       fetchLinks();
     }
-  }, [isAuthenticated, fetchLinks]);
+  }, [isAdmin, fetchLinks]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (authChecked) {
       fetchStats(selectedRange);
     }
-  }, [isAuthenticated, selectedRange, fetchStats]);
+  }, [authChecked, selectedRange, fetchStats]);
 
   const buildTrackedUrl = useCallback(
     (link: {
@@ -367,7 +371,7 @@ export default function StatisticsPage() {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!authChecked) {
     return (
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 p-4 md:p-8">
         <SkeletonBox className="h-12 w-80" />
@@ -384,6 +388,30 @@ export default function StatisticsPage() {
 
   return (
     <div className="bg-brand-mist min-h-screen w-full">
+      {/* Barra superior exclusiva para acceso compartido sin login (solo permite alternar entre Estadísticas y Revisión) */}
+      {!isAdmin && (
+        <header className="sticky top-0 z-40 w-full border-b border-primary/12 bg-white/90 shadow-[0_6px_24px_-16px_rgba(0,48,143,0.16)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#00308F] via-[#3B6AF0] to-[#00308F] opacity-80" />
+          <div className="mx-auto flex h-[70px] w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center">
+                <BrandLogo size="md" />
+              </span>
+              <span className="hidden rounded-full border border-primary/15 bg-[#EEF4FF] px-3 py-1 text-xs font-semibold text-primary sm:inline-flex">
+                Panel de Estadísticas
+              </span>
+            </div>
+            <Button asChild size="sm" className="h-10 rounded-full px-5 text-xs font-semibold sm:text-sm">
+              <Link href="/revision">
+                <ClipboardCheck className="h-4 w-4" />
+                Ir a Revisión
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </div>
+        </header>
+      )}
+
       {/* Encabezado editorial con filtro temporal */}
       <section className="bg-brand-hero relative w-full overflow-hidden border-b border-border py-8 lg:py-10">
         <AuroraBackdrop variant="light" />
@@ -401,25 +429,36 @@ export default function StatisticsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setClientPreviewMode((v) => !v)}
-              className="h-9 rounded-full bg-white px-4 text-xs"
-            >
-              {clientPreviewMode ? (
-                <>
-                  <Eye className="h-3.5 w-3.5" />
-                  Modo edición admin
-                </>
-              ) : (
-                <>
-                  <EyeOff className="h-3.5 w-3.5" />
-                  Vista sin drag & drop
-                </>
-              )}
-            </Button>
+            {isAdmin && (
+              <Button asChild size="sm" className="h-9 rounded-full px-4 text-xs font-semibold">
+                <Link href="/revision">
+                  <ClipboardCheck className="h-3.5 w-3.5" />
+                  Ir a Revisión
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setClientPreviewMode((v) => !v)}
+                className="h-9 rounded-full bg-white px-4 text-xs"
+              >
+                {clientPreviewMode ? (
+                  <>
+                    <Eye className="h-3.5 w-3.5" />
+                    Modo edición admin
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="h-3.5 w-3.5" />
+                    Vista sin drag & drop
+                  </>
+                )}
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -564,38 +603,46 @@ export default function StatisticsPage() {
                     <span className="text-xs font-semibold text-muted-foreground">Consultas Web</span>
                     <div className="flex items-center gap-1">
                       <FileText className="h-4 w-4 text-primary" />
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="-mr-2 h-7 w-7 rounded-full">
-                          <ChevronsUpDown className="h-3.5 w-3.5" />
-                          <span className="sr-only">Ver historial</span>
-                        </Button>
-                      </CollapsibleTrigger>
+                      {isAdmin && (
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="icon" className="-mr-2 h-7 w-7 rounded-full">
+                            <ChevronsUpDown className="h-3.5 w-3.5" />
+                            <span className="sr-only">Ver historial</span>
+                          </Button>
+                        </CollapsibleTrigger>
+                      )}
                     </div>
                   </div>
                   <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
                     {stats.summary.totalConsultas.toLocaleString('es-AR')}
                   </div>
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    <Link href="/admin/consultas" className="font-semibold text-primary hover:underline">
-                      Ver bandeja completa →
-                    </Link>
-                  </p>
-                  <CollapsibleContent className="mt-3 border-t border-border pt-3">
-                    {stats.recentConsultas.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">Sin consultas registradas.</p>
-                    ) : (
-                      <ul className="max-h-32 space-y-1.5 overflow-y-auto pr-1">
-                        {stats.recentConsultas.map((c) => (
-                          <li key={c.id} className="flex justify-between gap-2 text-xs">
-                            <span className="truncate text-foreground">{c.name}</span>
-                            <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                              {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-AR') : '-'}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </CollapsibleContent>
+                  {isAdmin ? (
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      <Link href="/admin/consultas" className="font-semibold text-primary hover:underline">
+                        Ver bandeja completa →
+                      </Link>
+                    </p>
+                  ) : (
+                    <DeltaPill delta={stats.summary.consultasDelta} compareLabel={stats.compareLabel} />
+                  )}
+                  {isAdmin && (
+                    <CollapsibleContent className="mt-3 border-t border-border pt-3">
+                      {stats.recentConsultas.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Sin consultas registradas.</p>
+                      ) : (
+                        <ul className="max-h-32 space-y-1.5 overflow-y-auto pr-1">
+                          {stats.recentConsultas.map((c) => (
+                            <li key={c.id} className="flex justify-between gap-2 text-xs">
+                              <span className="truncate text-foreground">{c.name}</span>
+                              <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-AR') : '-'}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CollapsibleContent>
+                  )}
                 </Collapsible>
               </SpotlightCard>
             </>
@@ -603,7 +650,7 @@ export default function StatisticsPage() {
         </section>
 
         {/* 2. Dashboards Semanales de Instagram -> Facebook -> Google (Drag & Drop solo admin + Grid Asimétrico) */}
-        <WeeklySocialDashboards canEditOverride={!clientPreviewMode} />
+        <WeeklySocialDashboards canEditOverride={isAdmin && !clientPreviewMode} />
 
         {/* 3. Gráficos de Tráfico Web del período seleccionado */}
         {stats && (
@@ -748,7 +795,8 @@ export default function StatisticsPage() {
           </section>
         )}
 
-        {/* 4. AL ÚLTIMO: Enlaces con Referencias UTM (WhatsApp, Instagram, Facebook, Google) */}
+        {/* 4. AL ÚLTIMO (solo admin): Enlaces con Referencias UTM (WhatsApp, Instagram, Facebook, Google) */}
+        {isAdmin && (
         <Card className="rounded-3xl border-primary/12 bg-white shadow-xs">
           <CardHeader className="border-b border-border pb-5">
             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
@@ -999,6 +1047,7 @@ export default function StatisticsPage() {
             </div>
           </CardContent>
         </Card>
+        )}
       </main>
     </div>
   );

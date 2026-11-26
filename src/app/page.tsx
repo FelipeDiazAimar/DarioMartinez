@@ -253,8 +253,8 @@ const defaultHomeContent = {
 
 const defaultContactInfo = {
   whatsapp: '5493564504977',
-  instagram: 'https://www.instagram.com/dariomartinezcomputacion/',
-  facebook: 'https://www.facebook.com/profile.php?id=61585160335205',
+  instagram: 'https://www.instagram.com/dariomartinez.computacion/',
+  facebook: 'https://www.facebook.com/profile.php?id=61595361025236',
 };
 
 function normalizeText(value: string): string {

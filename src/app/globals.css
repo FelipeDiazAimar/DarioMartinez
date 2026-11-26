@@ -442,3 +442,21 @@
     transform: none;
   }
 }
+
+/* Marcador de carga: ocupa el lugar del contenido y lo recorre un brillo suave. */
+.dm-skeleton {
+  background-color: hsl(220 36% 93%);
+  background-image: linear-gradient(100deg, transparent 30%, hsl(0 0% 100% / 0.75) 50%, transparent 70%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: dm-brillo 1.4s ease-in-out infinite;
+}
+
+@keyframes dm-brillo {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-skeleton { animation: none; background-image: none; }
+}

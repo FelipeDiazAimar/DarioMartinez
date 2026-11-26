@@ -1,6 +1,8 @@
 # Dario Martinez — Sitio Web Institucional & Panel de Gestión
 
-Plataforma web completa para **Dario Martinez**, empresa especializada en equipos de punto de venta (POS), controladores fiscales y servicios tecnológicos. Combina un sitio público de presentación comercial con un panel de administración privado para gestionar el negocio en tiempo real.
+**Plataforma web completa para **Dario Martinez**, empresa de POS, controladores fiscales y servicios tecnológicos. Sitio público + admin privado en tiempo real. ([🇬🇧 English version](README.en.md))**
+
+**[📦 Repo](https://github.com/FelipeDiazAimar/DarioMartinez)**
 
 ---
 
@@ -164,3 +166,14 @@ El proyecto está configurado para **Firebase App Hosting** (`apphosting.yaml`) 
 ## Licencia
 
 Proyecto privado — todos los derechos reservados © Dario Martinez.
+
+---
+
+## 👤 Autor, contacto y licencia técnica
+
+Desarrollo: **Felipe Diaz Aimar** — Full-stack (Next.js, Supabase, Firebase, Genkit/Gemini).
+- 💼 LinkedIn: https://www.linkedin.com/in/felipe-aimar/
+- 📧 Email: felipediazaimar@gmail.com
+- 🐙 GitHub: https://github.com/FelipeDiazAimar
+
+> **English TL;DR:** Corporate site + private management panel for Dario Martinez (POS hardware, fiscal controllers, tech services). Public: home, product catalog, services, Posberry POS page, fiscal controllers, about, contact, FAQ — all content editable from admin. Private: articles/categories/prices/sales CRUD, Kardex inventory, stats dashboard (Recharts), contact-message inbox, per-page editors. Next 15.5.9 + React 19 + Firebase cookie-middleware auth + Supabase Postgres + Genkit/Gemini 2.5 Flash. Run: `npm install && npm run dev` (`:9002`, `genkit:dev` for AI). Deploy: Firebase App Hosting + Vercel Analytics/Speed Insights. Full English docs in [README.en.md](README.en.md).

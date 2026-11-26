@@ -3,13 +3,15 @@
 import * as React from 'react';
 import {
   Calendar,
+  Check,
   ChevronLeft,
   ChevronRight,
   Expand,
+  GripVertical,
   ImagePlus,
   Instagram,
   Loader2,
-  Trash2,
+  Save,
   UploadCloud,
   X,
 } from 'lucide-react';
@@ -151,6 +153,15 @@ export function WeeklySocialDashboards({
   const [isLoading, setIsLoading] = React.useState(true);
   const [uploadingPlatform, setUploadingPlatform] = React.useState<PlatformKey | null>(null);
   const [dragOverPlatform, setDragOverPlatform] = React.useState<PlatformKey | null>(null);
+  const [draggingCard, setDraggingCard] = React.useState<{ platform: PlatformKey; path: string } | null>(null);
+  const [dragOverCardPath, setDragOverCardPath] = React.useState<string | null>(null);
+  const [dirtyPlatforms, setDirtyPlatforms] = React.useState<Record<PlatformKey, boolean>>({
+    instagram: false,
+    facebook: false,
+    google: false,
+  });
+  const [savingPlatform, setSavingPlatform] = React.useState<PlatformKey | null>(null);
+  const [savedPlatform, setSavedPlatform] = React.useState<PlatformKey | null>(null);
   const [deletingPath, setDeletingPath] = React.useState<string | null>(null);
   const [lightboxItem, setLightboxItem] = React.useState<{ url: string; title: string } | null>(null);
 
@@ -180,6 +191,7 @@ export function WeeklySocialDashboards({
           facebook: json.dashboards?.facebook || [],
           google: json.dashboards?.google || [],
         });
+        setDirtyPlatforms({ instagram: false, facebook: false, google: false });
       } catch {
         toast({
           title: 'Error cargando dashboards semanales',
@@ -258,6 +270,55 @@ export function WeeklySocialDashboards({
     }
   };
 
+  const handleReorderCards = (platform: PlatformKey, fromPath: string, toPath: string) => {
+    if (!canEdit || fromPath === toPath) return;
+    setDashboards((prev) => {
+      const list = [...prev[platform]];
+      const fromIdx = list.findIndex((i) => i.path === fromPath);
+      const toIdx = list.findIndex((i) => i.path === toPath);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      const [moved] = list.splice(fromIdx, 1);
+      list.splice(toIdx, 0, moved);
+      return { ...prev, [platform]: list };
+    });
+    setDirtyPlatforms((prev) => ({ ...prev, [platform]: true }));
+    setSavedPlatform((curr) => (curr === platform ? null : curr));
+  };
+
+  const handleSavePlatformOrder = async (platform: PlatformKey) => {
+    if (!canEdit) return;
+    setSavingPlatform(platform);
+    try {
+      const order = dashboards[platform].map((item) => item.path);
+      const res = await fetch('/api/analytics/weekly-dashboards', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ week: weekKey, platform, order }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'No se pudo guardar el tablero.');
+      }
+      setDirtyPlatforms((prev) => ({ ...prev, [platform]: false }));
+      setSavedPlatform(platform);
+      toast({
+        title: 'Tablero guardado',
+        description: `Se guardó el orden y las capturas de ${platform.toUpperCase()}.`,
+      });
+      window.setTimeout(() => {
+        setSavedPlatform((curr) => (curr === platform ? null : curr));
+      }, 2400);
+    } catch (err: any) {
+      toast({
+        title: 'Error al guardar',
+        description: err?.message || 'Intentá nuevamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingPlatform(null);
+    }
+  };
+
   const handleDeleteCapture = async (platform: PlatformKey, itemPath: string) => {
     if (!canEdit) return;
     setDeletingPath(itemPath);
@@ -273,6 +334,7 @@ export function WeeklySocialDashboards({
         ...prev,
         [platform]: prev[platform].filter((item) => item.path !== itemPath),
       }));
+      setDirtyPlatforms((prev) => ({ ...prev, [platform]: true }));
       toast({ title: 'Captura eliminada del tablero' });
     } catch (err: any) {
       toast({
@@ -373,18 +435,18 @@ export function WeeklySocialDashboards({
             <div
               key={cfg.key}
               onDragOver={(e) => {
-                if (!canEdit) return;
+                if (!canEdit || draggingCard) return;
                 e.preventDefault();
                 if (dragOverPlatform !== cfg.key) setDragOverPlatform(cfg.key);
               }}
               onDragLeave={(e) => {
-                if (!canEdit) return;
+                if (!canEdit || draggingCard) return;
                 if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                   setDragOverPlatform(null);
                 }
               }}
               onDrop={(e) => {
-                if (!canEdit) return;
+                if (!canEdit || draggingCard) return;
                 e.preventDefault();
                 setDragOverPlatform(null);
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -451,6 +513,36 @@ export function WeeklySocialDashboards({
                         </>
                       )}
                     </Button>
+                    {items.length > 0 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={dirtyPlatforms[cfg.key] ? 'default' : 'outline'}
+                        disabled={savingPlatform === cfg.key}
+                        onClick={() => handleSavePlatformOrder(cfg.key)}
+                        className={cn(
+                          'h-9 rounded-full px-4 text-xs',
+                          savedPlatform === cfg.key && 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                        )}
+                      >
+                        {savingPlatform === cfg.key ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Guardando...
+                          </>
+                        ) : savedPlatform === cfg.key ? (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            Guardado
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-3.5 w-3.5" />
+                            {dirtyPlatforms[cfg.key] ? 'Guardar orden' : 'Guardar'}
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -507,56 +599,120 @@ export function WeeklySocialDashboards({
                   <div className="space-y-4">
                     {/* Grid Asimétrico estilo Bento Dashboard */}
                     <div className="grid auto-rows-[210px] grid-cols-1 gap-4 md:grid-cols-12">
-                      {items.map((item, idx) => (
-                        <div
-                          key={item.path}
-                          className={cn(
-                            'group relative overflow-hidden rounded-2xl border border-primary/15 bg-[#F8FAFF] shadow-xs transition-all duration-300 ease-expo hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-[0_18px_36px_-18px_rgba(0,48,143,0.28)]',
-                            getBentoSpanClass(idx, items.length)
-                          )}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setLightboxItem({ url: item.url, title: `${cfg.title} · #${idx + 1}` })}
-                            className="h-full w-full cursor-zoom-in text-left focus-visible:outline-none"
-                            aria-label={`Ampliar captura ${idx + 1} de ${cfg.key}`}
-                          >
-                            <img
-                              src={item.url}
-                              alt={`Captura ${idx + 1} de ${cfg.title}`}
-                              className="h-full w-full object-contain bg-white p-2 transition-transform duration-500 ease-expo group-hover:scale-[1.02]"
-                              loading="lazy"
-                            />
-                          </button>
+                      {items.map((item, idx) => {
+                        const isBeingDragged =
+                          draggingCard?.platform === cfg.key && draggingCard?.path === item.path;
+                        const isDropTarget =
+                          draggingCard?.platform === cfg.key &&
+                          draggingCard?.path !== item.path &&
+                          dragOverCardPath === item.path;
 
-                          {/* Controles flotantes al pasar el cursor */}
-                          <div className="pointer-events-none absolute right-2.5 top-2.5 flex items-center gap-1.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        return (
+                          <div
+                            key={item.path}
+                            draggable={canEdit}
+                            onDragStart={(e) => {
+                              if (!canEdit) return;
+                              setDraggingCard({ platform: cfg.key, path: item.path });
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', item.path);
+                            }}
+                            onDragOver={(e) => {
+                              if (!canEdit || !draggingCard || draggingCard.platform !== cfg.key) return;
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.dataTransfer.dropEffect = 'move';
+                              if (dragOverCardPath !== item.path) {
+                                setDragOverCardPath(item.path);
+                              }
+                            }}
+                            onDragLeave={() => {
+                              if (dragOverCardPath === item.path) {
+                                setDragOverCardPath(null);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              if (!canEdit || !draggingCard || draggingCard.platform !== cfg.key) return;
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleReorderCards(cfg.key, draggingCard.path, item.path);
+                              setDraggingCard(null);
+                              setDragOverCardPath(null);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingCard(null);
+                              setDragOverCardPath(null);
+                            }}
+                            className={cn(
+                              'group relative overflow-hidden rounded-2xl border bg-[#F8FAFF] shadow-xs transition-all duration-300 ease-expo',
+                              canEdit ? 'cursor-grab active:cursor-grabbing' : '',
+                              isBeingDragged
+                                ? 'scale-[0.98] border-primary/50 opacity-50'
+                                : isDropTarget
+                                  ? 'border-2 border-dashed border-primary bg-primary/5 ring-4 ring-primary/15'
+                                  : 'border-primary/15 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-[0_18px_36px_-18px_rgba(0,48,143,0.28)]',
+                              getBentoSpanClass(idx, items.length)
+                            )}
+                          >
+                            {/* Indicador de arrastre y posición (solo admin) */}
+                            {canEdit && (
+                              <div className="pointer-events-none absolute left-2.5 top-2.5 z-10 inline-flex items-center gap-1 rounded-full border border-primary/15 bg-white/92 px-2 py-0.5 text-[11px] font-semibold text-primary shadow-xs backdrop-blur-sm">
+                                <GripVertical className="h-3 w-3 opacity-75" />
+                                <span className="font-mono">#{idx + 1}</span>
+                              </div>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => setLightboxItem({ url: item.url, title: `${cfg.title} · #${idx + 1}` })}
-                              className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-border bg-white/95 text-foreground shadow-sm transition-colors hover:border-primary hover:text-primary"
-                              aria-label="Ampliar imagen"
+                              className="h-full w-full cursor-zoom-in text-left focus-visible:outline-none"
+                              aria-label={`Ampliar captura ${idx + 1} de ${cfg.key}`}
                             >
-                              <Expand className="h-3.5 w-3.5" />
+                              <img
+                                src={item.url}
+                                alt={`Captura ${idx + 1} de ${cfg.title}`}
+                                draggable={false}
+                                className="h-full w-full bg-white object-contain p-2 transition-transform duration-500 ease-expo group-hover:scale-[1.02]"
+                                loading="lazy"
+                              />
                             </button>
-                            {canEdit && (
+
+                            {/* Controles flotantes: Ampliar (hover) + Cruz roja de borrado rápido (siempre visible para admin) */}
+                            <div className="absolute right-2.5 top-2.5 z-10 flex items-center gap-1.5">
                               <button
                                 type="button"
-                                disabled={deletingPath === item.path}
-                                onClick={() => handleDeleteCapture(cfg.key, item.path)}
-                                className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-destructive/25 bg-white/95 text-destructive shadow-sm transition-colors hover:bg-destructive hover:text-white"
-                                aria-label="Eliminar captura"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLightboxItem({ url: item.url, title: `${cfg.title} · #${idx + 1}` });
+                                }}
+                                className="grid h-8 w-8 place-items-center rounded-full border border-border bg-white/95 text-foreground opacity-0 shadow-sm transition-all hover:border-primary hover:text-primary group-hover:opacity-100"
+                                aria-label="Ampliar imagen"
                               >
-                                {deletingPath === item.path ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                )}
+                                <Expand className="h-3.5 w-3.5" />
                               </button>
-                            )}
+                              {canEdit && (
+                                <button
+                                  type="button"
+                                  disabled={deletingPath === item.path}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCapture(cfg.key, item.path);
+                                  }}
+                                  className="grid h-8 w-8 place-items-center rounded-full border border-rose-200 bg-white/95 text-rose-600 shadow-sm transition-all hover:scale-105 hover:border-rose-600 hover:bg-rose-600 hover:text-white"
+                                  aria-label={`Eliminar captura ${idx + 1}`}
+                                  title="Eliminar captura"
+                                >
+                                  {deletingPath === item.path ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4 stroke-[2.5]" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Zona compacta de drag & drop adicional (solo visible para admin) */}

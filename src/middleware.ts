@@ -6,7 +6,12 @@ function isAdminAuthenticated(request: NextRequest) {
   return request.cookies.get(ADMIN_AUTH_COOKIE)?.value === '1';
 }
 
+function isPublicDirectLinkAdminPath(pathname: string) {
+  return pathname === '/admin/estadisticas' || pathname === '/admin/estadisticas/';
+}
+
 function isProtectedAdminPath(pathname: string) {
+  if (isPublicDirectLinkAdminPath(pathname)) return false;
   return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 

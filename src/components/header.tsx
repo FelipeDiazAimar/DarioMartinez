@@ -86,6 +86,24 @@ export function Header() {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
   const isAdminLogin = pathname === '/admin-login';
+  const isRevision = pathname.startsWith('/revision');
+  const isSharedStatsRoute = pathname === '/admin/estadisticas' || pathname === '/admin/estadisticas/';
+  const [hasAdminSession, setHasAdminSession] = useState<boolean>(!isSharedStatsRoute);
+
+  useEffect(() => {
+    if (!isSharedStatsRoute) {
+      setHasAdminSession(true);
+      return;
+    }
+    try {
+      const ok =
+        sessionStorage.getItem('isAdminAuthenticated') === 'true' ||
+        localStorage.getItem('isAdminAuthenticated') === 'true';
+      setHasAdminSession(ok);
+    } catch {
+      setHasAdminSession(false);
+    }
+  }, [isSharedStatsRoute]);
 
   const activePublicHref =
     publicNavItems.find(
@@ -164,7 +182,7 @@ export function Header() {
     getSharedContactInfo().then(setContactInfo);
   }, []);
 
-  if (isAdminLogin) {
+  if (isAdminLogin || isRevision || (isSharedStatsRoute && !hasAdminSession)) {
     return null;
   }
 

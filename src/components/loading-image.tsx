@@ -54,6 +54,9 @@ export function LoadingImage({
     }
   };
 
+  // Logos e iconos (ancho chico) cargan sin marcador: un indicador ahí molesta más que la espera.
+  const isSmall = !props.fill && typeof props.width === 'number' && props.width <= 160;
+
   const hasValidSrc = typeof normalizedSrc === 'string' ? normalizedSrc.length > 0 : Boolean(normalizedSrc);
 
   if (!hasValidSrc || hasFailed) {
