@@ -371,29 +371,32 @@ export function WeeklySocialDashboards({
         </div>
 
         {/* Control único de desplazamiento semanal */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
           {isCurrentWeek && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:py-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Semana actual
             </span>
           )}
 
-          <div className="inline-flex items-center rounded-full border border-primary/20 bg-white p-1 shadow-xs">
+          <div className="flex w-full items-center justify-between rounded-full border border-primary/20 bg-white p-1 shadow-xs sm:inline-flex sm:w-auto">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={() => shiftWeek(-1)}
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 shrink-0 rounded-full"
               aria-label="Semana anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <div className="flex items-center gap-2 px-3 text-xs font-semibold text-foreground sm:text-sm">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span className="whitespace-nowrap">Semana del {formatWeekLabel(selectedMonday)}</span>
+            <div className="flex min-w-0 items-center gap-1.5 px-2 text-xs font-semibold text-foreground sm:gap-2 sm:px-3 sm:text-sm">
+              <Calendar className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+              <span className="truncate">
+                <span className="hidden sm:inline">Semana del </span>
+                {formatWeekLabel(selectedMonday)}
+              </span>
             </div>
 
             <Button
@@ -402,7 +405,7 @@ export function WeeklySocialDashboards({
               size="icon"
               onClick={() => shiftWeek(1)}
               disabled={isCurrentWeek}
-              className="h-8 w-8 rounded-full disabled:opacity-35"
+              className="h-8 w-8 shrink-0 rounded-full disabled:opacity-35"
               aria-label="Semana siguiente"
             >
               <ChevronRight className="h-4 w-4" />
@@ -415,7 +418,7 @@ export function WeeklySocialDashboards({
               variant="default"
               size="sm"
               onClick={() => setSelectedMonday(currentMonday)}
-              className="h-9 rounded-full px-4 text-xs"
+              className="h-9 w-full rounded-full px-4 text-xs sm:w-auto"
             >
               Volver a esta semana
               <ChevronRight className="h-3.5 w-3.5" />
@@ -478,7 +481,7 @@ export function WeeklySocialDashboards({
                 </div>
 
                 {canEdit && (
-                  <div className="flex items-center gap-2">
+                  <div className="grid w-full grid-cols-2 items-center gap-2 sm:flex sm:w-auto">
                     <input
                       ref={(el) => {
                         fileInputRefs.current[cfg.key] = el;
@@ -598,7 +601,7 @@ export function WeeklySocialDashboards({
                 ) : (
                   <div className="space-y-4">
                     {/* Grid Asimétrico estilo Bento Dashboard */}
-                    <div className="grid auto-rows-[210px] grid-cols-1 gap-4 md:grid-cols-12">
+                    <div className="grid auto-rows-[190px] grid-cols-1 gap-3 sm:auto-rows-[210px] sm:gap-4 md:grid-cols-12">
                       {items.map((item, idx) => {
                         const isBeingDragged =
                           draggingCard?.platform === cfg.key && draggingCard?.path === item.path;

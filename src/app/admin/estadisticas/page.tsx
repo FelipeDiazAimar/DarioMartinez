@@ -103,12 +103,12 @@ type ReferralLinkRow = {
   ref_code: string;
 };
 
-const RANGE_OPTIONS: Array<{ key: TimeRangeKey; label: string }> = [
-  { key: 'today', label: 'Hoy' },
-  { key: '7d', label: 'Última semana' },
-  { key: '30d', label: 'Último mes' },
-  { key: '90d', label: 'Último trimestre' },
-  { key: '365d', label: 'Último año' },
+const RANGE_OPTIONS: Array<{ key: TimeRangeKey; label: string; shortLabel: string }> = [
+  { key: 'today', label: 'Hoy', shortLabel: 'Hoy' },
+  { key: '7d', label: 'Última semana', shortLabel: '7 días' },
+  { key: '30d', label: 'Último mes', shortLabel: 'Mes' },
+  { key: '90d', label: 'Último trimestre', shortLabel: 'Trimestre' },
+  { key: '365d', label: 'Último año', shortLabel: 'Año' },
 ];
 
 const DEVICE_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
@@ -157,10 +157,10 @@ function ChannelIcon({ channel, className = 'h-4 w-4' }: { channel: string; clas
 function DeltaPill({ delta, compareLabel }: { delta: number; compareLabel: string }) {
   const isPositive = delta >= 0;
   return (
-    <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+    <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground sm:text-xs">
       <span
         className={cn(
-          'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums',
+          'inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums sm:text-[11px]',
           isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
         )}
       >
@@ -413,24 +413,24 @@ export default function StatisticsPage() {
       )}
 
       {/* Encabezado editorial con filtro temporal */}
-      <section className="bg-brand-hero relative w-full overflow-hidden border-b border-border py-8 lg:py-10">
+      <section className="bg-brand-hero relative w-full overflow-hidden border-b border-border py-6 sm:py-8 lg:py-10">
         <AuroraBackdrop variant="light" />
-        <div className="relative z-10 mx-auto flex max-w-[1440px] flex-col justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:items-end lg:px-8">
+        <div className="relative z-10 mx-auto flex max-w-[1440px] flex-col justify-between gap-4 px-4 sm:gap-5 sm:px-6 lg:flex-row lg:items-end lg:px-8">
           <div>
-            <h1 className="flex items-center gap-3 font-headline text-3xl font-extrabold tracking-tight sm:text-4xl">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-md shadow-primary/25">
-                <BarChart3 className="h-5 w-5" />
+            <h1 className="flex items-center gap-2.5 font-headline text-2xl font-extrabold tracking-tight sm:gap-3 sm:text-4xl">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-md shadow-primary/25 sm:h-11 sm:w-11 sm:rounded-2xl">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
               Estadísticas y Rendimiento
             </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
+            <p className="mt-1.5 text-xs text-muted-foreground sm:text-sm">
               Base histórica consolidada hasta el 25/11/2026 y medición 100% en vivo desde esa fecha en adelante.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
-              <Button asChild size="sm" className="h-9 rounded-full px-4 text-xs font-semibold">
+              <Button asChild size="sm" className="h-9 rounded-full px-3.5 text-xs font-semibold sm:px-4">
                 <Link href="/revision">
                   <ClipboardCheck className="h-3.5 w-3.5" />
                   Ir a Revisión
@@ -444,7 +444,7 @@ export default function StatisticsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setClientPreviewMode((v) => !v)}
-                className="h-9 rounded-full bg-white px-4 text-xs"
+                className="h-9 rounded-full bg-white px-3.5 text-xs sm:px-4"
               >
                 {clientPreviewMode ? (
                   <>
@@ -464,7 +464,7 @@ export default function StatisticsPage() {
               variant="outline"
               size="sm"
               onClick={() => fetchStats(selectedRange)}
-              className="h-9 rounded-full bg-white px-4 text-xs"
+              className="h-9 rounded-full bg-white px-3.5 text-xs sm:px-4"
             >
               <RefreshCw className={cn('h-3.5 w-3.5', isLoadingStats && 'animate-spin')} />
               Actualizar
@@ -472,9 +472,9 @@ export default function StatisticsPage() {
           </div>
         </div>
 
-        {/* Filtro temporal: Hoy / Última semana / Último mes / Último trimestre / Último año */}
-        <div className="relative z-10 mx-auto mt-6 max-w-[1440px] px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex flex-wrap items-center gap-1.5 rounded-2xl border border-primary/15 bg-white/90 p-1.5 shadow-xs backdrop-blur-md sm:rounded-full">
+        {/* Filtro temporal: en móvil encaja en 1 sola barra táctil con etiquetas cortas; en desktop etiquetas completas */}
+        <div className="relative z-10 mx-auto mt-5 max-w-[1440px] px-4 sm:mt-6 sm:px-6 lg:px-8">
+          <div className="flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-primary/15 bg-white/92 p-1 shadow-xs backdrop-blur-md sm:inline-flex sm:w-auto sm:flex-wrap sm:gap-1.5 sm:rounded-full sm:p-1.5">
             {RANGE_OPTIONS.map((opt) => {
               const active = selectedRange === opt.key;
               return (
@@ -483,13 +483,14 @@ export default function StatisticsPage() {
                   type="button"
                   onClick={() => setSelectedRange(opt.key)}
                   className={cn(
-                    'rb-pill-interactive rounded-full px-4 py-1.5 text-xs font-semibold sm:text-sm',
+                    'rb-pill-interactive flex-1 whitespace-nowrap rounded-xl px-2.5 py-2 text-center text-xs font-semibold sm:flex-none sm:rounded-full sm:px-4 sm:py-1.5 sm:text-sm',
                     active
                       ? 'bg-gradient-to-r from-[#002878] via-[#00308F] to-[#2349B6] text-white shadow-sm'
                       : 'text-foreground/75 hover:bg-[#EEF4FF] hover:text-primary'
                   )}
                 >
-                  {opt.label}
+                  <span className="sm:hidden">{opt.shortLabel}</span>
+                  <span className="hidden sm:inline">{opt.label}</span>
                 </button>
               );
             })}
@@ -497,7 +498,7 @@ export default function StatisticsPage() {
         </div>
       </section>
 
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-9 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:gap-9 sm:px-6 sm:py-8 lg:px-8">
         {/* Aviso si faltara tabla de analíticas */}
         {stats?.needsSetup && (
           <Card className="border-primary/40 bg-primary/5">
@@ -513,57 +514,64 @@ export default function StatisticsPage() {
           </Card>
         )}
 
-        {/* 1. KPIs Principales del período seleccionado */}
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {/* 1. KPIs Principales del período seleccionado (2 columnas en móvil, 5 en desktop) */}
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
           {isLoadingStats || !stats ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonBox key={i} className="h-32 w-full rounded-2xl" />
+              <SkeletonBox
+                key={i}
+                className={cn('h-28 w-full rounded-2xl sm:h-32', i === 4 && 'col-span-2 lg:col-span-1')}
+              />
             ))
           ) : (
             <>
-              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-5 shadow-xs">
+              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5">
                 <div className="relative z-20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
                       Visitas ({stats.rangeLabel})
                     </span>
-                    <Eye className="h-4 w-4 text-primary" />
+                    <Eye className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
                   </div>
-                  <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
+                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
                     {stats.summary.totalVisits.toLocaleString('es-AR')}
                   </div>
                   <DeltaPill delta={stats.summary.visitsDelta} compareLabel={stats.compareLabel} />
                 </div>
               </SpotlightCard>
 
-              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-5 shadow-xs">
+              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5">
                 <div className="relative z-20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Visitantes Únicos</span>
-                    <Users className="h-4 w-4 text-primary" />
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
+                      Visitantes Únicos
+                    </span>
+                    <Users className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
                   </div>
-                  <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
+                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
                     {stats.summary.uniqueVisitors.toLocaleString('es-AR')}
                   </div>
                   <DeltaPill delta={stats.summary.uniqueVisitorsDelta} compareLabel={stats.compareLabel} />
                 </div>
               </SpotlightCard>
 
-              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-5 shadow-xs">
+              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5">
                 <Collapsible className="relative z-20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Clics en Productos</span>
-                    <div className="flex items-center gap-1">
-                      <MousePointerClick className="h-4 w-4 text-primary" />
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
+                      Clics en Productos
+                    </span>
+                    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                      <MousePointerClick className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="-mr-2 h-7 w-7 rounded-full">
-                          <ChevronsUpDown className="h-3.5 w-3.5" />
+                        <Button variant="ghost" size="icon" className="-mr-2 h-6 w-6 rounded-full sm:h-7 sm:w-7">
+                          <ChevronsUpDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                           <span className="sr-only">Ver desglose por producto</span>
                         </Button>
                       </CollapsibleTrigger>
                     </div>
                   </div>
-                  <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
+                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
                     {stats.summary.productClicks.toLocaleString('es-AR')}
                   </div>
                   <DeltaPill delta={stats.summary.productClicksDelta} compareLabel={stats.compareLabel} />
@@ -584,36 +592,40 @@ export default function StatisticsPage() {
                 </Collapsible>
               </SpotlightCard>
 
-              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-5 shadow-xs">
+              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5">
                 <div className="relative z-20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Clics a WhatsApp</span>
-                    <WhatsAppIcon className="h-4 w-4 text-[#1FAF5A]" />
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
+                      Clics a WhatsApp
+                    </span>
+                    <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 text-[#1FAF5A] sm:h-4 sm:w-4" />
                   </div>
-                  <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
+                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
                     {stats.summary.whatsappClicks.toLocaleString('es-AR')}
                   </div>
                   <DeltaPill delta={stats.summary.whatsappClicksDelta} compareLabel={stats.compareLabel} />
                 </div>
               </SpotlightCard>
 
-              <SpotlightCard className="rounded-2xl border border-primary/12 bg-white p-5 shadow-xs">
+              <SpotlightCard className="col-span-2 rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5 lg:col-span-1">
                 <Collapsible className="relative z-20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">Consultas Web</span>
-                    <div className="flex items-center gap-1">
-                      <FileText className="h-4 w-4 text-primary" />
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
+                      Consultas Web
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <FileText className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
                       {isAdmin && (
                         <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="icon" className="-mr-2 h-7 w-7 rounded-full">
-                            <ChevronsUpDown className="h-3.5 w-3.5" />
+                          <Button variant="ghost" size="icon" className="-mr-2 h-6 w-6 rounded-full sm:h-7 sm:w-7">
+                            <ChevronsUpDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             <span className="sr-only">Ver historial</span>
                           </Button>
                         </CollapsibleTrigger>
                       )}
                     </div>
                   </div>
-                  <div className="mt-3 font-mono text-2xl font-extrabold tabular-nums">
+                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
                     {stats.summary.totalConsultas.toLocaleString('es-AR')}
                   </div>
                   {isAdmin ? (
@@ -654,49 +666,82 @@ export default function StatisticsPage() {
 
         {/* 3. Gráficos de Tráfico Web del período seleccionado */}
         {stats && (
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <Card className="rounded-2xl border-primary/12 bg-white shadow-xs lg:col-span-8">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl font-bold">
-                  Evolución de Visitas — {stats.rangeLabel}
-                </CardTitle>
-                <CardDescription>
-                  Visitas totales y visitantes únicos dentro del período seleccionado.
-                </CardDescription>
+          <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+            <Card className="overflow-hidden rounded-2xl border-primary/12 bg-white shadow-xs lg:col-span-8">
+              <CardHeader className="p-4 pb-3 sm:p-6 sm:pb-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <CardTitle className="font-headline text-lg font-bold sm:text-xl">
+                      Evolución de Visitas — {stats.rangeLabel}
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Visitas totales y visitantes únicos dentro del período seleccionado.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] font-semibold text-muted-foreground sm:text-xs">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(var(--chart-1))' }} />
+                      Visitas
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(var(--chart-2))' }} />
+                      Únicos
+                    </span>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={{
-                    visits: { label: 'Visitas', color: 'hsl(var(--chart-1))' },
-                    visitors: { label: 'Únicos', color: 'hsl(var(--chart-2))' },
-                  }}
-                  className="h-[300px] w-full"
-                >
-                  <BarChart data={stats.series} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="visits" fill="var(--color-visits)" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="visitors" fill="var(--color-visitors)" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ChartContainer>
+              <CardContent className="px-2 pb-4 pt-0 sm:px-6 sm:pb-6">
+                <div className="w-full overflow-x-auto pb-1">
+                  <div className={cn(stats.series.length > 12 ? 'min-w-[520px] sm:min-w-0' : 'w-full')}>
+                    <ChartContainer
+                      config={{
+                        visits: { label: 'Visitas', color: 'hsl(var(--chart-1))' },
+                        visitors: { label: 'Únicos', color: 'hsl(var(--chart-2))' },
+                      }}
+                      className="h-[220px] w-full sm:h-[300px]"
+                    >
+                      <BarChart data={stats.series} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          minTickGap={16}
+                          interval="preserveStartEnd"
+                          fontSize={11}
+                        />
+                        <YAxis tickLine={false} axisLine={false} width={40} fontSize={11} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="visits" fill="var(--color-visits)" radius={[5, 5, 0, 0]} maxBarSize={28} />
+                        <Bar dataKey="visitors" fill="var(--color-visitors)" radius={[5, 5, 0, 0]} maxBarSize={28} />
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
+                </div>
+                {stats.series.length > 12 && (
+                  <p className="mt-1 text-center text-[11px] text-muted-foreground sm:hidden">
+                    Deslizá horizontalmente para ver todos los días
+                  </p>
+                )}
               </CardContent>
             </Card>
 
             <Card className="rounded-2xl border-primary/12 bg-white shadow-xs lg:col-span-4">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl font-bold">Dispositivos</CardTitle>
-                <CardDescription>Distribución en {stats.rangeLabel.toLowerCase()}</CardDescription>
+              <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-3">
+                <CardTitle className="font-headline text-lg font-bold sm:text-xl">Dispositivos</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Distribución en {stats.rangeLabel.toLowerCase()}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 pt-2 sm:p-6 sm:pt-2">
                 <ChartContainer
                   config={{
                     mobile: { label: 'Móvil', color: 'hsl(var(--chart-1))' },
                     desktop: { label: 'Escritorio', color: 'hsl(var(--chart-2))' },
                     tablet: { label: 'Tablet', color: 'hsl(var(--chart-3))' },
                   }}
-                  className="mx-auto h-[210px] w-full max-w-[240px]"
+                  className="mx-auto h-[185px] w-full max-w-[220px] sm:h-[210px] sm:max-w-[240px]"
                 >
                   <PieChart>
                     <ChartTooltip content={<ChartTooltipContent />} />
@@ -704,8 +749,8 @@ export default function StatisticsPage() {
                       data={stats.devices}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={56}
-                      outerRadius={84}
+                      innerRadius={50}
+                      outerRadius={76}
                       paddingAngle={3}
                     >
                       {stats.devices.map((entry, idx) => (
@@ -715,15 +760,15 @@ export default function StatisticsPage() {
                   </PieChart>
                 </ChartContainer>
 
-                <div className="grid grid-cols-3 gap-2 border-t border-border pt-4 text-center">
+                <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center sm:pt-4">
                   {stats.devices.map((d) => {
                     const pct = totalDeviceCount > 0 ? Math.round((d.value / totalDeviceCount) * 100) : 0;
                     const Icon = d.key === 'mobile' ? Smartphone : d.key === 'tablet' ? Tablet : Laptop;
                     return (
-                      <div key={d.key} className="rounded-xl bg-surface p-2.5">
+                      <div key={d.key} className="rounded-xl bg-surface p-2 sm:p-2.5">
                         <Icon className="mx-auto h-4 w-4 text-primary" />
                         <p className="mt-1 font-mono text-sm font-bold tabular-nums">{pct}%</p>
-                        <p className="text-[11px] text-muted-foreground">{d.name}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{d.name}</p>
                       </div>
                     );
                   })}
@@ -733,22 +778,24 @@ export default function StatisticsPage() {
 
             {/* Orígenes de tráfico + Páginas más visitadas */}
             <Card className="rounded-2xl border-primary/12 bg-white shadow-xs lg:col-span-6">
-              <CardHeader>
-                <CardTitle className="font-headline text-lg font-bold">Orígenes de Tráfico</CardTitle>
-                <CardDescription>Visitas atribuidas por canal en {stats.rangeLabel.toLowerCase()}</CardDescription>
+              <CardHeader className="p-4 pb-3 sm:p-6 sm:pb-4">
+                <CardTitle className="font-headline text-base font-bold sm:text-lg">Orígenes de Tráfico</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Visitas atribuidas por canal en {stats.rangeLabel.toLowerCase()}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-4 pt-0 sm:p-6 sm:pt-0">
                 {stats.trafficSources.map((src) => {
                   const maxVal = Math.max(1, ...stats.trafficSources.map((s) => s.visits));
                   const pct = Math.round((src.visits / maxVal) * 100);
                   return (
                     <div key={src.channel} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-2 font-semibold text-foreground">
-                          <ChannelIcon channel={src.channel} className="h-3.5 w-3.5 text-primary" />
-                          {src.name}
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="flex min-w-0 items-center gap-2 font-semibold text-foreground">
+                          <ChannelIcon channel={src.channel} className="h-3.5 w-3.5 shrink-0 text-primary" />
+                          <span className="truncate">{src.name}</span>
                         </span>
-                        <span className="font-mono font-semibold tabular-nums">
+                        <span className="shrink-0 font-mono font-semibold tabular-nums">
                           {src.visits.toLocaleString('es-AR')} visitas
                         </span>
                       </div>
@@ -765,19 +812,21 @@ export default function StatisticsPage() {
             </Card>
 
             <Card className="rounded-2xl border-primary/12 bg-white shadow-xs lg:col-span-6">
-              <CardHeader>
-                <CardTitle className="font-headline text-lg font-bold">Páginas más visitadas</CardTitle>
-                <CardDescription>Secciones con mayor tráfico en {stats.rangeLabel.toLowerCase()}</CardDescription>
+              <CardHeader className="p-4 pb-3 sm:p-6 sm:pb-4">
+                <CardTitle className="font-headline text-base font-bold sm:text-lg">Páginas más visitadas</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Secciones con mayor tráfico en {stats.rangeLabel.toLowerCase()}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2.5">
+              <CardContent className="space-y-2.5 p-4 pt-0 sm:p-6 sm:pt-0">
                 {stats.topPages.map((page) => {
                   const maxViews = Math.max(1, ...stats.topPages.map((p) => p.views));
                   const pct = Math.round((page.views / maxViews) * 100);
                   return (
                     <div key={page.name} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <code className="font-mono font-semibold text-foreground">{page.name}</code>
-                        <span className="font-mono font-semibold text-primary tabular-nums">
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <code className="min-w-0 truncate font-mono font-semibold text-foreground">{page.name}</code>
+                        <span className="shrink-0 font-mono font-semibold text-primary tabular-nums">
                           {page.views.toLocaleString('es-AR')}
                         </span>
                       </div>
