@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { claveValida, guardarRevision, leerPiezas, leerRevision } from '@/lib/revision-servidor';
+import { claveValida, guardarRevision, leerPiezas, leerRevision, puedeAprobar } from '@/lib/revision-servidor';
 import { ESTADOS, type Revision } from '@/lib/revision-tipos';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +24,12 @@ export async function PUT(request: Request) {
   if (!datos.success) return NextResponse.json({ error: 'No se pudo guardar: datos incompletos o demasiado largos.' }, { status: 400 });
 
   const { id, base, ...cambios } = datos.data;
+  if ((cambios.estado === 'aprobado' || cambios.estado === 'desaprobado') && !puedeAprobar(request)) {
+    return NextResponse.json(
+      { error: 'PIN incorrecto. Solo la administración puede aprobar o desaprobar.', requierePin: true },
+      { status: 403 },
+    );
+  }
   try {
     const pieza = (await leerPiezas()).find((p) => p.id === id);
     if (!pieza) return NextResponse.json({ error: 'Esa pieza no existe.' }, { status: 404 });

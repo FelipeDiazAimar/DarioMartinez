@@ -9,15 +9,31 @@ const BUCKET = 'revision';
 // Huella SHA-256 de la clave que viaja en el enlace (la clave es aleatoria y no está en el repositorio).
 // Para cambiar el enlace: generar otra clave y reemplazar esta huella.
 const HUELLA_CLAVE = '81ab37eee63ee386facfa6177b443902b13f512735e9ad8ae6dcd8ddd5166031';
+// Huella SHA-256 del PIN exclusivo para aprobar o desaprobar piezas (solo admin o jefa).
+const HUELLA_PIN_APROBACION = 'f45b5e982551402070a055ded1b77b706363eab0ded6960ad0d621911aae08db';
+
+export function esAdminCookie(request: Request) {
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  return /(?:^|;\s*)admin_auth=1(?:;|$)/.test(cookieHeader);
+}
 
 export function claveValida(request: Request) {
-  const cookieHeader = request.headers.get('cookie') ?? '';
-  if (/(?:^|;\s*)admin_auth=1(?:;|$)/.test(cookieHeader)) {
+  if (esAdminCookie(request)) {
     return true;
   }
   const clave = request.headers.get('x-revision-clave') ?? '';
   const huella = createHash('sha256').update(clave).digest();
   return timingSafeEqual(huella, Buffer.from(HUELLA_CLAVE, 'hex'));
+}
+
+export function puedeAprobar(request: Request) {
+  if (esAdminCookie(request)) {
+    return true;
+  }
+  const pin = (request.headers.get('x-revision-pin') ?? '').trim();
+  if (!pin) return false;
+  const huella = createHash('sha256').update(pin).digest();
+  return timingSafeEqual(huella, Buffer.from(HUELLA_PIN_APROBACION, 'hex'));
 }
 
 export function almacen() {

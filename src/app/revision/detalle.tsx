@@ -1,8 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ChevronDown, ChevronUp, Copy, Printer, Save, ThumbsDown, X } from 'lucide-react';
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Columns2,
+  Copy,
+  Lock,
+  Printer,
+  RotateCcw,
+  Save,
+  ThumbsDown,
+  Undo2,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision } from '@/lib/revision-tipos';
@@ -15,6 +29,7 @@ import { imprimir } from './imprimir';
 import { Pieza } from './lamina';
 
 const AUTOR_GUARDADO = 'dm-revision-autor';
+const PIN_GUARDADO = 'dm-revision-pin';
 // PC con mouse: se escribe sobre la pieza. El resto (celular, tableta) usa el campo grande.
 const ESCRITORIO = '(min-width: 1024px) and (pointer: fine)';
 
@@ -66,6 +81,11 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   // Pieza que se está comparando con su original.
   const [comparando, setComparando] = useState<string | null>(null);
   const [autor, setAutor] = useState('');
+  const [esAdmin, setEsAdmin] = useState(false);
+  const [pinGuardado, setPinGuardado] = useState('');
+  const [pinPendiente, setPinPendiente] = useState<'aprobado' | 'desaprobado' | null>(null);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<{ id: string; texto: string; mal?: boolean } | null>(null);
   const mensaje = aviso?.id === pieza.id ? aviso : null;
@@ -120,6 +140,11 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
     document.body.style.overflow = 'hidden';
     try {
       setAutor(localStorage.getItem(AUTOR_GUARDADO) ?? '');
+      setPinGuardado(localStorage.getItem(PIN_GUARDADO) ?? '');
+      const adminOk =
+        sessionStorage.getItem('isAdminAuthenticated') === 'true' ||
+        localStorage.getItem('isAdminAuthenticated') === 'true';
+      setEsAdmin(adminOk);
     } catch {}
     return () => {
       document.body.style.overflow = '';
@@ -143,19 +168,46 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   const hayCorrecciones = Boolean(nota.trim()) || distintaDelOriginal;
   const estadoAlGuardar: Estado = revision.estado === 'desaprobado' ? 'desaprobado' : hayCorrecciones ? 'correcciones' : 'pendiente';
 
-  async function guardar(estado: Estado) {
+  async function guardar(estado: Estado, pinOverride?: string) {
+    const requierePermiso = estado === 'aprobado' || estado === 'desaprobado';
+    const pinUsado = (pinOverride ?? pinGuardado).trim();
+
+    if (requierePermiso && !esAdmin && !pinUsado) {
+      setPinError('');
+      setPinInput('');
+      setPinPendiente(estado);
+      return;
+    }
+
     setGuardando(true);
     setMensaje(null);
+    setPinError('');
     try {
       localStorage.setItem(AUTOR_GUARDADO, autor);
     } catch {}
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-revision-clave': clave,
+      };
+      if (pinUsado) {
+        headers['x-revision-pin'] = pinUsado;
+      }
       const respuesta = await fetch('/api/revision/pieza', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-revision-clave': clave },
+        headers,
         body: JSON.stringify({ id: pieza.id, estado, nota, descripcion: descripcionNueva, textos, autor, base: borrador.base }),
       });
       const datos = await respuesta.json();
+      if (respuesta.status === 403 && datos?.requierePin) {
+        try {
+          localStorage.removeItem(PIN_GUARDADO);
+        } catch {}
+        setPinGuardado('');
+        setPinPendiente(estado === 'aprobado' || estado === 'desaprobado' ? estado : 'aprobado');
+        setPinError(datos.error || 'PIN incorrecto.');
+        return;
+      }
       if (respuesta.status === 409) {
         alGuardar(pieza.id, datos.actual);
         fijar({ base: datos.actual.actualizado });
@@ -163,6 +215,14 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
         return;
       }
       if (!respuesta.ok) throw new Error(datos.error);
+      if (pinOverride) {
+        try {
+          localStorage.setItem(PIN_GUARDADO, pinUsado);
+        } catch {}
+        setPinGuardado(pinUsado);
+      }
+      setPinPendiente(null);
+      setPinInput('');
       alGuardar(pieza.id, datos.revision);
       setTrabajos(({ [pieza.id]: _, ...resto }) => resto);
       setMensaje({ texto: estado === 'aprobado' ? 'Aprobada y guardada.' : `Guardada como "${NOMBRE_ESTADO[estado].toLowerCase()}".` });
@@ -272,22 +332,25 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
 
       <div className="flex min-h-0 flex-col gap-2 border-t bg-white p-3 lg:gap-3 lg:border-l lg:border-t-0 lg:p-4">
         <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" size="sm" className="px-1" disabled={!historial.length} onClick={deshacer}>
-            Deshacer
+          <Button variant="outline" size="sm" className="gap-1.5 px-1.5" disabled={!historial.length} onClick={deshacer}>
+            <Undo2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Deshacer</span>
           </Button>
-          <Button variant="outline" size="sm" className="px-1" disabled={!distintaDelOriginal} onClick={deshacerTodo}>
-            Deshacer todo
+          <Button variant="outline" size="sm" className="gap-1.5 px-1.5" disabled={!distintaDelOriginal} onClick={deshacerTodo}>
+            <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Todo</span>
           </Button>
           <Button
             variant={comparacion ? 'default' : 'outline'}
             size="sm"
-            className="px-1"
+            className="gap-1.5 px-1.5"
             aria-pressed={comparacion}
             disabled={!comparacion && !distintaDelOriginal}
             title={distintaDelOriginal ? 'Ver el original al lado de tu copia' : 'Se activa cuando cambies algo'}
             onClick={() => setComparando(comparacion ? null : pieza.id)}
           >
-            {comparacion ? 'Cerrar' : 'Comparar'}
+            <Columns2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{comparacion ? 'Cerrar' : 'Comparar'}</span>
           </Button>
         </div>
 
@@ -386,6 +449,86 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
       )}
       {editando?.que === 'nota' && (
         <EditorMovil titulo="Nota" maximo={4000} valor={nota} alCambiar={(v) => cambiar({ nota: v }, 'nota')} alCerrar={() => setEditando(null)} />
+      )}
+      {pinPendiente && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="PIN de aprobación"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!pinInput.trim()) {
+                setPinError('Ingresá el PIN de 4 dígitos.');
+                return;
+              }
+              guardar(pinPendiente, pinInput.trim());
+            }}
+            className="w-full max-w-xs space-y-4 rounded-3xl border border-primary/15 bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-sm">
+                  <Lock className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="font-headline text-base font-bold text-foreground">PIN de aprobación</h3>
+                  <p className="text-xs text-muted-foreground">Se recuerda en este dispositivo</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => {
+                  setPinPendiente(null);
+                  setPinError('');
+                }}
+                aria-label="Cerrar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-1.5">
+              <Input
+                type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                autoFocus
+                placeholder="••••"
+                value={pinInput}
+                onChange={(e) => {
+                  setPinInput(e.target.value.replace(/\D/g, ''));
+                  setPinError('');
+                }}
+                className="h-12 rounded-2xl text-center font-mono text-2xl tracking-[0.5em]"
+              />
+              {pinError && <p className="text-center text-xs font-semibold text-rose-600">{pinError}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full"
+                onClick={() => {
+                  setPinPendiente(null);
+                  setPinError('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={guardando} className="rounded-full">
+                {pinPendiente === 'aprobado' ? 'Aprobar' : 'Desaprobar'}
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
     </section>
   );
