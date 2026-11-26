@@ -375,8 +375,8 @@ export default function StatisticsPage() {
     return (
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 p-4 md:p-8">
         <SkeletonBox className="h-12 w-80" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonBox key={i} className="h-28 w-full rounded-2xl" />
           ))}
         </div>
@@ -514,13 +514,13 @@ export default function StatisticsPage() {
           </Card>
         )}
 
-        {/* 1. KPIs Principales del período seleccionado (2 columnas en móvil, 5 en desktop) */}
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+        {/* 1. KPIs Principales del período seleccionado (2×2 en móvil, 4 columnas en desktop) */}
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {isLoadingStats || !stats ? (
-            Array.from({ length: 5 }).map((_, i) => (
+            Array.from({ length: 4 }).map((_, i) => (
               <SkeletonBox
                 key={i}
-                className={cn('h-28 w-full rounded-2xl sm:h-32', i === 4 && 'col-span-2 lg:col-span-1')}
+                className="h-28 w-full rounded-2xl sm:h-32"
               />
             ))
           ) : (
@@ -605,57 +605,6 @@ export default function StatisticsPage() {
                   </div>
                   <DeltaPill delta={stats.summary.whatsappClicksDelta} compareLabel={stats.compareLabel} />
                 </div>
-              </SpotlightCard>
-
-              <SpotlightCard className="col-span-2 rounded-2xl border border-primary/12 bg-white p-3.5 shadow-xs sm:p-5 lg:col-span-1">
-                <Collapsible className="relative z-20">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="truncate text-[11px] font-semibold text-muted-foreground sm:text-xs">
-                      Consultas Web
-                    </span>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <FileText className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
-                      {isAdmin && (
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="icon" className="-mr-2 h-6 w-6 rounded-full sm:h-7 sm:w-7">
-                            <ChevronsUpDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            <span className="sr-only">Ver historial</span>
-                          </Button>
-                        </CollapsibleTrigger>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-2 font-mono text-xl font-extrabold tabular-nums sm:mt-3 sm:text-2xl">
-                    {stats.summary.totalConsultas.toLocaleString('es-AR')}
-                  </div>
-                  {isAdmin ? (
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      <Link href="/admin/consultas" className="font-semibold text-primary hover:underline">
-                        Ver bandeja completa →
-                      </Link>
-                    </p>
-                  ) : (
-                    <DeltaPill delta={stats.summary.consultasDelta} compareLabel={stats.compareLabel} />
-                  )}
-                  {isAdmin && (
-                    <CollapsibleContent className="mt-3 border-t border-border pt-3">
-                      {stats.recentConsultas.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Sin consultas registradas.</p>
-                      ) : (
-                        <ul className="max-h-32 space-y-1.5 overflow-y-auto pr-1">
-                          {stats.recentConsultas.map((c) => (
-                            <li key={c.id} className="flex justify-between gap-2 text-xs">
-                              <span className="truncate text-foreground">{c.name}</span>
-                              <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                                {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-AR') : '-'}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CollapsibleContent>
-                  )}
-                </Collapsible>
               </SpotlightCard>
             </>
           )}
