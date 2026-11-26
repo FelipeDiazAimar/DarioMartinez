@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, Printer, X } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, Copy, Printer, Save, ThumbsDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { REVISION_VACIA, type Estado, type Pieza as DatosPieza, type Revision } from '@/lib/revision-tipos';
@@ -188,12 +187,45 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
           <span className="min-w-0 flex-1 truncate pl-1 text-sm text-muted-foreground max-sm:invisible">{pieza.aporte?.autor ? `${NOMBRE_TIPO[pieza.tipo]} de ${pieza.aporte.autor}` : NOMBRE_TIPO[pieza.tipo]}</span>
           <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{posicion + 1} de {piezas.length}</span>
           {imprimible && (
-            <Button variant="outline" size="sm" aria-label="Imprimir" onClick={() => imprimir(pieza, textos, clave).catch(() => setMensaje({ texto: 'No se pudo preparar la impresión.', mal: true }))}>
-              <Printer className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Imprimir</span>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Imprimir"
+              className="hidden sm:inline-flex"
+              onClick={() => imprimir(pieza, textos, clave).catch(() => setMensaje({ texto: 'No se pudo preparar la impresión.', mal: true }))}
+            >
+              <Printer className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Imprimir</span>
             </Button>
           )}
-          <Button variant="ghost" size="icon" disabled={posicion === 0} onClick={() => { setComparando(null); alIr(piezas[posicion - 1].id); }} aria-label="Pieza anterior"><ChevronUp /></Button>
-          <Button variant="ghost" size="icon" disabled={posicion === piezas.length - 1} onClick={() => { setComparando(null); alIr(piezas[posicion + 1].id); }} aria-label="Pieza siguiente"><ChevronDown /></Button>
+          <div className="ml-1 flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={posicion === 0}
+              onClick={() => {
+                setComparando(null);
+                alIr(piezas[posicion - 1].id);
+              }}
+              aria-label="Pieza anterior"
+              className="h-9 w-9 rounded-full border-primary/35 bg-[#EEF4FF] text-primary shadow-xs hover:bg-primary hover:text-white disabled:opacity-30"
+            >
+              <ChevronUp className="h-5 w-5 stroke-[2.5]" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={posicion === piezas.length - 1}
+              onClick={() => {
+                setComparando(null);
+                alIr(piezas[posicion + 1].id);
+              }}
+              aria-label="Pieza siguiente"
+              className="h-9 w-9 rounded-full border-primary/35 bg-[#EEF4FF] text-primary shadow-xs hover:bg-primary hover:text-white disabled:opacity-30"
+            >
+              <ChevronDown className="h-5 w-5 stroke-[2.5]" />
+            </Button>
+          </div>
         </div>
 
         <p className="px-3 py-2 text-center text-sm text-muted-foreground max-lg:hidden">
@@ -259,11 +291,14 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
           </Button>
         </div>
 
-        {/* Celular: los campos se abren en grande al tocarlos. */}
-        <div className={cn('grid gap-2 lg:hidden', llevaDescripcion ? 'grid-cols-2' : 'grid-cols-1')}>
-          {llevaDescripcion && <Button variant="secondary" onClick={() => setEditando({ que: 'descripcion' })}>Editar {nombreDescripcion.toLowerCase()}</Button>}
-          <Button variant="secondary" onClick={() => setEditando({ que: 'nota' })}>{nota.trim() ? 'Ver nota' : 'Agregar nota'}</Button>
-        </div>
+        {/* Celular: botón compacto para descripción si existe */}
+        {llevaDescripcion && (
+          <div className="lg:hidden">
+            <Button variant="secondary" size="sm" className="w-full" onClick={() => setEditando({ que: 'descripcion' })}>
+              Editar {nombreDescripcion.toLowerCase()}
+            </Button>
+          </div>
+        )}
 
         {llevaDescripcion && (
           <div className="hidden min-h-0 flex-[2] flex-col gap-1 lg:flex">
@@ -275,12 +310,18 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
           </div>
         )}
 
-        <div className="hidden min-h-0 flex-1 flex-col gap-1 lg:flex">
-          <label htmlFor="nota" className="text-sm font-semibold">Nota</label>
-          <Textarea id="nota" value={nota} maxLength={4000} placeholder="Qué cambiar, dudas o comentarios" onChange={(e) => cambiar({ nota: e.target.value }, 'nota')} className="min-h-0 flex-1 resize-none" />
+        <div className="flex min-h-0 flex-col gap-1 lg:flex-1">
+          <label htmlFor="nota" className="hidden text-sm font-semibold lg:block">Nota</label>
+          <Textarea
+            id="nota"
+            rows={2}
+            value={nota}
+            maxLength={4000}
+            placeholder="Agregar nota, corrección o comentario..."
+            onChange={(e) => cambiar({ nota: e.target.value }, 'nota')}
+            className="min-h-[54px] resize-none text-sm lg:min-h-0 lg:flex-1"
+          />
         </div>
-
-        <Input aria-label="Tu nombre (opcional)" placeholder="Tu nombre (opcional)" value={autor} maxLength={60} onChange={(e) => setAutor(e.target.value)} className="h-10" />
 
         {(mensaje || sinGuardar) && (
           <p role="status" className={cn('text-sm text-muted-foreground', mensaje?.mal && 'font-semibold text-destructive')}>
@@ -289,9 +330,31 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
         )}
 
         <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" className="px-2 text-destructive" disabled={guardando} onClick={() => guardar('desaprobado')}>Desaprobar</Button>
-          <Button className="px-2" disabled={guardando || !sinGuardar} onClick={() => guardar(estadoAlGuardar)}>Guardar</Button>
-          <Button className="bg-green-700 px-2 text-white hover:bg-green-800" disabled={guardando} onClick={() => guardar('aprobado')}>Aprobar</Button>
+          <Button
+            variant="outline"
+            className="gap-1.5 border-rose-200 px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            disabled={guardando}
+            onClick={() => guardar('desaprobado')}
+          >
+            <ThumbsDown className="h-4 w-4 shrink-0" />
+            <span className="truncate">Desaprobar</span>
+          </Button>
+          <Button
+            className="gap-1.5 px-2"
+            disabled={guardando || !sinGuardar}
+            onClick={() => guardar(estadoAlGuardar)}
+          >
+            <Save className="h-4 w-4 shrink-0" />
+            <span className="truncate">Guardar</span>
+          </Button>
+          <Button
+            className="gap-1.5 bg-green-700 px-2 text-white hover:bg-green-800"
+            disabled={guardando}
+            onClick={() => guardar('aprobado')}
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span className="truncate">Aprobar</span>
+          </Button>
         </div>
       </div>
 

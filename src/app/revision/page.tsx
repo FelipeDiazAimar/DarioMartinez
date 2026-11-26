@@ -478,13 +478,18 @@ export default function RevisionPage() {
                           </span>
                         </div>
                         {(detalles.length > 0 || imprimible) && (
-                          <div className="space-y-2 border-t border-border/70 bg-white p-2.5">
+                          <div
+                            className={cn(
+                              'space-y-2 border-t border-border/70 bg-white p-2.5',
+                              detalles.length === 0 && 'hidden sm:block',
+                            )}
+                          >
                             {detalles.length > 0 && <p className="text-xs text-muted-foreground">{detalles.join(' · ')}</p>}
                             {imprimible && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full rounded-xl"
+                                className="hidden w-full rounded-xl sm:inline-flex"
                                 onClick={() =>
                                   imprimir(pieza, revision.textos, clave).catch(() =>
                                     setError('No se pudo preparar la impresión.'),

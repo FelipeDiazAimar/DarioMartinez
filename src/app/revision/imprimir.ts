@@ -9,6 +9,17 @@ function conCorrecciones(html: string, cambios: Record<string, string>) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   nodosDeTexto(doc).forEach((nodo, i) => {
     if (i in cambios) nodo.nodeValue = cambios[i];
+    const rawPos = cambios[`__pos_${i}`];
+    if (rawPos && nodo.parentElement) {
+      const [dx, dy] = rawPos.split(',').map(Number);
+      if (Number.isFinite(dx) && Number.isFinite(dy) && (dx !== 0 || dy !== 0)) {
+        const span = doc.createElement('span');
+        span.style.display = 'inline-block';
+        span.style.transform = `translate(${dx}px, ${dy}px)`;
+        nodo.replaceWith(span);
+        span.appendChild(nodo);
+      }
+    }
   });
   const estilo = doc.createElement('style');
   estilo.textContent = '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}';

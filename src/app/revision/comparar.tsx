@@ -44,8 +44,7 @@ export function Comparar({ pieza, clave, escritorio, textos, descripcion, alCamb
               yaMismo
               conControles
               cambios={copia ? textos[lamina.id] : undefined}
-              alCambiar={copia && escritorio ? (c) => alCambiar(lamina.id, c) : undefined}
-              alTocar={copia && !escritorio ? (i, original) => alTocar(imagen, i, original) : undefined}
+              alCambiar={copia ? (c) => alCambiar(lamina.id, c) : undefined}
             />
           </div>
         )}

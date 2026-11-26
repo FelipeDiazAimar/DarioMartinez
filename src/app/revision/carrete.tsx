@@ -187,8 +187,7 @@ export function Carrete({ piezas, actual, alElegir, clave, escritorio, textosDe,
                             conControles={enFoco}
                             cambios={textos[lamina.id]}
                             alRueda={alRueda}
-                            alCambiar={enFoco && escritorio ? (cambios) => alCambiar(lamina.id, cambios) : undefined}
-                            alTocar={enFoco && !escritorio ? (indice, original) => alTocar(n, indice, original) : undefined}
+                            alCambiar={enFoco ? (cambios) => alCambiar(lamina.id, cambios) : undefined}
                           />
                         </div>
                       ))}
