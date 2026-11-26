@@ -1,8 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, CheckCircle2, ClipboardCheck, Plus, Printer, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardCheck,
+  Clock,
+  Layers,
+  Plus,
+  Printer,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/brand-logo';
 import { AuroraBackdrop } from '@/components/react-bits';
@@ -68,6 +80,127 @@ function Filtro({
   );
 }
 
+type OpcionSelector<T extends string> = {
+  value: T;
+  label: string;
+  count: number;
+};
+
+function SelectorFiltro<T extends string>({
+  label,
+  icon,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  value: T;
+  options: OpcionSelector<T>[];
+  onChange: (next: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const selected = options.find((o) => o.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        onClick={() => setOpen((prev) => !prev)}
+        className={cn(
+          'flex w-full items-center justify-between gap-2 rounded-2xl border bg-white px-3.5 py-2.5 text-left shadow-xs transition-all duration-200',
+          open
+            ? 'border-primary ring-4 ring-primary/10'
+            : 'border-primary/15 hover:border-primary/40',
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary/75">
+            {icon}
+            {label}
+          </span>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="truncate text-sm font-semibold text-foreground">{selected?.label}</span>
+            <span className="shrink-0 rounded-full bg-[#EEF4FF] px-1.5 py-0.5 font-mono text-[11px] font-bold text-primary tabular-nums">
+              {selected?.count ?? 0}
+            </span>
+          </div>
+        </div>
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 shrink-0 text-primary/70 transition-transform duration-200',
+            open && 'rotate-180 text-primary',
+          )}
+        />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label={label}
+          className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-2xl border border-primary/15 bg-white/98 p-1.5 shadow-[0_20px_48px_-16px_rgba(0,48,143,0.28)] backdrop-blur-xl"
+        >
+          {options.map((opt) => {
+            const active = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                className={cn(
+                  'flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition-colors',
+                  active
+                    ? 'bg-gradient-to-r from-[#002878] via-[#00308F] to-[#2349B6] font-semibold text-white'
+                    : 'font-medium text-foreground hover:bg-[#EEF4FF] hover:text-primary',
+                )}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Check className={cn('h-3.5 w-3.5 shrink-0', active ? 'opacity-100' : 'opacity-0')} />
+                  <span className="truncate">{opt.label}</span>
+                </span>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2 py-0.5 font-mono text-xs tabular-nums',
+                    active ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RevisionPage() {
   const [clave, setClave] = useState<string | null>(null);
   const [piezas, setPiezas] = useState<DatosPieza[] | null>(null);
@@ -119,6 +252,7 @@ export default function RevisionPage() {
     .sort((a, b) => ORDEN_ESTADO[revisionDe(a.id).estado] - ORDEN_ESTADO[revisionDe(b.id).estado]);
 
   const aprobadas = todas.filter((p) => revisionDe(p.id).estado === 'aprobado').length;
+  const pendientes = todas.filter((p) => revisionDe(p.id).estado === 'pendiente').length;
   const piezaAbierta = todas.find((p) => p.id === abierta);
 
   const cuantasConEstado = (valor: Estado | 'todas') =>
@@ -130,6 +264,18 @@ export default function RevisionPage() {
     setRecorrido(visibles.map((p) => p.id));
     setAbierta(id);
   };
+
+  const opcionesEstado: OpcionSelector<Estado | 'todas'>[] = (['todas', ...ESTADOS] as const).map((valor) => ({
+    value: valor,
+    label: valor === 'todas' ? 'Todas' : FILTRO_ESTADO[valor],
+    count: cuantasConEstado(valor),
+  }));
+
+  const opcionesTipo: OpcionSelector<Tipo | 'todo'>[] = TIPOS.map((valor) => ({
+    value: valor,
+    label: valor === 'todo' ? 'Todo' : FILTRO_TIPO[valor],
+    count: cuantasDeTipo(valor),
+  }));
 
   return (
     <div className="bg-brand-mist min-h-screen w-full">
@@ -158,30 +304,32 @@ export default function RevisionPage() {
         </header>
 
         {/* Hero editorial institucional */}
-        <section className="bg-brand-hero relative w-full overflow-hidden border-b border-border py-8 lg:py-10">
+        <section className="bg-brand-hero relative w-full overflow-hidden border-b border-border py-6 sm:py-8 lg:py-10">
           <AuroraBackdrop variant="light" />
-          <div className="relative z-10 mx-auto flex max-w-[1440px] flex-col justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:items-end lg:px-8">
+          <div className="relative z-10 mx-auto flex max-w-[1440px] flex-col justify-between gap-4 px-4 sm:gap-5 sm:px-6 lg:flex-row lg:items-end lg:px-8">
             <div>
-              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/85 px-3 py-1 text-xs font-semibold text-primary shadow-xs">
-                <Sparkles className="h-3.5 w-3.5" />
-                Espacio de aprobación de piezas
-              </div>
-              <h1 className="flex items-center gap-3 font-headline text-3xl font-extrabold tracking-tight sm:text-4xl">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-md shadow-primary/25">
-                  <ClipboardCheck className="h-5 w-5" />
+              <h1 className="flex items-center gap-2.5 font-headline text-2xl font-extrabold tracking-tight sm:gap-3 sm:text-4xl">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#002878] to-[#2349B6] text-white shadow-md shadow-primary/25 sm:h-11 sm:w-11 sm:rounded-2xl">
+                  <ClipboardCheck className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
                 Revisión de contenido
               </h1>
-              <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 {piezas ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {aprobadas} de {piezas.length} aprobadas
-                  </span>
+                  <>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {aprobadas} de {piezas.length} aprobadas
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                      <Clock className="h-3.5 w-3.5" />
+                      {pendientes} {pendientes === 1 ? 'pendiente' : 'pendientes'}
+                    </span>
+                  </>
                 ) : (
                   'Publicaciones, historias, videos, portadas e ideas'
                 )}
-              </p>
+              </div>
             </div>
 
             {piezas && (
@@ -195,7 +343,7 @@ export default function RevisionPage() {
           </div>
         </section>
 
-        <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1440px] space-y-5 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-7 lg:px-8">
           {error && (
             <section role="alert" className="space-y-3 rounded-2xl border border-primary/15 bg-white p-6 text-center shadow-xs">
               <p className="text-sm text-muted-foreground">{error}</p>
@@ -206,36 +354,22 @@ export default function RevisionPage() {
           )}
 
           <div className="space-y-5 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-8 lg:space-y-0">
-            {/* Filtros móvil */}
+            {/* Selectores propios estilizados para móvil */}
             <div className="grid grid-cols-2 gap-3 lg:hidden">
-              <label className="flex flex-col gap-1.5 text-xs font-semibold text-muted-foreground">
-                Estado
-                <select
-                  value={estado}
-                  onChange={(e) => setEstado(e.target.value as Estado | 'todas')}
-                  className="h-11 rounded-xl border border-primary/15 bg-white px-3 text-sm font-medium text-foreground shadow-xs outline-none focus:border-primary"
-                >
-                  {(['todas', ...ESTADOS] as const).map((valor) => (
-                    <option key={valor} value={valor}>
-                      {valor === 'todas' ? 'Todas' : FILTRO_ESTADO[valor]} ({cuantasConEstado(valor)})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5 text-xs font-semibold text-muted-foreground">
-                Tipo
-                <select
-                  value={tipo}
-                  onChange={(e) => setTipo(e.target.value as Tipo | 'todo')}
-                  className="h-11 rounded-xl border border-primary/15 bg-white px-3 text-sm font-medium text-foreground shadow-xs outline-none focus:border-primary"
-                >
-                  {TIPOS.map((valor) => (
-                    <option key={valor} value={valor}>
-                      {valor === 'todo' ? 'Todo' : FILTRO_TIPO[valor]} ({cuantasDeTipo(valor)})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SelectorFiltro
+                label="Estado"
+                icon={<SlidersHorizontal className="h-3 w-3" />}
+                value={estado}
+                options={opcionesEstado}
+                onChange={setEstado}
+              />
+              <SelectorFiltro
+                label="Tipo"
+                icon={<Layers className="h-3 w-3" />}
+                value={tipo}
+                options={opcionesTipo}
+                onChange={setTipo}
+              />
             </div>
 
             {/* Sidebar filtros desktop */}
@@ -266,12 +400,18 @@ export default function RevisionPage() {
               </div>
             </aside>
 
-            {/* Grilla de piezas */}
+            {/* Grilla tipo Masonry sin huecos vacíos entre piezas de distinto formato */}
             <div>
               {!piezas && !error && (
-                <div className="grid grid-cols-2 gap-4 xl:grid-cols-3" aria-label="Cargando piezas">
+                <div className="columns-2 gap-3.5 sm:gap-5 xl:columns-3" aria-label="Cargando piezas">
                   {Array.from({ length: 6 }, (_, i) => (
-                    <SkeletonBox key={i} className="aspect-[9/16] rounded-2xl" />
+                    <SkeletonBox
+                      key={i}
+                      className={cn(
+                        'mb-3.5 w-full break-inside-avoid rounded-2xl sm:mb-5',
+                        i % 2 === 0 ? 'aspect-[9/16]' : 'aspect-[4/5]',
+                      )}
+                    />
                   ))}
                 </div>
               )}
@@ -296,7 +436,7 @@ export default function RevisionPage() {
                 </section>
               )}
 
-              <div className="grid grid-cols-2 items-start gap-4 sm:gap-5 xl:grid-cols-3">
+              <div className="columns-2 gap-3.5 sm:gap-5 xl:columns-3">
                 {clave !== null &&
                   visibles.map((pieza) => {
                     const revision = revisionDe(pieza.id);
@@ -313,7 +453,7 @@ export default function RevisionPage() {
                         key={pieza.id}
                         data-id={pieza.id}
                         className={cn(
-                          'min-w-0 overflow-hidden rounded-2xl border-4 bg-white shadow-xs transition-all duration-300 ease-expo hover:-translate-y-1 hover:shadow-xl',
+                          'mb-3.5 inline-block w-full break-inside-avoid overflow-hidden rounded-2xl border-4 bg-white shadow-xs transition-all duration-300 ease-expo hover:-translate-y-1 hover:shadow-xl sm:mb-5',
                           BORDE_ESTADO[revision.estado],
                         )}
                       >

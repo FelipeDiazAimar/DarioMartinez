@@ -123,7 +123,7 @@ export function Cargar({ clave, alCerrar, alTerminar }: { clave: string; alCerra
   }
 
   return (
-    <section aria-label="Cargar contenido" className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background">
+    <section aria-label="Cargar contenido" className="fixed inset-0 z-50 overflow-y-auto bg-background">
       <form onSubmit={enviar} className="mx-auto flex w-full max-w-lg flex-col gap-4 p-4 sm:py-8">
         <div className="flex items-center justify-between">
           <h2 className="font-headline text-2xl font-bold tracking-tight">Cargar contenido</h2>

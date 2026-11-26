@@ -180,7 +180,7 @@ export function Detalle({ piezas, actual, revisiones, clave, alGuardar, alIr }: 
   const laminaEditada = editando?.que === 'texto' ? pieza.laminas[editando.lamina] : null;
 
   return (
-    <section aria-label={pieza.titulo} className="fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1">
+    <section aria-label={pieza.titulo} className="fixed inset-0 z-50 flex flex-col bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1">
       <div className="flex min-h-0 flex-1 flex-col" style={{ backgroundColor: 'rgb(217 225 242 / 30%)' }}>
         <div className="flex items-center gap-1 border-b bg-white px-2 py-1.5">
           <Button variant="ghost" size="icon" onClick={cerrar} aria-label="Volver a la lista"><X /></Button>

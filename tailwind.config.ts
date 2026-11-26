@@ -94,7 +94,7 @@ export default {
         },
         'page-enter': {
           from: { opacity: '0.01', transform: 'translateY(8px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
+          to: { opacity: '1', transform: 'none' },
         },
         'svg-dash-flow': {
           from: { strokeDashoffset: '24' },
@@ -108,7 +108,7 @@ export default {
         'slide-in-from-bottom': 'slide-in-from-bottom 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-in-from-left': 'slide-in-from-left 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-in-from-right': 'slide-in-from-right 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'page-enter': 'page-enter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'page-enter': 'page-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards',
         'svg-dash-flow': 'svg-dash-flow 2.8s linear infinite',
       },
     },
